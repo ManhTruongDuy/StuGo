@@ -1,0 +1,19 @@
+{
+  "name": "stugo",
+  "version": "1.0.0",
+  "description": "StuGo - Student services platform (monorepo)",
+  "private": true,
+  "scripts": {
+    "dev:be": "npm run dev --prefix stugo-be",
+    "dev:fe": "npm run dev --prefix stugo-fe",
+    "start:be": "npm run start --prefix stugo-be",
+    "build:fe": "npm run build --prefix stugo-fe",
+    "lint:fe": "npm run lint --prefix stugo-fe",
+    "seed": "npm run seed --prefix stugo-be",
+    "install:all": "npm install --prefix stugo-be && npm install --prefix stugo-fe",
+    "check-admin": "node stugo-be/scripts/check-admin.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,177 @@
+import { Link } from 'react-router-dom';
+import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon } from 'lucide-react';
+import type { Service, Transport, Accommodation } from '../../types';
+
+interface ServiceCardProps {
+    service: Service;
+    onFavorite?: (id: string) => void;
+    isFavorite?: boolean;
+}
+
+const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardProps) => {
+    const getTypeLabel = (type: string) => {
+        switch (type) {
+            case 'transport':
+                return 'Nhà xe';
+            case 'accommodation':
+                return 'Nhà trọ';
+            case 'restaurant':
+                return 'Quán ăn';
+            default:
+                return type;
+        }
+    };
+
+    const getTypeColor = (type: string) => {
+        switch (type) {
+            case 'transport':
+                return 'bg-blue-100 text-blue-700';
+            case 'accommodation':
+                return 'bg-purple-100 text-purple-700';
+            case 'restaurant':
+                return 'bg-orange-100 text-orange-700';
+            default:
+                return 'bg-gray-100 text-gray-700';
+        }
+    };
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        }).format(price);
+    };
+
+    // Get available slots info
+    const getAvailableSlots = () => {
+        if (service.type === 'transport') {
+            const transport = service as Transport;
+            return {
+                icon: Users,
+                text: `${transport.seats} chỗ`,
+                color: 'text-blue-600',
+                bgColor: 'bg-blue-50'
+            };
+        } else if (service.type === 'accommodation') {
+            const accommodation = service as Accommodation;
+            const totalAvailable = accommodation.roomTypes?.reduce((sum, room) => sum + room.available, 0) || 0;
+            return {
+                icon: HomeIcon,
+                text: `${totalAvailable} phòng trống`,
+                color: 'text-purple-600',
+                bgColor: 'bg-purple-50'
+            };
+        }
+        return null;
+    };
+
+    const availableSlots = getAvailableSlots();
+
+    return (
+        <div className="card group overflow-hidden">
+            {/* Image */}
+            <div className="relative h-48 overflow-hidden">
+                <img
+                    src={service.images[0] || '/placeholder-service.jpg'}
+                    alt={service.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                {/* Type Badge */}
+                <div className="absolute top-3 left-3">
+                    <span className={`badge ${getTypeColor(service.type)}`}>
+                        {getTypeLabel(service.type)}
+                    </span>
+                </div>
+
+                {/* Favorite Button */}
+                {onFavorite && (
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onFavorite(service.id);
+                        }}
+                        className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${isFavorite
+                            ? 'bg-red-500 text-white'
+                            : 'bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white'
+                            }`}
+                    >
+                        <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+                    </button>
+                )}
+
+                {/* Availability */}
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span
+                        className={`badge ${service.isAvailable ? 'badge-success' : 'badge-danger'
+                            }`}
+                    >
+                        {service.isAvailable ? 'Còn chỗ' : 'Hết chỗ'}
+                    </span>
+                    <span className="badge bg-white/90 text-gray-700">
+                        <Eye className="w-3 h-3 mr-1" />
+                        {service.popularity} lượt xem
+                    </span>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-5">
+                {/* Title & Rating */}
+                <div className="flex items-start justify-between gap-2 mb-3">
+                    <h3 className="font-semibold text-gray-900 text-lg line-clamp-1 group-hover:text-primary-600 transition-colors">
+                        {service.name}
+                    </h3>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="font-medium text-gray-700">{service.rating.toFixed(1)}</span>
+                        <span className="text-gray-400 text-sm">({service.reviewCount})</span>
+                    </div>
+                </div>
+
+                {/* Address */}
+                <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="line-clamp-1">{service.address}</span>
+                </div>
+
+                {/* Open Hours */}
+                <div className="flex items-center gap-2 text-gray-500 text-sm mb-4">
+                    <Clock className="w-4 h-4 flex-shrink-0" />
+                    <span>{service.openTime} - {service.closeTime}</span>
+                </div>
+
+                {/* Available Slots - Only for transport and accommodation */}
+                {availableSlots && (
+                    <div className={`flex items-center gap-2 text-sm mb-4 px-3 py-2 rounded-lg ${availableSlots.bgColor}`}>
+                        <availableSlots.icon className={`w-4 h-4 flex-shrink-0 ${availableSlots.color}`} />
+                        <span className={`font-medium ${availableSlots.color}`}>
+                            {availableSlots.text}
+                        </span>
+                    </div>
+                )}
+
+                {/* Price & Action */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div>
+                        <span className="text-sm text-gray-500">Từ</span>
+                        <p className="text-lg font-bold text-primary-600">
+                            {formatPrice(service.priceRange.min)}
+                        </p>
+                    </div>
+                    <Link
+                        to={`/service/${service.id}`}
+                        className="btn-primary py-2 px-4 text-sm"
+                    >
+                        Xem chi tiết
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ServiceCard;

@@ -1,0 +1,378 @@
+import { useEffect, useState, useMemo } from 'react';
+import {
+    Download,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    DollarSign,
+} from 'lucide-react';
+import { getRevenueStats, type RevenueData } from '../../services/dashboard.service';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import toast from 'react-hot-toast';
+
+const RevenueDetailsPage = () => {
+    const [dateRange, setDateRange] = useState<'week' | 'month' | 'year'>('year');
+    const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
+    const itemsPerPage = 12;
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        }).format(price || 0);
+    };
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const data = await getRevenueStats();
+            setRevenueData(data);
+        } catch (error) {
+            console.error('Error fetching revenue details:', error);
+            toast.error('Không thể tải dữ liệu doanh thu');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    // Filter data based on date range
+    const filteredData = useMemo(() => {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        return revenueData.filter(item => {
+            if (dateRange === 'week') {
+                // Last 7 days - show current month only
+                return item._id.year === currentYear && item._id.month === currentMonth;
+            } else if (dateRange === 'month') {
+                // Last 30 days - show last 3 months
+                const itemDate = new Date(item._id.year, item._id.month - 1);
+                const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+                return itemDate >= threeMonthsAgo;
+            }
+            // Year - show all 12 months
+            return true;
+        });
+    }, [revenueData, dateRange]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredData.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredData, currentPage]);
+
+    const totalDeposits = useMemo(
+        () => filteredData.reduce((acc, item) => acc + (item.totalRevenue || 0), 0),
+        [filteredData]
+    );
+
+    const totalOrders = useMemo(
+        () => filteredData.reduce((acc, item) => acc + (item.bookingCount || 0), 0),
+        [filteredData]
+    );
+
+    const rangeLabel = useMemo(() => {
+        const now = new Date();
+        const targetDate = new Date(now.getFullYear(), now.getMonth() + currentMonthOffset, 1);
+
+        if (dateRange === 'week') {
+            return `Tháng ${targetDate.getMonth() + 1}/${targetDate.getFullYear()}`;
+        }
+        if (dateRange === 'month') {
+            return `3 tháng gần đây`;
+        }
+        return `Năm ${targetDate.getFullYear()}`;
+    }, [dateRange, currentMonthOffset]);
+
+    const handlePrevPeriod = () => {
+        setCurrentMonthOffset(prev => prev - 1);
+    };
+
+    const handleNextPeriod = () => {
+        if (currentMonthOffset < 0) {
+            setCurrentMonthOffset(prev => prev + 1);
+        }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const handleExportExcel = () => {
+        try {
+            // Create CSV content with semicolon separator for Vietnamese Excel
+            const headers = ['Kỳ', 'Doanh thu (VND)', 'Số đơn hàng'];
+            let csv = headers.join(';') + '\n';
+
+            filteredData.forEach(item => {
+                const row = [
+                    `"Tháng ${item._id.month}/${item._id.year}"`,
+                    `"${item.totalRevenue}"`,
+                    `"${item.bookingCount}"`
+                ];
+                csv += row.join(';') + '\n';
+            });
+
+            // Add total row
+            csv += ['"Tổng cộng"', `"${totalDeposits}"`, `"${totalOrders}"`].join(';') + '\n';
+
+            // Create blob with UTF-8 BOM for Excel compatibility
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `bao-cao-doanh-thu-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            toast.success('Xuất báo cáo thành công!');
+        } catch (error) {
+            console.error('Error exporting:', error);
+            toast.error('Không thể xuất báo cáo');
+        }
+    };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [dateRange]);
+
+    return (
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-display font-bold text-gray-900">
+                        Chi tiết doanh thu
+                    </h1>
+                    <p className="text-gray-500">
+                        Theo dõi doanh thu và phân tích hiệu suất kinh doanh
+                    </p>
+                </div>
+                <button onClick={handleExportExcel} className="btn-primary">
+                    <Download className="w-5 h-5" />
+                    Xuất báo cáo
+                </button>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid sm:grid-cols-3 gap-6">
+                <div className="card p-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <DollarSign className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Tổng tiền nạp</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {formatPrice(totalDeposits)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card p-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <Calendar className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Kỳ thống kê</p>
+                            <p className="text-base font-semibold text-gray-900">
+                                {rangeLabel}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card p-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                            <Calendar className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Tổng đơn hàng</p>
+                            <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div className="card p-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setDateRange('week')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === 'week'
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            7 ngày
+                        </button>
+                        <button
+                            onClick={() => setDateRange('month')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === 'month'
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            30 ngày
+                        </button>
+                        <button
+                            onClick={() => setDateRange('year')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === 'year'
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Năm nay
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handlePrevPeriod}
+                            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                        >
+                            <ChevronLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <span className="px-4 py-2 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
+                            {rangeLabel}
+                        </span>
+                        <button
+                            onClick={handleNextPeriod}
+                            disabled={currentMonthOffset >= 0}
+                            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Data Table */}
+            <div className="card overflow-hidden">
+                {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                        <LoadingSpinner />
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Kỳ
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Doanh thu
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Số đơn hàng
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {revenueData.map((item, index) => (
+                                    <tr key={`${item._id.year}-${item._id.month}-${index}`} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                            Tháng {item._id.month}/{item._id.year}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-green-600 font-medium">
+                                            +{formatPrice(item.totalRevenue)}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 text-primary-600 font-medium text-sm">
+                                                {item.bookingCount}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                            <tfoot className="bg-gray-50 font-medium">
+                                <tr>
+                                    <td className="px-6 py-4 text-sm text-gray-900">Tổng cộng</td>
+                                    <td className="px-6 py-4 text-sm text-green-600">
+                                        +{formatPrice(totalDeposits)}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-lg bg-primary-500 text-white text-sm">
+                                            {totalOrders}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-500">
+                        Hiển thị {paginatedData.length} / {filteredData.length} kỳ thống kê
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Trước
+                        </button>
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                                pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                            } else {
+                                pageNum = currentPage - 2 + i;
+                            }
+
+                            return (
+                                <button
+                                    key={pageNum}
+                                    onClick={() => handlePageChange(pageNum)}
+                                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === pageNum
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {pageNum}
+                                </button>
+                            );
+                        })}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Sau
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default RevenueDetailsPage;

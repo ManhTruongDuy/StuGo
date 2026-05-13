@@ -1,0 +1,237 @@
+import { userRepository, bookingRepository, paymentRepository } from '../repositories/index.js';
+
+/**
+ * Get all users (Admin only)
+ * GET /api/users
+ */
+export const getUsers = async (req, res, next) => {
+  try {
+    const { role, search, status } = req.query;
+    const options = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 20
+    };
+
+    let result;
+    
+    if (search) {
+      result = await userRepository.searchUsers(search, options);
+    } else {
+      const filter = {};
+      if (role) filter.role = role;
+      if (status) filter.status = status;
+      result = await userRepository.find(filter, options);
+    }
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get user by ID
+ * GET /api/users/:id
+ */
+export const getUserById = async (req, res, next) => {
+  try {
+    // Users can only view their own profile, admins can view any
+    if (req.params.id !== req.userId && req.userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Không có quyền xem thông tin này'
+      });
+    }
+
+    const user = await userRepository.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        avatar: user.avatar || user.avatarUrl,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        district: user.district,
+        ward: user.ward,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update user profile
+ * PUT /api/users/:id
+ */
+export const updateUser = async (req, res, next) => {
+  try {
+    // Users can only update their own profile, admins can update any
+    if (req.params.id !== req.userId && req.userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Không có quyền cập nhật'
+      });
+    }
+
+    // Prevent role/status changes unless admin
+    const { role, status, ...updateData } = req.body;
+    
+    if (req.userRole === 'admin') {
+      if (role) updateData.role = role;
+      if (status) updateData.status = status;
+    }
+
+    const user = await userRepository.updateById(req.params.id, updateData);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user,
+      message: 'Cập nhật thông tin thành công'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update user status (Admin only)
+ * PATCH /api/users/:id/status
+ */
+export const updateUserStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    
+    if (!['active', 'banned', 'pending'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Trạng thái không hợp lệ'
+      });
+    }
+
+    const user = await userRepository.updateById(req.params.id, { status });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user,
+      message: `Đã ${status === 'banned' ? 'khóa' : 'kích hoạt'} tài khoản`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get user statistics
+ * GET /api/users/:id/stats
+ */
+export const getUserStats = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    // Get booking stats
+    const bookingStats = await bookingRepository.find({ userId }, { limit: 1000 });
+    const completedBookings = bookingStats.data.filter(b => b.status === 'completed');
+    const totalSpent = completedBookings.reduce((sum, b) => sum + b.totalAmount, 0);
+
+    const user = await userRepository.findById(userId);
+
+    res.json({
+      success: true,
+      data: {
+        totalBookings: bookingStats.pagination.total,
+        completedBookings: completedBookings.length,
+        totalSpent,
+        memberSince: user?.createdAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get partners list (Admin only)
+ * GET /api/users/partners
+ */
+export const getPartners = async (req, res, next) => {
+  try {
+    const options = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 20
+    };
+
+    const result = await userRepository.findPartners(options);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get user overview stats (Admin only)
+ * GET /api/users/stats
+ */
+export const getUserOverviewStats = async (req, res, next) => {
+  try {
+    const stats = await userRepository.getStats();
+    const newUsers = await userRepository.getNewUsersCount(30);
+
+    res.json({
+      success: true,
+      data: {
+        ...stats,
+        newUsersLast30Days: newUsers
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default {
+  getUsers,
+  getUserById,
+  updateUser,
+  updateUserStatus,
+  getUserStats,
+  getPartners,
+  getUserOverviewStats
+};

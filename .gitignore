@@ -1,0 +1,87 @@
+# ─────────────────────────────────────────
+# Dependencies
+# ─────────────────────────────────────────
+node_modules/
+stugo-be/node_modules/
+stugo-fe/node_modules/
+
+# ─────────────────────────────────────────
+# Environment & Secrets  ← NEVER commit these
+# ─────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+stugo-be/.env
+stugo-be/.env.local
+stugo-be/.env.*.local
+stugo-fe/.env
+stugo-fe/.env.local
+stugo-fe/.env.*.local
+
+# ─────────────────────────────────────────
+# Build output
+# ─────────────────────────────────────────
+stugo-fe/dist/
+stugo-fe/dist-ssr/
+stugo-be/dist/
+stugo-be/build/
+
+# ─────────────────────────────────────────
+# Logs
+# ─────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─────────────────────────────────────────
+# Runtime / OS
+# ─────────────────────────────────────────
+pids/
+*.pid
+*.seed
+*.pid.lock
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────
+# Test & coverage
+# ─────────────────────────────────────────
+coverage/
+stugo-be/coverage/
+stugo-fe/coverage/
+
+# ─────────────────────────────────────────
+# Vite / TypeScript cache
+# ─────────────────────────────────────────
+stugo-fe/.vite/
+stugo-fe/tsconfig.tsbuildinfo
+stugo-fe/node_modules/.vite-temp/
+
+# ─────────────────────────────────────────
+# IDE
+# ─────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─────────────────────────────────────────
+# Kiro IDE (workspace-level only, not team config)
+# ─────────────────────────────────────────
+.kiro/
+
+# ─────────────────────────────────────────
+# Temp / misc
+# ─────────────────────────────────────────
+tmp/
+temp/
+*.local

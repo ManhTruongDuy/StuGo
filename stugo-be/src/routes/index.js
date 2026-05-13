@@ -1,0 +1,9 @@
+export { default as authRoutes } from './auth.routes.js';
+export { default as serviceRoutes } from './service.routes.js';
+export { default as bookingRoutes } from './booking.routes.js';
+export { default as userRoutes } from './user.routes.js';
+export { default as paymentRoutes } from './payment.routes.js';
+export { default as complaintRoutes } from './complaint.routes.js';
+export { default as dashboardRoutes } from './dashboard.routes.js';
+export { default as reviewRoutes } from './review.routes.js';
+export { default as subscriptionRoutes } from './subscription.routes.js';

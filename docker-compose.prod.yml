@@ -1,0 +1,42 @@
+services:
+  backend:
+    image: ${DOCKER_USERNAME}/stugo-be:${IMAGE_TAG:-latest}
+    container_name: stugo-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      FRONTEND_URL: ${FRONTEND_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID}
+      PAYOS_API_KEY: ${PAYOS_API_KEY}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY}
+    ports:
+      - "3000:3000"
+    networks:
+      - stugo-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: ${DOCKER_USERNAME}/stugo-fe:${IMAGE_TAG:-latest}
+    container_name: stugo-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - stugo-network
+    depends_on:
+      - backend
+
+networks:
+  stugo-network:
+    driver: bridge
