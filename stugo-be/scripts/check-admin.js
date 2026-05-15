@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import User from './src/models/user.model.js';
+import User from '../src/models/user.model.js';
 
 const checkAdmin = async () => {
     try {

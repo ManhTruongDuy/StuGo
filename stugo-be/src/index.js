@@ -54,7 +54,26 @@ const app = express();
 app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" }
 }));
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    const allowed = [
+      FRONTEND_URL,
+      // Allow any Vercel preview deployment for this project
+      /\.vercel\.app$/,
+    ];
+
+    const isAllowed = allowed.some(pattern =>
+      typeof pattern === 'string' ? pattern === origin : pattern.test(origin)
+    );
+
+    if (isAllowed) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -69,14 +88,17 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
+// /health and /api/health both work (Railway + docker-compose use /health)
+const healthHandler = (req, res) => {
   res.json({
     success: true,
     status: 'healthy',
     uptime: process.uptime(),
     environment: NODE_ENV
   });
-});
+};
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 
 // API Routes
 app.use('/api/auth', authRoutes);
