@@ -110,6 +110,8 @@ export interface Booking {
   hasInsurance?: boolean;
   status: BookingStatus;
   paymentStatus: 'pending' | 'deposit_paid' | 'fully_paid' | 'refunded';
+  bookingType?: 'reservation' | 'order';
+  orderType?: 'delivery' | 'pickup' | 'dine_in';
   customerInfo?: {
     name?: string;
     phone?: string;

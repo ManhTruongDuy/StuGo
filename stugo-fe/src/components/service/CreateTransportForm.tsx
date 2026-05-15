@@ -232,7 +232,7 @@ const CreateTransportForm = () => {
                 departureTime: formData.departureTime,
             };
 
-            const result = await createService(serviceData);
+            await createService(serviceData);
 
             toast.success('✅ Tạo dịch vụ nhà xe thành công! Đang chờ phê duyệt.');
             navigate('/manager/services');
