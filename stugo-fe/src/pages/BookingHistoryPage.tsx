@@ -1045,29 +1045,6 @@ const BookingHistoryPage = () => {
 };
 
 export default BookingHistoryPage;
-                            {/* Booking Details */}
-                            <div>
-                                <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-                                    Thông tin đặt chỗ
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                        <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-0.5">Ngày đặt</p>
-                                            <p className="text-sm font-medium text-gray-900">{formatDateTime(selectedBooking.date)}</p>
-                                        </div>
-                                    </div>
-
-                                    {selectedBooking.timeSlot && (
-                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                            <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                            <div>
-                                                <p className="text-xs text-gray-500 mb-0.5">Khung giờ</p>
-                                                <p className="text-sm font-medium text-gray-900">{selectedBooking.timeSlot}</p>
-                                            </div>
-                                        </div>
-                                    )}
 
                                     {selectedBooking.route && (
                                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -1099,144 +1076,38 @@ export default BookingHistoryPage;
                                 </div>
                             </div>
 
-                            {/* Payment Info */}
-                            <div className="border-t border-gray-200 pt-5">
-                                <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide flex items-center gap-2">
-                                    <CreditCard className="w-4 h-4" />
-                                    Thông tin thanh toán
-                                </h4>
-                                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Tổng giá trị đơn hàng</span>
-                                        <span className="text-base font-semibold text-gray-900">
-                                            {formatPrice(selectedBooking.totalAmount)}
-                                        </span>
-                                    </div>
+                        </div>
 
-                                    {selectedBooking.paymentStatus === 'pending' && (
-                                        <div className="pt-3 border-t border-gray-200">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm font-medium text-red-600">Đã thanh toán</span>
-                                                <span className="text-lg font-bold text-red-600">
-                                                    {formatPrice(0)}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center mt-2">
-                                                <span className="text-sm font-medium text-orange-600">Cần thanh toán</span>
-                                                <span className="text-lg font-bold text-orange-600">
-                                                    {formatPrice(selectedBooking.totalAmount)}
-                                                </span>
-                                            </div>
-                                            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                                <p className="text-xs text-yellow-800">
-                                                    💡 Đặt chỗ chưa được thanh toán. Vui lòng hoàn tất thanh toán để xác nhận đặt chỗ.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {selectedBooking.paymentStatus === 'deposit_paid' && (
-                                        <div className="pt-3 border-t border-gray-200 space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600">Đã đặt cọc (30%)</span>
-                                                <span className="text-base font-medium text-green-600">
-                                                    {formatPrice(selectedBooking.depositAmount)}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                                <span className="text-sm font-medium text-orange-600">Còn phải trả (70%)</span>
-                                                <span className="text-lg font-bold text-orange-600">
-                                                    {formatPrice(selectedBooking.totalAmount - selectedBooking.depositAmount)}
-                                                </span>
-                                            </div>
-                                            {selectedBooking.status !== 'cancelled' && selectedBooking.status !== 'completed' && (
-                                                <button
-                                                    onClick={() => handlePayRemaining(selectedBooking.id)}
-                                                    disabled={processingPayment}
-                                                    className="w-full mt-3 px-4 py-2.5 text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                >
-                                                    <CreditCard className="w-4 h-4" />
-                                                    {processingPayment ? 'Đang xử lý...' : 'Thanh toán phần còn lại'}
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {selectedBooking.paymentStatus === 'fully_paid' && (
-                                        <div className="pt-3 border-t border-gray-200">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm font-medium text-green-600">Đã thanh toán</span>
-                                                <span className="text-lg font-bold text-green-600">
-                                                    {formatPrice(selectedBooking.totalAmount)}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2 mt-2 text-sm text-green-600">
-                                                <CheckCircle className="w-4 h-4" />
-                                                <span>Đã thanh toán đầy đủ</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {selectedBooking.paymentStatus === 'refunded' && (
-                                        <div className="pt-3 border-t border-gray-200">
-                                            <div className="flex items-center gap-2 text-sm text-blue-600">
-                                                <Info className="w-4 h-4" />
-                                                <span>Đã hoàn tiền</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Customer Info */}
-                            {selectedBooking.customerInfo && (
-                                <div className="border-t border-gray-200 pt-5">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide flex items-center gap-2">
-                                        <User className="w-4 h-4" />
-                                        Thông tin khách hàng
-                                    </h4>
-                                    <div className="space-y-2">
-                                        {selectedBooking.customerInfo.name && (
-                                            <div className="flex items-center gap-3 text-sm">
-                                                <span className="text-gray-500 w-24">Tên:</span>
-                                                <span className="font-medium text-gray-900">{selectedBooking.customerInfo.name}</span>
-                                            </div>
-                                        )}
-                                        {selectedBooking.customerInfo.phone && (
-                                            <div className="flex items-center gap-3 text-sm">
-                                                <span className="text-gray-500 w-24">SĐT:</span>
-                                                <span className="font-medium text-gray-900">{selectedBooking.customerInfo.phone}</span>
-                                            </div>
-                                        )}
-                                        {selectedBooking.customerInfo.email && (
-                                            <div className="flex items-center gap-3 text-sm">
-                                                <span className="text-gray-500 w-24">Email:</span>
-                                                <span className="font-medium text-gray-900 break-all">{selectedBooking.customerInfo.email}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                        {/* Footer */}
+                        <div className="flex gap-3 p-5 border-t border-gray-100 bg-gray-50">
+                            <button
+                                onClick={() => {
+                                    setShowDetailModal(false);
+                                    const sid = typeof (selectedBooking as any).serviceId === 'object'
+                                        ? (selectedBooking as any).serviceId?._id
+                                        : (selectedBooking as any).serviceId;
+                                    navigate(`/service/${sid}`);
+                                }}
+                                className="flex-1 py-2.5 px-4 bg-primary-500 text-white rounded-xl hover:bg-primary-600 font-medium text-sm flex items-center justify-center gap-2"
+                            >
+                                <Eye className="w-4 h-4" /> Xem dịch vụ
+                            </button>
+                            {(selectedBooking as any).status !== 'cancelled' && (selectedBooking as any).status !== 'completed' && (
+                                <button
+                                    onClick={() => { setShowDetailModal(false); setShowCancelModal(true); }}
+                                    className="flex-1 py-2.5 px-4 text-red-600 bg-white border border-red-200 rounded-xl hover:bg-red-50 font-medium text-sm flex items-center justify-center gap-2"
+                                >
+                                    <X className="w-4 h-4" /> Hủy đặt chỗ
+                                </button>
                             )}
-
-                            {/* Booking Metadata */}
-                            <div className="border-t border-gray-200 pt-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <p className="text-gray-500 mb-1">Mã đặt chỗ</p>
-                                        <p className="font-mono font-medium text-gray-900">
-                                            #{((selectedBooking as any).id || (selectedBooking as any)._id || '').slice(-8).toUpperCase()}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-500 mb-1">Ngày tạo</p>
-                                        <p className="font-medium text-gray-900">
-                                            {formatDateTime(selectedBooking.createdAt)}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
+                            <button onClick={() => { setShowDetailModal(false); setSelectedBooking(null); }}
+                                className="py-2.5 px-4 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 font-medium text-sm">
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
