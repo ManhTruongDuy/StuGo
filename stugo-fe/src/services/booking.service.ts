@@ -122,8 +122,8 @@ export const getBookings = async (filters?: {
       const bookings = (response.data as any).data.map((booking: any) => ({
         ...booking,
         id: booking._id || booking.id,
-        userId: booking.userId || booking.userId?._id || '',
-        serviceId: booking.serviceId || booking.serviceId?._id || '',
+        userId: typeof booking.userId === 'object' ? (booking.userId?._id || '') : (booking.userId || ''),
+        serviceId: typeof booking.serviceId === 'object' ? (booking.serviceId?._id || '') : (booking.serviceId || ''),
       }));
 
       return {

@@ -502,7 +502,7 @@ export const createBooking = async (req, res, next) => {
 };
 
 /**
- * Confirm booking (by service owner)
+ * Confirm booking (by service owner or admin)
  * PATCH /api/bookings/:id/confirm
  */
 export const confirmBooking = async (req, res, next) => {
@@ -516,12 +516,30 @@ export const confirmBooking = async (req, res, next) => {
       });
     }
 
-    // Check if user owns the service
-    const service = await serviceRepository.findById(booking.serviceId);
-    if (service.ownerId.toString() !== req.userId && req.userRole !== 'admin') {
-      return res.status(403).json({
+    // serviceId may be a populated object or a raw ObjectId
+    const serviceId = booking.serviceId?._id || booking.serviceId;
+
+    // Admin can always confirm
+    if (req.userRole !== 'admin') {
+      const service = await serviceRepository.findById(serviceId);
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy dịch vụ liên quan'
+        });
+      }
+      if (service.ownerId.toString() !== req.userId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Không có quyền xác nhận đặt chỗ này'
+        });
+      }
+    }
+
+    if (booking.status === 'cancelled' || booking.status === 'completed') {
+      return res.status(400).json({
         success: false,
-        message: 'Không có quyền xác nhận'
+        message: `Không thể xác nhận đặt chỗ có trạng thái "${booking.status}"`
       });
     }
 
@@ -552,13 +570,22 @@ export const completeBooking = async (req, res, next) => {
       });
     }
 
-    // Check permission
-    const service = await serviceRepository.findById(booking.serviceId);
-    if (service.ownerId.toString() !== req.userId && req.userRole !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Không có quyền hoàn thành'
-      });
+    const serviceId = booking.serviceId?._id || booking.serviceId;
+
+    if (req.userRole !== 'admin') {
+      const service = await serviceRepository.findById(serviceId);
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy dịch vụ liên quan'
+        });
+      }
+      if (service.ownerId.toString() !== req.userId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Không có quyền hoàn thành đặt chỗ này'
+        });
+      }
     }
 
     const updated = await bookingRepository.completeBooking(booking._id);

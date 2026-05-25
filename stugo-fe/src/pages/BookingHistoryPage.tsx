@@ -1005,7 +1005,7 @@ const BookingHistoryPage = () => {
                                     <div>
                                         <p className="text-gray-500 mb-1">Mã đặt chỗ</p>
                                         <p className="font-mono font-medium text-gray-900">
-                                            #{selectedBooking.id.slice(-8).toUpperCase()}
+                                            #{(selectedBooking.id || selectedBooking._id || '').slice(-8).toUpperCase()}
                                         </p>
                                     </div>
                                     <div>
@@ -1022,7 +1022,10 @@ const BookingHistoryPage = () => {
                                 <button
                                     onClick={() => {
                                         setShowDetailModal(false);
-                                        navigate(`/service/${selectedBooking.serviceId}`);
+                                        const sid = typeof selectedBooking.serviceId === 'object'
+                                            ? selectedBooking.serviceId?._id
+                                            : selectedBooking.serviceId;
+                                        navigate(`/service/${sid}`);
                                     }}
                                     className="btn-primary flex-1"
                                 >
