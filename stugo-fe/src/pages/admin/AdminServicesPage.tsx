@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
     Search, Filter, MapPin, Star, ToggleLeft, ToggleRight,
-    Bus, Building2, Utensils, Pencil, Plus, Trash2, X,
+    Bus, Building2, Utensils, Pencil, Plus, X,
     Loader2, Upload, Link as LinkIcon, Save,
 } from 'lucide-react';
 import { getServices } from '../../services/service.service';
@@ -165,7 +165,7 @@ const ServiceEditModal = ({
                 status: form.status,
                 images,
             };
-            const res = await api.put(`/services/${service.id}`, payload);
+            await api.put(`/services/${service.id}`, payload);
             toast.success('Đã cập nhật dịch vụ');
             onSaved({ ...service, ...payload, id: service.id });
             onClose();
