@@ -130,7 +130,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                     </span>
                     <span className="badge bg-white/90 text-gray-700">
                         <Eye className="w-3 h-3 mr-1" />
-                        {service.popularity}% phổ biến
+                        {service.popularity} lượt xem
                     </span>
                 </div>
             </div>
