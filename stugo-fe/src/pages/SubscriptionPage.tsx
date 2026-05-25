@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Check, Gift, Shield, Zap, Loader2, Crown,
-    Bus, Sparkles, BadgeCheck, TrendingUp,
+    Bus, TrendingUp,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
@@ -124,16 +124,6 @@ const PARTNER_PLANS: Plan[] = [
     },
 ];
 
-// ─── KPI Section ─────────────────────────────────────────────────────────────
-const KPI_DATA = [
-    { label: 'Sinh viên mục tiêu', value: '10.000+', sub: 'trong 7 tuần MVP', color: 'text-primary-600' },
-    { label: 'Nhà xe đối tác', value: '50+', sub: 'đăng ký trong MVP', color: 'text-teal-600' },
-    { label: 'Tỷ lệ giữ chân', value: '40%', sub: 'sau tuần đầu tiên', color: 'text-secondary-600' },
-    { label: 'Đặt vé thành công', value: '500+', sub: 'giao dịch/tuần', color: 'text-orange-600' },
-    { label: 'Chuyển đổi Free→Plus', value: '5%', sub: 'mục tiêu cuối MVP', color: 'text-green-600' },
-    { label: 'Thời gian MVP', value: '7 tuần', sub: 'ra mắt & đo lường', color: 'text-blue-600' },
-];
-
 const SubscriptionPage = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
@@ -197,10 +187,6 @@ const SubscriptionPage = () => {
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
                 <div className="relative max-w-4xl mx-auto px-4 text-center text-white">
-                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-medium mb-6">
-                        <Sparkles className="w-4 h-4" />
-                        MVP — 7 tuần ra mắt
-                    </div>
                     <h1 className="text-4xl sm:text-5xl font-display font-bold mb-4 leading-tight">
                         {role === 'partner' ? 'Gói đối tác StuGo' : 'Chọn gói phù hợp với bạn'}
                     </h1>
@@ -334,28 +320,6 @@ const SubscriptionPage = () => {
                             </div>
                         );
                     })}
-                </div>
-
-                {/* ── KPI Section ───────────────────────────────────────────── */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center">
-                            <BadgeCheck className="w-5 h-5 text-primary-600" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-900">Chỉ số hiệu suất chính (KPI)</h2>
-                            <p className="text-sm text-gray-500">Mục tiêu MVP — 7 tuần ra mắt</p>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {KPI_DATA.map((kpi, i) => (
-                            <div key={i} className="bg-gray-50 rounded-xl p-4 text-center">
-                                <p className={`text-2xl font-bold mb-1 ${kpi.color}`}>{kpi.value}</p>
-                                <p className="text-sm font-medium text-gray-700">{kpi.label}</p>
-                                <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>
-                            </div>
-                        ))}
-                    </div>
                 </div>
 
             </div>
