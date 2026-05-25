@@ -65,6 +65,20 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
         return null;
     };
 
+    // Get fallback image per service type
+    const getFallbackImage = (type: string) => {
+        switch (type) {
+            case 'transport':
+                return 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop';
+            case 'accommodation':
+                return 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&auto=format&fit=crop';
+            case 'restaurant':
+                return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop';
+            default:
+                return 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&auto=format&fit=crop';
+        }
+    };
+
     const availableSlots = getAvailableSlots();
 
     return (
@@ -72,9 +86,12 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
             {/* Image */}
             <div className="relative h-48 overflow-hidden">
                 <img
-                    src={service.images[0] || '/placeholder-service.jpg'}
+                    src={service.images?.[0] || getFallbackImage(service.type)}
                     alt={service.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = getFallbackImage(service.type);
+                    }}
                 />
 
                 {/* Overlay gradient */}
@@ -113,7 +130,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                     </span>
                     <span className="badge bg-white/90 text-gray-700">
                         <Eye className="w-3 h-3 mr-1" />
-                        {service.popularity} lượt xem
+                        {service.popularity}% phổ biến
                     </span>
                 </div>
             </div>

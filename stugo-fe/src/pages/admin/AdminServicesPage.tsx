@@ -9,8 +9,15 @@ import {
     Bus,
     Building2,
     Utensils,
+    Pencil,
+    Plus,
+    Trash2,
+    X,
+    Loader2,
+    Image,
 } from 'lucide-react';
 import { getServices } from '../../services/service.service';
+import api from '../../services/api';
 import type { Service, ServiceType } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -18,12 +25,163 @@ import toast from 'react-hot-toast';
 type TypeFilter = 'all' | ServiceType;
 type StatusFilter = 'all' | 'active' | 'inactive';
 
+// ── Image Edit Modal ──────────────────────────────────────────────────────────
+const ImageEditModal = ({
+    service,
+    onClose,
+    onSaved,
+}: {
+    service: Service;
+    onClose: () => void;
+    onSaved: (id: string, images: string[]) => void;
+}) => {
+    const [images, setImages] = useState<string[]>(service.images || []);
+    const [newUrl, setNewUrl] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const addUrl = () => {
+        const trimmed = newUrl.trim();
+        if (!trimmed) return;
+        if (!trimmed.startsWith('http')) {
+            toast.error('URL phải bắt đầu bằng http:// hoặc https://');
+            return;
+        }
+        setImages((prev) => [...prev, trimmed]);
+        setNewUrl('');
+    };
+
+    const removeImage = (index: number) => {
+        setImages((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            await api.put(`/services/${service.id}`, { images });
+            toast.success('Đã cập nhật ảnh');
+            onSaved(service.id, images);
+            onClose();
+        } catch {
+            toast.error('Không thể cập nhật ảnh');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                {/* Header */}
+                <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center">
+                            <Image className="w-4 h-4 text-primary-600" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-gray-900">Chỉnh sửa ảnh</h3>
+                            <p className="text-xs text-gray-500 line-clamp-1">{service.name}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-5 space-y-4">
+                    {/* Add URL input */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Thêm URL ảnh
+                        </label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newUrl}
+                                onChange={(e) => setNewUrl(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && addUrl()}
+                                placeholder="https://example.com/image.jpg"
+                                className="input flex-1 text-sm"
+                            />
+                            <button
+                                onClick={addUrl}
+                                className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors flex items-center gap-1.5 text-sm font-medium"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Thêm
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                            Dán URL ảnh từ Unsplash, imgbb, hoặc bất kỳ nguồn nào
+                        </p>
+                    </div>
+
+                    {/* Image list */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Danh sách ảnh ({images.length})
+                        </label>
+                        {images.length === 0 ? (
+                            <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center text-gray-400 text-sm">
+                                Chưa có ảnh nào. Thêm URL ảnh ở trên.
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                                {images.map((url, index) => (
+                                    <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
+                                        <img
+                                            src={url}
+                                            alt=""
+                                            className="w-14 h-10 object-cover rounded-lg flex-shrink-0 bg-gray-200"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src =
+                                                    'https://via.placeholder.com/56x40?text=Error';
+                                            }}
+                                        />
+                                        <span className="flex-1 text-xs text-gray-600 truncate">{url}</span>
+                                        <button
+                                            onClick={() => removeImage(index)}
+                                            className="p-1.5 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors flex-shrink-0"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex gap-3 p-5 border-t border-gray-100">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-2.5 px-4 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex-1 py-2.5 px-4 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60"
+                    >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const AdminServicesPage = () => {
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+    const [editingService, setEditingService] = useState<Service | null>(null);
 
     useEffect(() => {
         const fetchAllServices = async () => {
@@ -134,6 +292,12 @@ const AdminServicesPage = () => {
         return `Đến ${formatter.format(service.priceRange.max)}`;
     };
 
+    const handleImagesSaved = (id: string, images: string[]) => {
+        setServices((prev) =>
+            prev.map((s) => (s.id === id ? { ...s, images } : s))
+        );
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-height-[400px]">
@@ -144,6 +308,14 @@ const AdminServicesPage = () => {
 
     return (
         <div className="space-y-6">
+            {/* Image edit modal */}
+            {editingService && (
+                <ImageEditModal
+                    service={editingService}
+                    onClose={() => setEditingService(null)}
+                    onSaved={handleImagesSaved}
+                />
+            )}
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-display font-bold text-gray-900">
@@ -276,6 +448,9 @@ const AdminServicesPage = () => {
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
                                     Trạng thái
                                 </th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                    Ảnh
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -340,12 +515,21 @@ const AdminServicesPage = () => {
                                         <td className="px-6 py-4">
                                             {getStatusBadge(service.isAvailable)}
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <button
+                                                onClick={() => setEditingService(service)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                                            >
+                                                <Pencil className="w-3.5 h-3.5" />
+                                                Sửa ảnh ({service.images?.length || 0})
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
                                     <td
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="px-6 py-8 text-center text-gray-500"
                                     >
                                         Không có dịch vụ nào phù hợp với bộ lọc

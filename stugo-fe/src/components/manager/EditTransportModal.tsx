@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { XCircle, Save, Plus, Trash2, Upload, X } from 'lucide-react';
+import { XCircle, Save, Plus, Trash2, Upload, X, Link } from 'lucide-react';
 import { updateService } from '../../services/service.service';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ interface EditTransportModalProps {
 const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalProps) => {
     const [saving, setSaving] = useState(false);
     const [images, setImages] = useState<string[]>([]);
+    const [newImageUrl, setNewImageUrl] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -120,6 +121,17 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
         });
     };
 
+    const addImageUrl = () => {
+        const trimmed = newImageUrl.trim();
+        if (!trimmed) return;
+        if (!trimmed.startsWith('http')) {
+            toast.error('URL phải bắt đầu bằng http:// hoặc https://');
+            return;
+        }
+        setImages(prev => [...prev, trimmed]);
+        setNewImageUrl('');
+    };
+
     const removeImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
     };
@@ -143,13 +155,36 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
                         {/* Images */}
                         <div>
                             <h3 className="font-semibold text-gray-900 mb-4">Hình ảnh</h3>
+                            {/* URL input */}
+                            <div className="flex gap-2 mb-4">
+                                <div className="relative flex-1">
+                                    <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={newImageUrl}
+                                        onChange={(e) => setNewImageUrl(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
+                                        placeholder="Dán URL ảnh vào đây..."
+                                        className="input w-full pl-9 text-sm"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addImageUrl}
+                                    className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium flex items-center gap-1.5"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Thêm URL
+                                </button>
+                            </div>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                                 {images.map((img, index) => (
                                     <div key={index} className="relative group">
                                         <img
                                             src={img}
                                             alt={`Preview ${index + 1}`}
-                                            className="w-full h-32 object-cover rounded-lg"
+                                            className="w-full h-32 object-cover rounded-lg bg-gray-100"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150x120?text=Error'; }}
                                         />
                                         <button
                                             type="button"
@@ -162,7 +197,7 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
                                 ))}
                                 <label className="border-2 border-dashed border-gray-300 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:border-primary-500 transition-colors">
                                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-sm text-gray-500">Thêm ảnh</span>
+                                    <span className="text-sm text-gray-500">Tải ảnh lên</span>
                                     <input
                                         type="file"
                                         accept="image/*"
