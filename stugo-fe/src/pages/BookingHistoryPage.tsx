@@ -1237,37 +1237,6 @@ export default BookingHistoryPage;
                             </div>
 
                             {/* Actions */}
-                            <div className="flex gap-3 pt-4 border-t border-gray-200">
-                                <button
-                                    onClick={() => {
-                                        setShowDetailModal(false);
-                                        const sid = typeof selectedBooking.serviceId === 'object'
-                                            ? (selectedBooking.serviceId as any)?._id
-                                            : selectedBooking.serviceId;
-                                        navigate(`/service/${sid}`);
-                                    }}
-                                    className="btn-primary flex-1"
-                                >
-                                    <Eye className="w-4 h-4" />
-                                    Xem dịch vụ
-                                </button>
-                                {selectedBooking.status !== 'cancelled' && selectedBooking.status !== 'completed' && (
-                                    <button
-                                        onClick={() => {
-                                            setShowDetailModal(false);
-                                            setShowCancelModal(true);
-                                        }}
-                                        className="flex-1 px-4 py-2.5 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors font-medium flex items-center justify-center gap-2 border border-red-200"
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Hủy đặt chỗ
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
