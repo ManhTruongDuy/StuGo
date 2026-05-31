@@ -12,6 +12,7 @@ import {
     TrendingUp,
     CheckCircle,
     Search,
+    Crown,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ServiceCard from '../components/ui/ServiceCard';
@@ -30,6 +31,7 @@ const HomePage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [pricingTab, setPricingTab] = useState<'user' | 'partner'>('user');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -318,6 +320,146 @@ const HomePage = () => {
                     ) : (
                         <div className="text-center py-20">
                             <p className="text-gray-500">Chưa có dịch vụ nào</p>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* Pricing Section */}
+            <section className="py-24 bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-12">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 rounded-full text-primary-600 text-sm font-medium mb-4">
+                            <Crown className="w-4 h-4" />
+                            Gói dịch vụ
+                        </span>
+                        <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-4">
+                            Chọn gói phù hợp với bạn
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto">
+                            Dành cho sinh viên và đối tác nhà xe — minh bạch, không phí ẩn.
+                        </p>
+                    </div>
+
+                    {/* Toggle tabs */}
+                    <div className="flex justify-center mb-10">
+                        <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-sm border border-gray-200 gap-1">
+                            <button
+                                onClick={() => setPricingTab('user')}
+                                className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all ${pricingTab === 'user' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Sinh viên
+                            </button>
+                            <button
+                                onClick={() => setPricingTab('partner')}
+                                className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all ${pricingTab === 'partner' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                Đối tác nhà xe
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* User plans */}
+                    {pricingTab === 'user' && (
+                        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                            {[
+                                {
+                                    name: 'Free',
+                                    price: 0,
+                                    description: 'Đủ dùng cho sinh viên mới bắt đầu',
+                                    features: ['Tìm kiếm tuyến xe', 'So sánh giá vé & lịch trình', 'Xem đánh giá nhà xe', 'Đặt vé cơ bản', 'Lưu lịch sử chuyến đi'],
+                                    popular: false,
+                                },
+                                {
+                                    name: 'StuGo Student Premium',
+                                    price: 49000,
+                                    description: 'Trải nghiệm đầy đủ dành riêng cho sinh viên',
+                                    badge: 'Phổ biến nhất',
+                                    features: ['Tất cả tính năng Free', 'Chọn ghế ngồi', 'Ưu tiên giữ chỗ giờ cao điểm', 'Đặt lại chuyến quen 1 chạm', 'Thông báo flash sale', 'Giữ chỗ dịp lễ/Tết', 'Tích điểm & hoàn xu', 'Gợi ý AI thông minh'],
+                                    popular: true,
+                                },
+                            ].map((plan, i) => (
+                                <div key={i} className={`relative bg-white rounded-2xl p-7 flex flex-col ${plan.popular ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10' : 'border border-gray-200 shadow-lg'}`}>
+                                    {plan.badge && (
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-4 py-1 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap">
+                                            {plan.badge}
+                                        </div>
+                                    )}
+                                    <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
+                                    <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
+                                    <div className="text-2xl font-bold text-gray-900 mb-5">
+                                        {plan.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price) + '/tháng'}
+                                    </div>
+                                    <ul className="space-y-2 mb-6 flex-1">
+                                        {plan.features.map((f, j) => (
+                                            <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
+                                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                                {f}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <Link to="/subscription" className={`text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-colors ${plan.popular ? 'bg-primary-500 text-white hover:bg-primary-600' : 'border-2 border-gray-200 text-gray-700 hover:border-primary-300'}`}>
+                                        {plan.price === 0 ? 'Bắt đầu miễn phí' : 'Đăng ký ngay'}
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Partner plans */}
+                    {pricingTab === 'partner' && (
+                        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                            {[
+                                {
+                                    name: 'Business Basic',
+                                    price: 0,
+                                    originalPrice: 299000,
+                                    badge: 'FREE Trial 2 tháng',
+                                    badgeColor: 'from-teal-500 to-emerald-500',
+                                    description: 'Dành cho nhà xe mới bắt đầu trên StuGo',
+                                    features: ['Đăng tuyến xe trên StuGo', 'Quản lý đặt vé', 'Quản lý ghế trống', 'Dashboard quản lý khách hàng', 'Theo dõi lịch trình chuyến xe', 'Hỗ trợ kỹ thuật cơ bản'],
+                                    popular: false,
+                                },
+                                {
+                                    name: 'Business Premium',
+                                    price: 479000,
+                                    originalPrice: 599000,
+                                    badge: 'Giảm 20%',
+                                    badgeColor: 'from-orange-500 to-red-500',
+                                    description: 'Tối ưu doanh thu & tăng trưởng nhanh',
+                                    features: ['Tất cả tính năng Basic', 'Ưu tiên hiển thị trên hệ thống', 'Badge "Đối tác xác minh"', 'Thống kê hành vi khách hàng', 'Báo cáo tuyến xe tiềm năng', 'Hỗ trợ marketing', 'Gợi ý AI', 'Quảng bá Fanpage/TikTok StuGo'],
+                                    popular: true,
+                                },
+                            ].map((plan, i) => (
+                                <div key={i} className={`relative bg-white rounded-2xl p-7 flex flex-col ${plan.popular ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10' : 'border border-gray-200 shadow-lg'}`}>
+                                    {plan.badge && (
+                                        <div className={`absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r ${plan.badgeColor} text-white px-4 py-1 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap`}>
+                                            {plan.badge}
+                                        </div>
+                                    )}
+                                    <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
+                                    <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
+                                    <div className="mb-1">
+                                        <span className="text-2xl font-bold text-gray-900">
+                                            {plan.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price) + '/tháng'}
+                                        </span>
+                                    </div>
+                                    {plan.originalPrice && plan.originalPrice !== plan.price && (
+                                        <p className="text-xs text-gray-400 line-through mb-4">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.originalPrice)}/tháng</p>
+                                    )}
+                                    <ul className="space-y-2 mb-6 flex-1">
+                                        {plan.features.map((f, j) => (
+                                            <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
+                                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                                {f}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <Link to="/partner" className={`text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-colors ${plan.popular ? 'bg-primary-500 text-white hover:bg-primary-600' : 'border-2 border-gray-200 text-gray-700 hover:border-primary-300'}`}>
+                                        Đăng ký cộng tác
+                                    </Link>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>

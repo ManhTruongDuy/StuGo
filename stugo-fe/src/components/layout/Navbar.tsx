@@ -40,7 +40,7 @@ const Navbar = () => {
         { name: 'Nhà xe', path: '/services/transport' },
         { name: 'Nhà trọ', path: '/services/accommodation' },
         { name: 'Quán ăn', path: '/services/restaurant' },
-        { name: 'Snap Map', path: '/snap-map' },
+        { name: 'Bản đồ dịch vụ', path: '/snap-map' },
     ];
 
     const roleBadge = user?.role === 'admin'
@@ -174,7 +174,7 @@ const Navbar = () => {
                                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                                             >
                                                 <Map className="w-4 h-4 text-gray-500" />
-                                                <span className="text-gray-700">Snap Map</span>
+                                                <span className="text-gray-700">Bản đồ dịch vụ</span>
                                             </Link>
 
                                             {(user.role === 'partner' || user.role === 'admin') && (

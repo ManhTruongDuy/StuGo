@@ -148,7 +148,7 @@ const SnapMapPage = () => {
 
       {/* Legend */}
       <div className="absolute top-4 left-28 z-[1000] bg-white rounded-xl shadow-lg p-3 space-y-2 text-sm">
-        <p className="font-semibold text-gray-800 mb-1">Snap Map</p>
+        <p className="font-semibold text-gray-800 mb-1">Bản đồ dịch vụ</p>
         {[
           { color: COLORS.restaurant, label: 'Nhà hàng' },
           { color: COLORS.accommodation, label: 'Phòng trọ' },

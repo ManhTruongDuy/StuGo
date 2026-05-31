@@ -57,7 +57,7 @@ const ManagerLayout = () => {
         },
         {
             icon: MapPin,
-            label: 'Snap Map',
+            label: 'Bản đồ dịch vụ',
             path: '/snap-map',
         },
         {
