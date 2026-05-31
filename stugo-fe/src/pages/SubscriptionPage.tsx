@@ -218,7 +218,7 @@ const SubscriptionPage = () => {
                 )}
 
                 {/* ── Plan cards ────────────────────────────────────────────── */}
-                <div className={`grid gap-6 mb-16 ${plans.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-3xl mx-auto'}`}>
+                <div className={`grid gap-6 mb-16 mt-6 ${plans.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-3xl mx-auto'}`}>
                     {plans.map((plan) => {
                         const Icon = plan.icon || Shield;
                         const isActive = activeSub?.planId?._id === plan._id || activeSub?.planId === plan._id;
@@ -227,7 +227,7 @@ const SubscriptionPage = () => {
                         return (
                             <div
                                 key={plan._id}
-                                className={`relative bg-white rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1 ${
+                                className={`relative bg-white rounded-2xl flex flex-col transition-transform hover:-translate-y-1 ${plan.badge ? 'pt-10 px-7 pb-7' : 'p-7'} ${
                                     plan.popular
                                         ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10'
                                         : 'border border-gray-200 shadow-lg'

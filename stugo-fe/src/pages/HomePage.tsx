@@ -379,7 +379,7 @@ const HomePage = () => {
                                     popular: true,
                                 },
                             ].map((plan, i) => (
-                                <div key={i} className={`relative bg-white rounded-2xl p-7 flex flex-col ${plan.popular ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10' : 'border border-gray-200 shadow-lg'}`}>
+                                <div key={i} className={`relative bg-white rounded-2xl flex flex-col ${plan.badge ? 'pt-10 px-7 pb-7' : 'p-7'} ${plan.popular ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10' : 'border border-gray-200 shadow-lg'}`}>
                                     {plan.badge && (
                                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-4 py-1 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap">
                                             {plan.badge}
@@ -431,7 +431,7 @@ const HomePage = () => {
                                     popular: true,
                                 },
                             ].map((plan, i) => (
-                                <div key={i} className={`relative bg-white rounded-2xl p-7 flex flex-col ${plan.popular ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10' : 'border border-gray-200 shadow-lg'}`}>
+                                <div key={i} className={`relative bg-white rounded-2xl flex flex-col ${plan.badge ? 'pt-10 px-7 pb-7' : 'p-7'} ${plan.popular ? 'border-2 border-primary-500 shadow-xl shadow-primary-500/10' : 'border border-gray-200 shadow-lg'}`}>
                                     {plan.badge && (
                                         <div className={`absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r ${plan.badgeColor} text-white px-4 py-1 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap`}>
                                             {plan.badge}
