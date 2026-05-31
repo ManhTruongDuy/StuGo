@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Check, Gift, Shield, Zap, Loader2, Crown,
+    Check, Gift, Shield, Loader2, Crown,
     Bus, TrendingUp,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
