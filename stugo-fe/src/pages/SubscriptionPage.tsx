@@ -97,7 +97,7 @@ const PARTNER_PLANS: Plan[] = [
         icon: TrendingUp,
         badge: 'Giảm 20%',
         badgeColor: 'from-orange-500 to-red-500',
-        mvpOffer: 'MVP Offer: Giảm 20% — chỉ còn 479.000đ/tháng',
+        mvpOffer: 'Giảm 20% — chỉ còn 479.000đ/tháng',
         description: 'Tối ưu doanh thu & tăng trưởng nhanh',
         features: [
             'Tất cả tính năng Business Basic',
@@ -186,7 +186,7 @@ const SubscriptionPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-5xl mx-auto px-4 -mt-8 pb-20">
+            <div className="max-w-5xl mx-auto px-4 pt-8 pb-20">
 
                 {/* ── Trial banner (partner only) ───────────────────────────── */}
                 {isTrialEligible && (
