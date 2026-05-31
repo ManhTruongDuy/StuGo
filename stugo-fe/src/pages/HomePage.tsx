@@ -78,18 +78,12 @@ const HomePage = () => {
                 </div>
 
                 {/* Floating Elements */}
-                <div className="absolute top-1/4 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-float"></div>
-                <div
-                    className="absolute bottom-1/4 right-20 w-32 h-32 bg-secondary-400/20 rounded-full blur-xl animate-float"
-                    style={{ animationDelay: '1s' }}
-                ></div>
-                <div
-                    className="absolute top-1/3 right-1/4 w-16 h-16 bg-accent-400/20 rounded-full blur-xl animate-float"
-                    style={{ animationDelay: '2s' }}
-                ></div>
+                <div className="absolute top-1/4 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-float hidden sm:block"></div>
+                <div className="absolute bottom-1/4 right-20 w-32 h-32 bg-secondary-400/20 rounded-full blur-xl animate-float hidden sm:block" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-accent-400/20 rounded-full blur-xl animate-float hidden sm:block" style={{ animationDelay: '2s' }}></div>
 
                 {/* Content */}
-                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20 pb-8">
                     <div className="animate-fade-in">
                         <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-6">
                             <Zap className="w-4 h-4 text-yellow-300" />
@@ -129,44 +123,44 @@ const HomePage = () => {
                             </div>
                         </form>
 
-                        {/* Service Categories */}
-                        <div className="flex flex-wrap justify-center gap-4">
+        {/* Service Categories */}
+                        <div className="flex flex-wrap justify-center gap-3 px-4">
                             <button
                                 onClick={() => handleCategoryClick('transport')}
-                                className="group flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
+                                className="group flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Bus className="w-6 h-6 text-blue-300" />
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Bus className="w-5 h-5 text-blue-300" />
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-semibold text-white">Nhà xe</p>
-                                    <p className="text-sm text-white/60">120+ nhà xe</p>
+                                    <p className="font-semibold text-white text-sm">Nhà xe</p>
+                                    <p className="text-xs text-white/60">120+ nhà xe</p>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => handleCategoryClick('accommodation')}
-                                className="group flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
+                                className="group flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Home className="w-6 h-6 text-purple-300" />
+                                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Home className="w-5 h-5 text-purple-300" />
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-semibold text-white">Nhà trọ</p>
-                                    <p className="text-sm text-white/60">500+ phòng trọ</p>
+                                    <p className="font-semibold text-white text-sm">Nhà trọ</p>
+                                    <p className="text-xs text-white/60">500+ phòng trọ</p>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => handleCategoryClick('restaurant')}
-                                className="group flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
+                                className="group flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <UtensilsCrossed className="w-6 h-6 text-orange-300" />
+                                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <UtensilsCrossed className="w-5 h-5 text-orange-300" />
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-semibold text-white">Quán ăn</p>
-                                    <p className="text-sm text-white/60">800+ quán ăn</p>
+                                    <p className="font-semibold text-white text-sm">Quán ăn</p>
+                                    <p className="text-xs text-white/60">800+ quán ăn</p>
                                 </div>
                             </button>
                         </div>

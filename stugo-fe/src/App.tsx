@@ -29,7 +29,7 @@ import RevenueDetailsPage from './pages/manager/RevenueDetailsPage';
 import CreateServicePage from './pages/manager/CreateServicePage';
 import WithdrawalHistoryPage from './pages/manager/WithdrawalHistoryPage';
 
-// Admin Pages
+import PartnerRegisterPage from './pages/PartnerRegisterPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersListPage from './pages/admin/UsersListPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
@@ -89,6 +89,8 @@ function App() {
           {/* Auth Routes (No Layout) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/partner" element={<PartnerRegisterPage />} />
+          <Route path="/partner/register" element={<PartnerRegisterPage />} />
 
           {/* Manager Routes */}
           <Route path="/manager" element={<ManagerLayout />}>
