@@ -209,6 +209,20 @@ const startServer = async () => {
       checkAndExpireSubscriptions(null, null).catch(err =>
         console.error('Subscription expiry check failed:', err.message)
       );
+
+      // Keep-alive ping every 10 minutes to prevent Railway cold starts
+      if (NODE_ENV === 'production') {
+        const SELF_URL = process.env.RAILWAY_PUBLIC_DOMAIN
+          ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/health`
+          : `http://localhost:${PORT}/health`;
+        setInterval(async () => {
+          try {
+            await fetch(SELF_URL);
+          } catch {
+            // silently ignore
+          }
+        }, 10 * 60 * 1000); // every 10 minutes
+      }
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
