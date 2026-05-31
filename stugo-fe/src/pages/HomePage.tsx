@@ -9,7 +9,6 @@ import {
     Shield,
     Zap,
     Heart,
-    Users,
     TrendingUp,
     CheckCircle,
     Search,
@@ -21,8 +20,6 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import type { Service } from '../types';
 
 const stats = [
-    { icon: Users, value: '50,000+', label: 'Sinh viên đang sử dụng' },
-    { icon: MapPin, value: '1,200+', label: 'Dịch vụ trên toàn quốc' },
     { icon: Star, value: '4.8', label: 'Đánh giá trung bình' },
     { icon: TrendingUp, value: '98%', label: 'Khách hàng hài lòng' },
 ];
@@ -188,7 +185,7 @@ const HomePage = () => {
             <section className="relative -mt-20 z-20">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-12">
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-2 gap-8 max-w-sm mx-auto lg:max-w-none lg:grid-cols-2">
                             {stats.map((stat, index) => (
                                 <div key={index} className="text-center">
                                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500/10 to-secondary-500/10 mb-4">
