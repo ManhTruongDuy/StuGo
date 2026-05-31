@@ -56,24 +56,23 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
-
     const allowed = [
       FRONTEND_URL,
-      // Allow any Vercel preview deployment for this project
       /\.vercel\.app$/,
     ];
-
     const isAllowed = allowed.some(pattern =>
       typeof pattern === 'string' ? pattern === origin : pattern.test(origin)
     );
-
     if (isAllowed) return callback(null, true);
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 }));
+// Handle preflight for all routes
+app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
