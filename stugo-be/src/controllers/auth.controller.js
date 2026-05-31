@@ -17,7 +17,7 @@ const generateToken = (userId) => {
  */
 export const register = async (req, res, next) => {
   try {
-    const { email, password, fullName, phone } = req.body;
+    const { email, password, fullName, phone, role } = req.body;
 
     // Check if user already exists
     const existingUser = await userRepository.findByEmail(email);
@@ -28,13 +28,16 @@ export const register = async (req, res, next) => {
       });
     }
 
+    // Only allow 'user' or 'partner' roles from registration — never 'admin'
+    const allowedRole = role === 'partner' ? 'partner' : 'user';
+
     // Create new user
     const user = await userRepository.create({
       email,
       password,
       fullName,
       phone,
-      role: 'user',
+      role: allowedRole,
       status: 'active'
     });
 

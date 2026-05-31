@@ -11,6 +11,7 @@ export interface RegisterData {
   email: string;
   phone: string;
   password: string;
+  role?: 'user' | 'partner';
 }
 
 export interface AuthResponse {
