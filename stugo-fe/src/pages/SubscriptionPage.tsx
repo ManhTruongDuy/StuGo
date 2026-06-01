@@ -26,7 +26,7 @@ interface Plan {
 const USER_PLANS: Plan[] = [
     {
         _id: 'free',
-        name: 'Free',
+        name: 'Freemium',
         price: 0,
         durationDays: 30,
         icon: Shield,

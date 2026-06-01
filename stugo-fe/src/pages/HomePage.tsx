@@ -364,7 +364,7 @@ const HomePage = () => {
                         <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                             {[
                                 {
-                                    name: 'Free',
+                                    name: 'Freemium',
                                     price: 0,
                                     description: 'Đủ dùng cho sinh viên mới bắt đầu',
                                     features: ['Tìm kiếm tuyến xe', 'So sánh giá vé & lịch trình', 'Xem đánh giá nhà xe', 'Đặt vé cơ bản', 'Lưu lịch sử chuyến đi'],
