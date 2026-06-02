@@ -8,6 +8,8 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node scripts/seed.js",
+    "seed:users": "node scripts/seed_users.js",
+    "seed:services": "node scripts/seed_mock_services.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

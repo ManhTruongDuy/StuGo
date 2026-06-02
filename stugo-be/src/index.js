@@ -2,6 +2,8 @@ import 'dotenv/config'; // Load environment variables first
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import passport from 'passport';
+import configurePassport from './config/passport.js';
 import { checkAndExpireSubscriptions } from './controllers/subscription.controller.js';
 
 // Environment constants
@@ -75,6 +77,10 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Initialize Passport
+configurePassport();
+app.use(passport.initialize());
 
 
 // Health check endpoints

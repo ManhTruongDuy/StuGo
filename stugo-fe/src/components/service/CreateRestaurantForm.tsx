@@ -384,7 +384,7 @@ const CreateRestaurantForm = () => {
                         >
                             <option value="">Chọn tỉnh/thành</option>
                             {cities.map((city) => (
-                                <option key={city.code} value={city.code}>
+                                <option key={city.code} value={city.name}>
                                     {city.name}
                                 </option>
                             ))}
@@ -557,3 +557,4 @@ const CreateRestaurantForm = () => {
 };
 
 export default CreateRestaurantForm;
+

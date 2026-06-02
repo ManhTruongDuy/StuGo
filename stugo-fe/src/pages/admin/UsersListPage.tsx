@@ -171,24 +171,12 @@ const UsersListPage = () => {
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Người dùng
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Liên hệ
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Số đặt chỗ
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Ngày tham gia
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Trạng thái
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Hành động
-                                </th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Người dùng</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Liên hệ</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Vai trò</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Ngày tham gia</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Trạng thái</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Hành động</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -196,38 +184,45 @@ const UsersListPage = () => {
                                 <tr key={user.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <img
-                                                src={user.avatar}
-                                                alt={user.fullName}
-                                                className="w-10 h-10 rounded-lg object-cover"
-                                            />
+                                            {user.avatar ? (
+                                                <img src={user.avatar} alt={user.fullName} className="w-10 h-10 rounded-lg object-cover" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-sm">
+                                                    {user.fullName?.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
                                             <div>
                                                 <p className="font-medium text-gray-900">{user.fullName}</p>
-                                                <p className="text-sm text-gray-500">#{user.id}</p>
+                                                <p className="text-xs text-gray-400">#{user.id?.slice(-8)}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div>
-                                            <p className="text-sm text-gray-900">{user.email}</p>
-                                            <p className="text-sm text-gray-500">{user.phone}</p>
-                                        </div>
+                                        <p className="text-sm text-gray-900">{user.email}</p>
+                                        <p className="text-xs text-gray-500">{user.phone || '—'}</p>
                                     </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {user.createdAt
-                                                ? new Date(user.createdAt).toLocaleDateString('vi-VN')
-                                                : '-'}
-                                        </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                                            user.role === 'admin' ? 'bg-red-100 text-red-700' :
+                                            user.role === 'partner' ? 'bg-blue-100 text-blue-700' :
+                                            'bg-gray-100 text-gray-700'
+                                        }`}>
+                                            {user.role === 'admin' ? 'Admin' : user.role === 'partner' ? 'Đối tác' : 'Sinh viên'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '—'}
+                                    </td>
                                     <td className="px-6 py-4">{getStatusBadge((user as any).status || 'active')}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Xem">
                                                 <Eye className="w-4 h-4 text-gray-500" />
                                             </button>
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Gửi email">
                                                 <Mail className="w-4 h-4 text-gray-500" />
                                             </button>
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Thêm">
                                                 <MoreVertical className="w-4 h-4 text-gray-500" />
                                             </button>
                                         </div>

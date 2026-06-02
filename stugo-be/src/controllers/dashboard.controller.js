@@ -118,22 +118,32 @@ export const getDashboardOverview = async (req, res, next) => {
                     }
                 });
             })(),
-            // Total revenue - Only count confirmed and fully_paid bookings
-            Booking.aggregate([
-                {
-                    $match: {
-                        ...bookingsQuery,
-                        status: 'confirmed',
-                        paymentStatus: 'fully_paid'
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        total: { $sum: '$totalAmount' }
-                    }
-                }
-            ]),
+            // Total revenue = booking revenue + subscription revenue
+            (async () => {
+                const [bookingRevenue, subRevenue] = await Promise.all([
+                    Booking.aggregate([
+                        {
+                            $match: {
+                                ...bookingsQuery,
+                                status: 'confirmed',
+                                paymentStatus: 'fully_paid'
+                            }
+                        },
+                        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+                    ]),
+                    // Only count subscription revenue for admin (platform-wide)
+                    ownerId ? Promise.resolve([]) : (async () => {
+                        const Subscription = (await import('../models/subscription.model.js')).default;
+                        return Subscription.aggregate([
+                            { $match: { status: 'active' } },
+                            { $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' } },
+                            { $unwind: { path: '$plan', preserveNullAndEmptyArrays: true } },
+                            { $group: { _id: null, total: { $sum: '$plan.price' } } }
+                        ]);
+                    })()
+                ]);
+                return [{ total: (bookingRevenue[0]?.total || 0) + (subRevenue[0]?.total || 0) }];
+            })(),
             // This month revenue - Only count confirmed and fully_paid bookings
             Booking.aggregate([
                 {

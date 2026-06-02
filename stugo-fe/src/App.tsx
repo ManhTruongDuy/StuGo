@@ -30,6 +30,7 @@ import CreateServicePage from './pages/manager/CreateServicePage';
 import WithdrawalHistoryPage from './pages/manager/WithdrawalHistoryPage';
 
 import PartnerRegisterPage from './pages/PartnerRegisterPage';
+import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersListPage from './pages/admin/UsersListPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
@@ -91,6 +92,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/partner" element={<PartnerRegisterPage />} />
           <Route path="/partner/register" element={<PartnerRegisterPage />} />
+          <Route path="/auth/google/success" element={<GoogleCallbackPage />} />
 
           {/* Manager Routes */}
           <Route path="/manager" element={<ManagerLayout />}>

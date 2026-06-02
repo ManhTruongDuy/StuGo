@@ -202,5 +202,24 @@ export default {
   loginWithEmail,
   getCurrentUser,
   logout,
-  refreshToken
+  refreshToken,
+  googleCallback
 };
+
+/**
+ * Google OAuth Callback — issues JWT after passport authenticates
+ * GET /api/auth/google/callback
+ */
+export async function googleCallback(req, res) {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=google`);
+    }
+    const token = generateToken(user._id);
+    // Redirect to frontend with token in query string — FE picks it up
+    res.redirect(`${process.env.FRONTEND_URL}/auth/google/success?token=${token}`);
+  } catch (err) {
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=google`);
+  }
+}
