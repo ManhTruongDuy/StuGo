@@ -422,90 +422,71 @@ export const getPaymentByOrderCode = async (req, res, next) => {
 };
 
 /**
- * Get payment status from PayOS (Simplified - just update status without calling PayOS)
+ * Get payment status — verifies with PayOS before marking paid
  * GET /api/payments/:orderCode/status
  */
 export const checkPaymentStatus = async (req, res, next) => {
   try {
     const { orderCode } = req.params;
 
-    // Find payment in database
     const payment = await paymentRepository.findOne({ orderCode: parseInt(orderCode) });
-
     if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy thanh toán'
-      });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thanh toán' });
     }
 
-    // If payment is already marked as paid, just return the status
+    // Already confirmed — return immediately
     if (payment.status === 'paid') {
       return res.json({
         success: true,
-        data: {
-          orderCode: payment.orderCode,
-          status: 'PAID',
-          amount: payment.amount,
-          amountPaid: payment.amount,
-          amountRemaining: 0
-        }
+        data: { orderCode: payment.orderCode, status: 'PAID', amount: payment.amount, amountPaid: payment.amount, amountRemaining: 0 }
       });
     }
 
-    // If user reached success page, assume payment was successful
-    // Get booking to check payment type
+    // Verify with PayOS before writing anything
+    let payosStatus = null;
+    try {
+      const payos = getPayOS();
+      let info;
+      if (payos.paymentRequests?.getPaymentLinkInformation) {
+        info = await payos.paymentRequests.getPaymentLinkInformation(parseInt(orderCode));
+      } else if (payos.getPaymentLinkInformation) {
+        info = await payos.getPaymentLinkInformation(parseInt(orderCode));
+      }
+      if (info?.data) payosStatus = info.data.status;
+      else if (info?.status) payosStatus = info.status;
+    } catch (payosErr) {
+      console.warn('PayOS verification failed, falling back to returnUrl trust:', payosErr.message);
+      // If PayOS is not configured yet (dev mode), trust the returnUrl
+      if (process.env.NODE_ENV !== 'production') payosStatus = 'PAID';
+    }
+
+    if (payosStatus !== 'PAID') {
+      return res.json({
+        success: true,
+        data: { orderCode: parseInt(orderCode), status: payosStatus || 'PENDING', amount: payment.amount, amountPaid: 0, amountRemaining: payment.amount }
+      });
+    }
+
+    // Payment confirmed — update records
     const booking = await bookingRepository.findById(payment.bookingId);
+    const isRemainingPayment = payment.description?.includes('Phần còn lại');
 
-    // Check if this is a remaining payment (based on description)
-    const isRemainingPayment = payment.description && payment.description.includes('Phần còn lại');
-
-    // Update payment status to paid
     const updatedPayment = await paymentRepository.updatePaymentStatus(
-      parseInt(orderCode),
-      'paid',
-      { transactionId: `payos_${orderCode}_${Date.now()}` }
+      parseInt(orderCode), 'paid', { transactionId: `payos_${orderCode}_${Date.now()}` }
     );
 
-    // Update booking status based on payment type
     if (updatedPayment && booking) {
-      let bookingPaymentStatus;
-
-      if (isRemainingPayment) {
-        // Remaining payment = fully paid
-        bookingPaymentStatus = 'fully_paid';
-      } else if (updatedPayment.amount >= booking.totalAmount) {
-        // Full payment
-        bookingPaymentStatus = 'fully_paid';
-      } else {
-        // Deposit payment
-        bookingPaymentStatus = 'deposit_paid';
-      }
-
-      console.log(`🔄 Updating booking ${updatedPayment.bookingId}:`, {
-        paymentStatus: bookingPaymentStatus,
-        status: 'confirmed'
-      });
+      let bookingPaymentStatus = 'deposit_paid';
+      if (isRemainingPayment) bookingPaymentStatus = 'fully_paid';
+      else if (updatedPayment.amount >= booking.totalAmount) bookingPaymentStatus = 'fully_paid';
 
       await bookingRepository.updatePaymentStatus(updatedPayment.bookingId, bookingPaymentStatus);
-      const confirmedBooking = await bookingRepository.confirmBooking(updatedPayment.bookingId);
-
-      console.log(`✅ Payment ${orderCode} marked as paid (${isRemainingPayment ? 'remaining' : 'deposit'}), booking updated:`, {
-        paymentStatus: bookingPaymentStatus,
-        status: confirmedBooking?.status,
-        confirmedAt: confirmedBooking?.confirmedAt
-      });
+      await bookingRepository.confirmBooking(updatedPayment.bookingId);
     }
 
     res.json({
       success: true,
-      data: {
-        orderCode: updatedPayment.orderCode,
-        status: 'PAID',
-        amount: updatedPayment.amount,
-        amountPaid: updatedPayment.amount,
-        amountRemaining: 0
-      }
+      data: { orderCode: updatedPayment.orderCode, status: 'PAID', amount: updatedPayment.amount, amountPaid: updatedPayment.amount, amountRemaining: 0 }
     });
   } catch (error) {
     console.error('Check Payment Status Error:', error);

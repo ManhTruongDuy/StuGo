@@ -54,6 +54,18 @@ const PaymentCancelPage = () => {
                 return;
             }
 
+            // Restore token from sessionStorage (same as PaymentSuccessPage)
+            const sessionToken = sessionStorage.getItem('token');
+            const sessionUser = sessionStorage.getItem('user');
+            if (sessionToken && !localStorage.getItem('token')) {
+                localStorage.setItem('token', sessionToken);
+            }
+            if (sessionUser && !localStorage.getItem('user')) {
+                localStorage.setItem('user', sessionUser);
+            }
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+
             try {
                 setLoading(true);
 
@@ -135,10 +147,17 @@ const PaymentCancelPage = () => {
 
     const handleRetryPayment = () => {
         if (booking) {
-            // Navigate back to services page
-            navigate('/services');
+            // Go back to the service detail page so they can re-book
+            const serviceId = typeof (booking as any).serviceId === 'object'
+                ? (booking as any).serviceId?._id
+                : (booking as any).serviceId;
+            if (serviceId) {
+                navigate(`/service/${serviceId}`);
+            } else {
+                navigate('/bookings');
+            }
         } else {
-            navigate('/services');
+            navigate('/bookings');
         }
     };
 

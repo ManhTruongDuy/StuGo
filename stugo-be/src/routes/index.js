@@ -7,3 +7,4 @@ export { default as complaintRoutes } from './complaint.routes.js';
 export { default as dashboardRoutes } from './dashboard.routes.js';
 export { default as reviewRoutes } from './review.routes.js';
 export { default as subscriptionRoutes } from './subscription.routes.js';
+export { default as transactionRoutes } from './transaction.routes.js';

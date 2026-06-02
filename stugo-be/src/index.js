@@ -47,7 +47,8 @@ import {
   complaintRoutes,
   dashboardRoutes,
   reviewRoutes,
-  subscriptionRoutes
+  subscriptionRoutes,
+  transactionRoutes
 } from './routes/index.js';
 
 const app = express();
@@ -115,6 +116,7 @@ app.use('/api/complaints', complaintRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // 404 handler
 app.use((req, res) => {

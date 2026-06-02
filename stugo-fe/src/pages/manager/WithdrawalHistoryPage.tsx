@@ -12,27 +12,16 @@ import {
     ArrowDownRight,
 } from 'lucide-react';
 import { getDashboardOverview, type DashboardOverview } from '../../services/dashboard.service';
+import { getBalance, getTransactions, requestWithdrawal, type Transaction, type BalanceData } from '../../services/transaction.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 type StatusFilter = 'all' | 'pending' | 'completed' | 'failed';
 
-interface WithdrawalRequest {
-    id: string;
-    amount: number;
-    fee: number;
-    netAmount: number;
-    bankName: string;
-    accountNumber: string;
-    accountHolder: string;
-    status: string;
-    requestDate: string;
-    transferDate?: string;
-}
-
 const WithdrawalHistoryPage = () => {
     const [overview, setOverview] = useState<DashboardOverview | null>(null);
-    const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+    const [balance, setBalance] = useState<BalanceData | null>(null);
+    const [withdrawals, setWithdrawals] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -44,35 +33,16 @@ const WithdrawalHistoryPage = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const overviewData = await getDashboardOverview();
-            setOverview(overviewData);
-
-            // Mock withdrawal data - In production, this would come from an API
-            setWithdrawals([
-                {
-                    id: '1',
-                    amount: 5000000,
-                    fee: 50000,
-                    netAmount: 4950000,
-                    bankName: 'Vietcombank',
-                    accountNumber: '1234567890',
-                    accountHolder: 'NGUYEN VAN A',
-                    status: 'completed',
-                    requestDate: '2026-01-25T10:00:00Z',
-                    transferDate: '2026-01-26T14:00:00Z',
-                },
-                {
-                    id: '2',
-                    amount: 3000000,
-                    fee: 30000,
-                    netAmount: 2970000,
-                    bankName: 'Techcombank',
-                    accountNumber: '9876543210',
-                    accountHolder: 'NGUYEN VAN A',
-                    status: 'pending',
-                    requestDate: '2026-01-28T09:30:00Z',
-                },
+            const [overviewData, balanceData, transactionsData] = await Promise.all([
+                getDashboardOverview(),
+                getBalance(),
+                getTransactions('all', 1, 100)
             ]);
+            setOverview(overviewData);
+            setBalance(balanceData);
+            if (transactionsData.success) {
+                setWithdrawals(transactionsData.data);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Không thể tải dữ liệu');
@@ -90,13 +60,9 @@ const WithdrawalHistoryPage = () => {
         return withdrawals.filter((w) => w.status === statusFilter);
     }, [withdrawals, statusFilter]);
 
-    const totalBalance = overview?.revenue.total || 0;
-    const totalWithdrawn = withdrawals
-        .filter((w) => w.status === 'completed')
-        .reduce((sum, w) => sum + w.netAmount, 0);
-    const pendingAmount = withdrawals
-        .filter((w) => w.status === 'pending')
-        .reduce((sum, w) => sum + w.amount, 0);
+    const totalBalance = balance?.totalRevenue || 0;
+    const totalWithdrawn = balance?.withdrawn || 0;
+    const availableBalance = balance?.available || 0;
 
     const handleWithdrawalRequest = async () => {
         const amount = parseInt(withdrawAmount.replace(/\D/g, ''));
@@ -104,34 +70,33 @@ const WithdrawalHistoryPage = () => {
             toast.error('Số tiền tối thiểu là 100,000 VNĐ');
             return;
         }
-        if (amount > totalBalance - totalWithdrawn - pendingAmount) {
+        if (amount > availableBalance) {
             toast.error('Số dư không đủ');
             return;
         }
 
         try {
             setSubmitting(true);
-            // Mock API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            const newRequest: WithdrawalRequest = {
-                id: Date.now().toString(),
+            const response = await requestWithdrawal({
                 amount,
-                fee: Math.round(amount * 0.01),
-                netAmount: Math.round(amount * 0.99),
                 bankName: 'Vietcombank',
                 accountNumber: '1234567890',
                 accountHolder: 'NGUYEN VAN A',
-                status: 'pending',
-                requestDate: new Date().toISOString(),
-            };
+            });
 
-            setWithdrawals((prev) => [newRequest, ...prev]);
-            toast.success('Đã gửi yêu cầu rút tiền');
-            setShowModal(false);
-            setWithdrawAmount('');
-        } catch (error) {
-            toast.error('Không thể gửi yêu cầu');
+            if (response.success) {
+                setWithdrawals((prev) => [response.data, ...prev]);
+                setBalance(prev => prev ? {
+                    ...prev,
+                    withdrawn: prev.withdrawn + amount,
+                    available: prev.available - amount
+                } : null);
+                toast.success('Đã gửi yêu cầu rút tiền');
+                setShowModal(false);
+                setWithdrawAmount('');
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Không thể gửi yêu cầu');
         } finally {
             setSubmitting(false);
         }
@@ -215,7 +180,7 @@ const WithdrawalHistoryPage = () => {
                         <div>
                             <p className="text-sm text-gray-500">Số dư khả dụng</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(totalBalance - totalWithdrawn - pendingAmount)}
+                                {formatPrice(availableBalance)}
                             </p>
                         </div>
                     </div>
@@ -311,7 +276,7 @@ const WithdrawalHistoryPage = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {filteredWithdrawals.length > 0 ? (
                                     filteredWithdrawals.map((withdrawal) => (
-                                        <tr key={withdrawal.id} className="hover:bg-gray-50">
+                                        <tr key={withdrawal._id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                                 {formatPrice(withdrawal.amount)}
                                             </td>
@@ -338,11 +303,11 @@ const WithdrawalHistoryPage = () => {
                                                 {getStatusBadge(withdrawal.status)}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                {new Date(withdrawal.requestDate).toLocaleDateString('vi-VN')}
+                                                {withdrawal.createdAt ? new Date(withdrawal.createdAt).toLocaleDateString('vi-VN') : '-'}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                {withdrawal.transferDate
-                                                    ? new Date(withdrawal.transferDate).toLocaleDateString('vi-VN')
+                                                {withdrawal.processedAt
+                                                    ? new Date(withdrawal.processedAt).toLocaleDateString('vi-VN')
                                                     : '-'}
                                             </td>
                                         </tr>
@@ -381,7 +346,7 @@ const WithdrawalHistoryPage = () => {
                             <div className="p-4 bg-gray-50 rounded-xl">
                                 <p className="text-sm text-gray-500">Số dư khả dụng</p>
                                 <p className="text-2xl font-bold text-gray-900">
-                                    {formatPrice(totalBalance - totalWithdrawn - pendingAmount)}
+                                    {formatPrice(availableBalance)}
                                 </p>
                             </div>
 

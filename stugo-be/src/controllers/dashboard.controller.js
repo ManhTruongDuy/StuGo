@@ -118,7 +118,7 @@ export const getDashboardOverview = async (req, res, next) => {
                     }
                 });
             })(),
-            // Total revenue = booking revenue + subscription revenue
+            // Total revenue = collected booking revenue + subscription revenue
             (async () => {
                 const [bookingRevenue, subRevenue] = await Promise.all([
                     Booking.aggregate([
@@ -126,12 +126,24 @@ export const getDashboardOverview = async (req, res, next) => {
                             $match: {
                                 ...bookingsQuery,
                                 status: 'confirmed',
-                                paymentStatus: 'fully_paid'
+                                paymentStatus: { $in: ['deposit_paid', 'fully_paid'] }
                             }
                         },
-                        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+                        {
+                            $group: {
+                                _id: null,
+                                total: {
+                                    $sum: {
+                                        $cond: [
+                                            { $eq: ['$paymentStatus', 'fully_paid'] },
+                                            '$totalAmount',
+                                            '$depositAmount'
+                                        ]
+                                    }
+                                }
+                            }
+                        }
                     ]),
-                    // Only count subscription revenue for admin (platform-wide)
                     ownerId ? Promise.resolve([]) : (async () => {
                         const Subscription = (await import('../models/subscription.model.js')).default;
                         return Subscription.aggregate([
@@ -144,13 +156,13 @@ export const getDashboardOverview = async (req, res, next) => {
                 ]);
                 return [{ total: (bookingRevenue[0]?.total || 0) + (subRevenue[0]?.total || 0) }];
             })(),
-            // This month revenue - Only count confirmed and fully_paid bookings
+            // This month revenue
             Booking.aggregate([
                 {
                     $match: {
                         ...bookingsQuery,
                         status: 'confirmed',
-                        paymentStatus: 'fully_paid',
+                        paymentStatus: { $in: ['deposit_paid', 'fully_paid'] },
                         date: {
                             $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
                             $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
@@ -160,7 +172,15 @@ export const getDashboardOverview = async (req, res, next) => {
                 {
                     $group: {
                         _id: null,
-                        total: { $sum: '$totalAmount' }
+                        total: {
+                            $sum: {
+                                $cond: [
+                                    { $eq: ['$paymentStatus', 'fully_paid'] },
+                                    '$totalAmount',
+                                    '$depositAmount'
+                                ]
+                            }
+                        }
                     }
                 }
             ])

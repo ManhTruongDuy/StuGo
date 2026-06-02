@@ -11,28 +11,66 @@ import User from '../src/models/user.model.js';
 import Subscription from '../src/models/subscription.model.js';
 import SubscriptionPlan from '../src/models/subscription-plan.model.js';
 
-const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Huế'];
+// Hàm helper sinh số điện thoại Việt Nam ngẫu nhiên trông như thật
+const generateVietnamesePhone = () => {
+  const prefixes = ['091', '098', '090', '035', '086', '094', '038', '077'];
+  const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  const randomSuffix = Math.floor(1000000 + Math.random() * 9000000).toString(); // 7 chữ số sau
+  return `${randomPrefix}${randomSuffix}`;
+};
+
+// Hàm helper gán thành phố với tỷ lệ phần lớn ở Hà Nội (~75%)
+const getWeightedCity = () => {
+  const roll = Math.random();
+  if (roll < 0.75) return 'Hà Nội';
+  const otherCities = ['TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Huế'];
+  return otherCities[Math.floor(Math.random() * otherCities.length)];
+};
 
 const PARTNER_DATA = [
-  { fullName: 'Trần Văn Hùng', email: 'partner01@stugo.com', phone: '0901000001', city: 'Hà Nội' },
-  { fullName: 'Nguyễn Thị Lan', email: 'partner02@stugo.com', phone: '0901000002', city: 'TP. Hồ Chí Minh' },
-  { fullName: 'Lê Minh Đức', email: 'partner03@stugo.com', phone: '0901000003', city: 'Đà Nẵng' },
-  { fullName: 'Phạm Thị Hoa', email: 'partner04@stugo.com', phone: '0901000004', city: 'Hà Nội' },
-  { fullName: 'Hoàng Văn Nam', email: 'partner05@stugo.com', phone: '0901000005', city: 'TP. Hồ Chí Minh' },
-  { fullName: 'Vũ Thị Mai', email: 'partner06@stugo.com', phone: '0901000006', city: 'Cần Thơ' },
-  { fullName: 'Đặng Quốc Tuấn', email: 'partner07@stugo.com', phone: '0901000007', city: 'Huế' },
-  { fullName: 'Bùi Thị Thu', email: 'partner08@stugo.com', phone: '0901000008', city: 'Đà Nẵng' },
-  { fullName: 'Đinh Văn Khoa', email: 'partner09@stugo.com', phone: '0901000009', city: 'Hà Nội' },
-  { fullName: 'Lý Thị Ngọc', email: 'partner10@stugo.com', phone: '0901000010', city: 'TP. Hồ Chí Minh' },
+  { fullName: 'Trần Văn Hùng', email: 'hungtran.transport@gmail.com' },
+  { fullName: 'Nguyễn Thị Lan', email: 'lannguyen.shuttle@gmail.com' },
+  { fullName: 'Lê Minh Đức', email: 'ducminh.le92@gmail.com' },
+  { fullName: 'Phạm Thị Hoa', email: 'hoapham.busline@gmail.com' },
+  { fullName: 'Hoàng Văn Nam', email: 'namhoang.garage@gmail.com' },
+  { fullName: 'Vũ Thị Mai', email: 'maivu.logistics@gmail.com' },
+  { fullName: 'Đặng Quốc Tuấn', email: 'tuandang.limo@gmail.com' },
+  { fullName: 'Bùi Thị Thu', email: 'thubui.dailybus@gmail.com' },
+  { fullName: 'Đinh Văn Khoa', email: 'khoadinh.xe02@gmail.com' },
+  { fullName: 'Lý Thị Ngọc', email: 'ngocly.travel90@gmail.com' },
 ];
 
-const STUDENT_NAMES = [
-  'An Trần', 'Bình Lê', 'Chi Nguyễn', 'Dũng Phạm', 'Em Hoàng',
-  'Fang Vũ', 'Giang Đỗ', 'Hiếu Bùi', 'Inh Trịnh', 'Jame Đinh',
-  'Kiên Phan', 'Linh Cao', 'Minh Đặng', 'Nga Hồ', 'Oanh Lý',
-  'Phúc Tô', 'Quân Lưu', 'Rồng Trương', 'Sơn Dương', 'Tùng Ngô',
-  'Uyên Vương', 'Vinh Đào', 'Xuân Lê', 'Yến Trần', 'Zung Bùi',
-  'Anh Phạm', 'Bảo Nguyễn', 'Châu Hoàng', 'Duy Vũ', 'Emi Đỗ',
+const STUDENT_DATA = [
+  { fullName: 'Nguyễn Hoàng Anh', email: 'anhnh.student@gmail.com' },
+  { fullName: 'Trần Minh Quang', email: 'quangtm2004@gmail.com' },
+  { fullName: 'Lê Thùy Linh', email: 'linhlt.k62@gmail.com' },
+  { fullName: 'Phạm Đức Duy', email: 'duypd.graphics@gmail.com' },
+  { fullName: 'Hoàng Ngọc Diệp', email: 'diephn.art@gmail.com' },
+  { fullName: 'Vũ Minh Triết', email: 'trietvm.tech@gmail.com' },
+  { fullName: 'Đỗ Thị Giang', email: 'giangdt.hust@gmail.com' },
+  { fullName: 'Bùi Quang Hiếu', email: 'hieubq.neu@gmail.com' },
+  { fullName: 'Trịnh Tiến Đạt', email: 'dattne.design@gmail.com' },
+  { fullName: 'Đinh Tuấn Kiên', email: 'kiendt2005@gmail.com' },
+  { fullName: 'Phan Bảo Nam', email: 'nampb.ftu@gmail.com' },
+  { fullName: 'Cao Phương Linh', email: 'linhcp.bka@gmail.com' },
+  { fullName: 'Đặng Quốc Minh', email: 'minhdq.dev@gmail.com' },
+  { fullName: 'Hồ Thanh Nga', email: 'ngaht.media@gmail.com' },
+  { fullName: 'Lý Bảo Oanh', email: 'oanhlb.edu@gmail.com' },
+  { fullName: 'Tô Hồng Phúc', email: 'phucth.student@gmail.com' },
+  { fullName: 'Lưu Minh Quân', email: 'quanlm2003@gmail.com' },
+  { fullName: 'Trương Hoàng Long', email: 'longth.uiux@gmail.com' },
+  { fullName: 'Dương Khánh Sơn', email: 'sondk.digital@gmail.com' },
+  { fullName: 'Ngô Thanh Tùng', email: 'tungnt.it@gmail.com' },
+  { fullName: 'Vương Thu Uyên', email: 'uyenvt.marketing@gmail.com' },
+  { fullName: 'Đào Quốc Vinh', email: 'vinhdq.2004@gmail.com' },
+  { fullName: 'Lê Thanh Xuân', email: 'xuanlt.student@gmail.com' },
+  { fullName: 'Trần Hải Yến', email: 'yenth.ajc@gmail.com' },
+  { fullName: 'Bùi Tiến Dũng', email: 'dungbt.hnu@gmail.com' },
+  { fullName: 'Phạm Tuấn Anh', email: 'anhpt.creative@gmail.com' },
+  { fullName: 'Nguyễn Gia Bảo', email: 'baong2005@gmail.com' },
+  { fullName: 'Hoàng Minh Châu', email: 'chaohm.design@gmail.com' },
+  { fullName: 'Vũ Khánh Duy', email: 'duyvk.stu@gmail.com' },
+  { fullName: 'Đỗ Thục Anh', email: 'anhdt.vnu@gmail.com' },
 ];
 
 const seed = async () => {
@@ -40,10 +78,9 @@ const seed = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Get subscription plans
+    // Get hoặc Tạo Subscription Plans mặc định
     let plans = await SubscriptionPlan.find({ status: 'active' });
     if (plans.length === 0) {
-      // Create default plans if none exist
       plans = await SubscriptionPlan.insertMany([
         {
           name: 'StuGo Student Premium',
@@ -73,15 +110,13 @@ const seed = async () => {
       console.log('✅ Created default subscription plans');
     }
 
-    const studentPlan = plans.find(p => p.name.includes('Student') || p.name.includes('Premium') && !p.name.includes('Business'));
+    const studentPlan = plans.find(p => p.name.includes('Student') || (p.name.includes('Premium') && !p.name.includes('Business')));
     const partnerBasicPlan = plans.find(p => p.name.includes('Basic'));
     const partnerPremiumPlan = plans.find(p => p.name.includes('Business Premium') || (p.name.includes('Premium') && p.name.includes('Business')));
 
-    console.log('Plans found:', plans.map(p => p.name));
-
     let created = 0;
 
-    // ─── Create 10 Partners ───────────────────────────────────────────────────
+    // ─── Tạo 10 Đối Tác (Partners) ───────────────────────────────────────────
     console.log('\n👔 Creating partner accounts...');
     for (let i = 0; i < PARTNER_DATA.length; i++) {
       const p = PARTNER_DATA[i];
@@ -91,23 +126,25 @@ const seed = async () => {
         continue;
       }
 
+      const assignedCity = getWeightedCity();
       const user = await User.create({
         email: p.email,
         password: 'partner123',
         fullName: p.fullName,
-        phone: p.phone,
-        city: p.city,
+        phone: generateVietnamesePhone(),
+        city: assignedCity,
         role: 'partner',
         status: 'active',
       });
       created++;
 
-      // Give subscriptions to 7 out of 10 partners
+      // Cấp Subscription cho 7/10 đối tác
       if (i < 7 && partnerBasicPlan) {
         const now = new Date();
         const isBasic = i < 4;
         const plan = isBasic ? partnerBasicPlan : (partnerPremiumPlan || partnerBasicPlan);
         const durationDays = plan.durationDays || 30;
+
         const sub = await Subscription.create({
           userId: user._id,
           planId: plan._id,
@@ -115,38 +152,40 @@ const seed = async () => {
           endDate: new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000),
           status: 'active',
         });
+
         await User.findByIdAndUpdate(user._id, {
           activeSubscription: sub._id,
           plan: isBasic ? 'business_basic' : 'business_premium',
         });
-        console.log(`  ✅ ${p.fullName} (partner) — ${plan.name}`);
+        console.log(`  ✅ ${p.fullName} [${assignedCity}] — ${plan.name}`);
       } else {
-        console.log(`  ✅ ${p.fullName} (partner) — no subscription`);
+        console.log(`  ✅ ${p.fullName} [${assignedCity}] — no subscription`);
       }
     }
 
-    // ─── Create 30 Students ──────────────────────────────────────────────────
+    // ─── Tạo 30 Sinh Viên (Students) ─────────────────────────────────────────
     console.log('\n🎓 Creating student accounts...');
-    for (let i = 0; i < 30; i++) {
-      const email = `student${String(i + 1).padStart(2, '0')}@stugo.com`;
-      const existing = await User.findOne({ email });
+    for (let i = 0; i < STUDENT_DATA.length; i++) {
+      const s = STUDENT_DATA[i];
+      const existing = await User.findOne({ email: s.email });
       if (existing) {
-        console.log(`  ⏭  ${email} already exists`);
+        console.log(`  ⏭  ${s.email} already exists`);
         continue;
       }
 
+      const assignedCity = getWeightedCity();
       const user = await User.create({
-        email,
+        email: s.email,
         password: 'student123',
-        fullName: STUDENT_NAMES[i],
-        phone: `09020000${String(i + 1).padStart(2, '0')}`,
-        city: CITIES[i % CITIES.length],
+        fullName: s.fullName,
+        phone: generateVietnamesePhone(),
+        city: assignedCity,
         role: 'user',
         status: 'active',
       });
       created++;
 
-      // Give premium subscription to 10 out of 30 students
+      // Cấp Premium cho 10/30 sinh viên đầu tiên
       if (i < 10 && studentPlan) {
         const now = new Date();
         const sub = await Subscription.create({
@@ -156,26 +195,25 @@ const seed = async () => {
           endDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
           status: 'active',
         });
+
         await User.findByIdAndUpdate(user._id, {
           activeSubscription: sub._id,
           plan: 'premium',
         });
-        console.log(`  ✅ ${STUDENT_NAMES[i]} (student) — StuGo Student Premium`);
+        console.log(`  ✅ ${s.fullName} [${assignedCity}] — StuGo Student Premium`);
       } else {
-        console.log(`  ✅ ${STUDENT_NAMES[i]} (student) — free`);
+        console.log(`  ✅ ${s.fullName} [${assignedCity}] — free account`);
       }
     }
 
     console.log(`\n🎉 Done! Created ${created} new accounts.`);
     console.log('📋 Summary:');
-    console.log('   Partners: partner01@stugo.com — partner10@stugo.com (password: partner123)');
-    console.log('   Students: student01@stugo.com — student30@stugo.com (password: student123)');
-    console.log('   10 students have StuGo Student Premium');
-    console.log('   7 partners have subscriptions (4 Basic, 3 Premium)');
+    console.log('  - Toàn bộ tài khoản chuyển sang sử dụng Gmail cá nhân (@gmail.com).');
+    console.log('  - Định dạng SĐT thực tế, phân bổ ~75% tại Hà Nội.');
 
     process.exit(0);
   } catch (err) {
-    console.error('❌ Error:', err);
+    console.error('❌ Error during seeding:', err);
     process.exit(1);
   }
 };
