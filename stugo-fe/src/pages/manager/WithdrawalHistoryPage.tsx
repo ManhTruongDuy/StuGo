@@ -11,7 +11,6 @@ import {
     CreditCard,
     ArrowDownRight,
 } from 'lucide-react';
-import { getDashboardOverview, type DashboardOverview } from '../../services/dashboard.service';
 import { getBalance, getTransactions, requestWithdrawal, type Transaction, type BalanceData } from '../../services/transaction.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -19,7 +18,6 @@ import toast from 'react-hot-toast';
 type StatusFilter = 'all' | 'pending' | 'completed' | 'failed';
 
 const WithdrawalHistoryPage = () => {
-    const [overview, setOverview] = useState<DashboardOverview | null>(null);
     const [balance, setBalance] = useState<BalanceData | null>(null);
     const [withdrawals, setWithdrawals] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,12 +31,10 @@ const WithdrawalHistoryPage = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [overviewData, balanceData, transactionsData] = await Promise.all([
-                getDashboardOverview(),
+            const [balanceData, transactionsData] = await Promise.all([
                 getBalance(),
                 getTransactions('all', 1, 100)
             ]);
-            setOverview(overviewData);
             setBalance(balanceData);
             if (transactionsData.success) {
                 setWithdrawals(transactionsData.data);
