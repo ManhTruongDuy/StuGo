@@ -174,6 +174,7 @@ const UsersListPage = () => {
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Người dùng</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Liên hệ</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Vai trò</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Gói</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Ngày tham gia</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Trạng thái</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Hành động</th>
@@ -209,6 +210,25 @@ const UsersListPage = () => {
                                         }`}>
                                             {user.role === 'admin' ? 'Admin' : user.role === 'partner' ? 'Đối tác' : 'Sinh viên'}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {(() => {
+                                            const plan = (user as any).plan || 'free';
+                                            const planMap: Record<string, { label: string; cls: string }> = {
+                                                free: { label: 'Freemium', cls: 'bg-gray-100 text-gray-600' },
+                                                premium: { label: 'Student Premium', cls: 'bg-purple-100 text-purple-700' },
+                                                premium_user: { label: 'Student Premium', cls: 'bg-purple-100 text-purple-700' },
+                                                business_basic: { label: 'Business Basic', cls: 'bg-teal-100 text-teal-700' },
+                                                business_premium: { label: 'Business Premium', cls: 'bg-orange-100 text-orange-700' },
+                                                standard: { label: 'Standard', cls: 'bg-blue-100 text-blue-700' },
+                                            };
+                                            const p = planMap[plan] || { label: plan, cls: 'bg-gray-100 text-gray-600' };
+                                            return (
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${p.cls}`}>
+                                                    {p.label}
+                                                </span>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-600">
                                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '—'}

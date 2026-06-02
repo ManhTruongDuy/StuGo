@@ -35,6 +35,7 @@ export const getAdminUsers = async (params?: {
         district: u.district,
         ward: u.ward,
         role: u.role,
+        plan: u.plan || 'free',
         status: u.status,
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
