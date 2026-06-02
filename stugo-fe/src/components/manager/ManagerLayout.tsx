@@ -134,7 +134,7 @@ const ManagerLayout = () => {
                                 </p>
                             </div>
                             {(!user?.plan || user.plan === 'free') && (
-                                <Link to="/subscription" className="text-xs text-teal-400 hover:text-teal-300 font-medium flex-shrink-0">
+                                <Link to="/subscription?type=partner" className="text-xs text-teal-400 hover:text-teal-300 font-medium flex-shrink-0">
                                     Nâng cấp
                                 </Link>
                             )}

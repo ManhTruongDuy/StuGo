@@ -254,7 +254,7 @@ const ManagerDashboard = () => {
                             <p className="text-sm text-teal-700">Nâng cấp để mở khóa đầy đủ tính năng quản lý</p>
                         </div>
                     </div>
-                    <Link to="/subscription" className="btn-primary flex-shrink-0 text-sm py-2">
+                    <Link to="/subscription?type=partner" className="btn-primary flex-shrink-0 text-sm py-2">
                         Nâng cấp ngay
                     </Link>
                 </div>

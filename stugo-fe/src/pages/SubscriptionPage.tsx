@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Check, Gift, Shield, Loader2, Crown,
     Bus, TrendingUp,
@@ -114,8 +114,11 @@ const PARTNER_PLANS: Plan[] = [
 
 const SubscriptionPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const forcedType = searchParams.get('type');
     const { user } = useAuthStore();
-    const role = user?.role || 'user';
+    const role = forcedType || user?.role || 'user';
 
     const [loading, setLoading] = useState(true);
     const [hasExistingSub, setHasExistingSub] = useState(false);
