@@ -123,6 +123,7 @@ const SubscriptionPage = () => {
     const [loading, setLoading] = useState(true);
     const [hasExistingSub, setHasExistingSub] = useState(false);
     const [activeSub, setActiveSub] = useState<any>(null);
+    const [backendPlans, setBackendPlans] = useState<any[]>([]);
 
     useEffect(() => {
         const init = async () => {
@@ -131,6 +132,10 @@ const SubscriptionPage = () => {
                 if (subRes?.data?.success) {
                     setActiveSub(subRes.data.subscription);
                     setHasExistingSub(true);
+                }
+                const planRes = await api.get('/subscriptions/plans').catch(() => null);
+                if (planRes?.data?.success) {
+                    setBackendPlans(planRes.data.plans);
                 }
             } finally {
                 setLoading(false);
@@ -159,7 +164,18 @@ const SubscriptionPage = () => {
         );
     }
 
-    const plans = role === 'partner' ? PARTNER_PLANS : USER_PLANS;
+    const rawPlans = role === 'partner' ? PARTNER_PLANS : USER_PLANS;
+    // Map backend _id and price using the original code
+    const plans = rawPlans.map(p => {
+        const bp = backendPlans.find(b => b.code === p._id);
+        return {
+            ...p,
+            originalCode: p._id,
+            _id: bp ? bp._id : p._id,
+            price: bp ? bp.price : p.price
+        };
+    });
+    
     const isTrialEligible = role === 'partner' && !hasExistingSub;
 
     return (
@@ -255,7 +271,7 @@ const SubscriptionPage = () => {
                                     {/* Price */}
                                     <div className="flex items-end justify-center gap-2">
                                         <span className="text-2xl font-bold text-gray-900">
-                                            {role === 'partner' && plan._id === 'business_basic' && isTrialEligible
+                                            {role === 'partner' && plan.originalCode === 'business_basic' && isTrialEligible
                                                 ? 'Miễn phí'
                                                 : formatPrice(plan.price)}
                                         </span>
@@ -304,7 +320,7 @@ const SubscriptionPage = () => {
                                         ? 'Gói hiện tại'
                                         : isFree
                                         ? 'Đang sử dụng'
-                                        : role === 'partner' && plan._id === 'business_basic' && isTrialEligible
+                                        : role === 'partner' && plan.originalCode === 'business_basic' && isTrialEligible
                                         ? 'Kích hoạt dùng thử'
                                         : 'Đăng ký ngay'}
                                 </button>

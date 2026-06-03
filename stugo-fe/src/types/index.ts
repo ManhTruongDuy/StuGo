@@ -12,7 +12,7 @@ export interface User {
   bankName?: string;
   bankAccount?: string;
   role: 'user' | 'partner' | 'admin';
-  plan?: 'free' | 'premium' | 'business_basic' | 'business_premium';
+  plan?: 'free' | 'premium_user' | 'business_basic' | 'business_premium';
   createdAt: string;
   updatedAt: string;
 }

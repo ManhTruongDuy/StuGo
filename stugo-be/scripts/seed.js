@@ -32,19 +32,33 @@ const seedData = async () => {
     console.log('Seeding Subscription Plans...');
     const plans = await SubscriptionPlan.insertMany([
       {
-        name: 'Standard',
-        description: 'Gói tiêu chuẩn dành cho đối tác — đăng ký tối đa 5 dịch vụ, quản lý đặt chỗ, xem thống kê',
-        price: 1500000,
+        code: 'premium_user',
+        name: 'StuGo Student Premium',
+        description: 'Trải nghiệm đầy đủ dành riêng cho sinh viên',
+        price: 49000,
         durationDays: 30,
-        features: ['Đăng ký tối đa 5 dịch vụ', 'Quản lý đặt chỗ cơ bản', 'Xem thống kê tổng quan', 'Hỗ trợ qua email'],
+        features: ['Tất cả tính năng Free', 'Chọn ghế ngồi', 'Ưu tiên giữ chỗ giờ cao điểm'],
+        targetRole: 'user',
         status: 'active'
       },
       {
-        name: 'Premium',
-        description: 'Gói cao cấp dành cho đối tác lớn — không giới hạn dịch vụ, ưu tiên hiển thị, hỗ trợ 24/7',
-        price: 2500000,
+        code: 'business_basic',
+        name: 'Business Basic',
+        description: 'Dành cho nhà xe mới bắt đầu trên StuGo',
+        price: 299000,
+        durationDays: 30, // Trial overrides this to 60 days
+        features: ['Đăng tuyến xe trên StuGo', 'Quản lý đặt vé', 'Quản lý ghế trống'],
+        targetRole: 'partner',
+        status: 'active'
+      },
+      {
+        code: 'business_premium',
+        name: 'Business Premium',
+        description: 'Tối ưu doanh thu & tăng trưởng nhanh',
+        price: 479000,
         durationDays: 30,
-        features: ['Không giới hạn dịch vụ đăng ký', 'Đứng TOP trên kết quả tìm kiếm', 'Thống kê doanh thu chi tiết', 'Hỗ trợ trực tiếp 1-1 24/7'],
+        features: ['Tất cả tính năng Business Basic', 'Ưu tiên hiển thị trên hệ thống', 'Badge "Đối tác xác minh"'],
+        targetRole: 'partner',
         status: 'active'
       }
     ]);
@@ -68,12 +82,12 @@ const seedData = async () => {
     const trialEnd = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 60 days
     const partnerSub = await Subscription.create({
       userId: partner._id,
-      planId: plans[0]._id,
+      planId: plans[1]._id,
       startDate: now,
       endDate: trialEnd,
       status: 'active'
     });
-    await User.findByIdAndUpdate(partner._id, { activeSubscription: partnerSub._id, plan: 'standard' });
+    await User.findByIdAndUpdate(partner._id, { activeSubscription: partnerSub._id, plan: 'business_basic' });
 
     console.log('Seeding Services...');
     const services = await Service.insertMany([

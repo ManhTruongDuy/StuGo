@@ -9,7 +9,8 @@ import {
     Plus,
     Users,
     CreditCard,
-    Loader2
+    Loader2,
+    Lock
 } from 'lucide-react';
 import type { Transport } from '../../types';
 import { useBookingStore } from '../../store/bookingStore';
@@ -449,19 +450,33 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                         </p>
                                     </button>
                                     <button
-                                        onClick={() => setPaymentType('full')}
-                                        className={`p-4 rounded-xl border-2 transition-all ${paymentType === 'full'
+                                        onClick={() => {
+                                            if (user?.plan === 'premium_user') {
+                                                setPaymentType('full');
+                                            } else {
+                                                toast.error('Tính năng thanh toán toàn bộ (giảm 10%) chỉ dành cho hội viên Premium!');
+                                            }
+                                        }}
+                                        className={`p-4 rounded-xl border-2 transition-all relative overflow-hidden ${paymentType === 'full'
                                             ? 'border-primary-500 bg-primary-50'
                                             : 'border-gray-200 hover:border-primary-300'
-                                            }`}
+                                            } ${user?.plan !== 'premium_user' ? 'opacity-80' : ''}`}
                                     >
-                                        <p className="font-semibold text-gray-900">Thanh toán toàn bộ</p>
-                                        <p className="text-sm text-gray-500 mt-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-gray-900">Thanh toán toàn bộ</p>
+                                            {user?.plan !== 'premium_user' && <Lock className="w-4 h-4 text-orange-500" />}
+                                        </div>
+                                        <p className="text-sm text-gray-500 mt-1 text-left">
                                             {formatPrice(totalPrice)}
                                         </p>
-                                        <p className="text-xs text-gray-400 mt-2">
+                                        <p className="text-xs text-gray-400 mt-2 text-left">
                                             Thanh toán một lần, không cần thanh toán thêm
                                         </p>
+                                        {user?.plan !== 'premium_user' && (
+                                            <div className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                Premium
+                                            </div>
+                                        )}
                                     </button>
                                 </div>
                             </div>
