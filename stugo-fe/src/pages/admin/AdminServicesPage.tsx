@@ -35,11 +35,11 @@ const ImageDropZone = ({
         });
     };
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
+    const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setDragging(false);
         if (e.dataTransfer.files.length) readFiles(e.dataTransfer.files);
-    }, []);
+    };
 
     const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
     const handleDragLeave = () => setDragging(false);
@@ -137,6 +137,8 @@ const ServiceEditModal = ({
         priceMax: service.priceRange?.max?.toString() || '',
         isAvailable: service.isAvailable !== false,
         status: service.status || 'active',
+        latitude: service.latitude?.toString() || '',
+        longitude: service.longitude?.toString() || '',
     });
 
     const set = (key: string, val: any) => setForm(f => ({ ...f, [key]: val }));
@@ -163,6 +165,8 @@ const ServiceEditModal = ({
                 },
                 isAvailable: form.isAvailable,
                 status: form.status,
+                latitude: parseFloat(form.latitude) || 0,
+                longitude: parseFloat(form.longitude) || 0,
                 images,
             };
             await api.put(`/services/${service.id}`, payload);
@@ -216,14 +220,16 @@ const ServiceEditModal = ({
 
                     {/* Location */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ & Tọa độ</label>
                         <div className="grid sm:grid-cols-2 gap-3">
                             <div className="sm:col-span-2">
                                 <input value={form.address} onChange={e => set('address', e.target.value)} className="input w-full" placeholder="Địa chỉ *" />
                             </div>
                             <input value={form.city} onChange={e => set('city', e.target.value)} className="input" placeholder="Thành phố" />
                             <input value={form.district} onChange={e => set('district', e.target.value)} className="input" placeholder="Quận/Huyện" />
-                            <input value={form.ward} onChange={e => set('ward', e.target.value)} className="input" placeholder="Phường/Xã" />
+                            <input value={form.ward} onChange={e => set('ward', e.target.value)} className="input sm:col-span-2" placeholder="Phường/Xã" />
+                            <input type="number" step="any" value={form.latitude} onChange={e => set('latitude', e.target.value)} className="input" placeholder="Vĩ độ (Latitude)" />
+                            <input type="number" step="any" value={form.longitude} onChange={e => set('longitude', e.target.value)} className="input" placeholder="Kinh độ (Longitude)" />
                         </div>
                     </div>
 
