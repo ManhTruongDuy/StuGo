@@ -139,16 +139,7 @@ const Navbar = () => {
                                                 <p className="text-sm text-gray-500">{user.email}</p>
                                             </div>
 
-                                            {user.role === 'user' && (
-                                                <Link
-                                                    to="/account"
-                                                    onClick={() => setShowUserMenu(false)}
-                                                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <LayoutDashboard className="w-4 h-4 text-gray-500" />
-                                                    <span className="text-gray-700">Hoạt động của tôi</span>
-                                                </Link>
-                                            )}
+
 
                                             <Link
                                                 to="/account"
