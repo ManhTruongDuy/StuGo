@@ -9,7 +9,6 @@ import {
     ChevronDown,
     Calendar,
     Map,
-    LayoutDashboard,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
