@@ -8,8 +8,7 @@ import {
     Plus,
     Users,
     CreditCard,
-    Loader2,
-    Lock
+    Loader2
 } from 'lucide-react';
 import type { Accommodation } from '../../types';
 import { useBookingStore } from '../../store/bookingStore';
@@ -200,10 +199,12 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
         }
     };
 
+    const isPremium = user?.plan === 'premium_user';
     const roomType = availableSlots.find((s: any) => s.roomTypeId === selectedRoomType);
     const totalPrice = (roomType?.price || service.priceRange.min) * quantity;
     const depositPrice = totalPrice * 0.3;
-    const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
+    const discountAmount = isPremium ? totalPrice * 0.1 : 0;
+    const finalPaymentAmount = paymentType === 'full' ? totalPrice - discountAmount : depositPrice;
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
@@ -444,33 +445,33 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                         </p>
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            if (user?.plan === 'premium_user') {
-                                                setPaymentType('full');
-                                            } else {
-                                                toast.error('Tính năng thanh toán toàn bộ (giảm 10%) chỉ dành cho hội viên Premium!');
-                                            }
-                                        }}
+                                        onClick={() => setPaymentType('full')}
                                         className={`p-4 rounded-xl border-2 transition-all relative overflow-hidden ${paymentType === 'full'
                                             ? 'border-primary-500 bg-primary-50'
                                             : 'border-gray-200 hover:border-primary-300'
-                                            } ${user?.plan !== 'premium_user' ? 'opacity-80' : ''}`}
+                                            }`}
                                     >
                                         <div className="flex items-center gap-2">
                                             <p className="font-semibold text-gray-900">Thanh toán toàn bộ</p>
-                                            {user?.plan !== 'premium_user' && <Lock className="w-4 h-4 text-orange-500" />}
+                                            {isPremium && (
+                                                <div className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                    Giảm 10%
+                                                </div>
+                                            )}
                                         </div>
                                         <p className="text-sm text-gray-500 mt-1 text-left">
-                                            {formatPrice(totalPrice)}
+                                            {isPremium ? (
+                                                <>
+                                                    <span className="line-through mr-2">{formatPrice(totalPrice)}</span>
+                                                    <span className="font-semibold text-primary-600">{formatPrice(totalPrice - discountAmount)}</span>
+                                                </>
+                                            ) : (
+                                                formatPrice(totalPrice)
+                                            )}
                                         </p>
                                         <p className="text-xs text-gray-400 mt-2 text-left">
                                             Thanh toán một lần, không cần thanh toán thêm
                                         </p>
-                                        {user?.plan !== 'premium_user' && (
-                                            <div className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                                Premium
-                                            </div>
-                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -488,10 +489,10 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                         <span className="font-medium">{formatPrice(depositPrice)}</span>
                                     </div>
                                 )}
-                                {paymentType === 'full' && (
+                                {paymentType === 'full' && isPremium && (
                                     <div className="flex items-center justify-between text-blue-600">
-                                        <span>Giảm giá thanh toán sớm</span>
-                                        <span className="font-medium">-{formatPrice(depositPrice)}</span>
+                                        <span>Giảm giá Premium (10%)</span>
+                                        <span className="font-medium">-{formatPrice(discountAmount)}</span>
                                     </div>
                                 )}
                                 <div className="h-px bg-gray-200"></div>
