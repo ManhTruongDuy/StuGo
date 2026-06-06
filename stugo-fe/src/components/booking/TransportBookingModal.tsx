@@ -469,11 +469,11 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                         </p>
                                     </button>
                                 </div>
-                                
+
                                 {!isPremium && (
-                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-3 rounded-xl border border-orange-100 flex flex-col gap-1">
-                                        <p className="font-medium">💡 Giá tốt hơn đối với gói Student Premium:</p>
-                                        <p>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ). Nâng cấp lên <strong>Student Premium</strong> để chỉ trả <strong>{formatPrice(basePrice * quantity)}</strong> (tiết kiệm {formatPrice(totalPrice - basePrice * quantity)}).</p>
+                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between">
+                                        <span>Bạn đang thanh toán giá Freemium</span>
+                                        <span className="font-semibold text-right">💡 Chỉ {formatPrice(basePrice * quantity)} với gói Student Premium premium</span>
                                     </div>
                                 )}
                             </div>
