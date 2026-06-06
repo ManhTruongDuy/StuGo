@@ -165,7 +165,8 @@ export const createBooking = async (req, res, next) => {
       }
 
       // Check if route exists
-      if (!service.routes || !service.routes.includes(route)) {
+      const selectedRouteObj = service.routes?.find(r => (typeof r === 'string' ? r === route : r.name === route));
+      if (!selectedRouteObj) {
         return res.status(400).json({
           success: false,
           message: 'Tuyến đường không hợp lệ'
@@ -199,7 +200,7 @@ export const createBooking = async (req, res, next) => {
 
       // Calculate pricing
       const isPremium = req.user && req.user.plan === 'premium_user';
-      const basePrice = service.priceRange.min;
+      const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
       const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * quantity;
       const depositAmount = Math.round(totalAmount * 0.3);
@@ -722,7 +723,10 @@ export const getAvailableSlots = async (req, res, next) => {
       const queryNextDay = new Date(queryDate);
       queryNextDay.setDate(queryNextDay.getDate() + 1);
 
-      for (const routeName of routes) {
+      for (const routeItem of routes) {
+        const routeName = typeof routeItem === 'string' ? routeItem : routeItem.name;
+        const routePrice = typeof routeItem === 'string' ? service.priceRange.min : routeItem.price;
+
         for (const timeSlot of departureTimes) {
           const bookingsForSlot = await bookingRepository.model.find({
             serviceId,
@@ -741,7 +745,8 @@ export const getAvailableSlots = async (req, res, next) => {
             available: availableSeats > 0,
             availableSeats,
             totalSeats,
-            bookedSeats
+            bookedSeats,
+            price: routePrice
           });
         }
       }

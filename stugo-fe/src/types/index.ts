@@ -49,11 +49,17 @@ export interface Service {
 }
 
 // Transport specific
+export interface Route {
+  id?: string;
+  name: string;
+  price: number;
+}
+
 export interface Transport extends Service {
   type: 'transport';
   vehicleType: string;
   seats: number;
-  routes: string[];
+  routes: (string | Route)[];
   departureTime: string[];
 }
 

@@ -539,10 +539,25 @@ const ServiceDetailPage = () => {
                         <div className="sticky top-24">
                             <div className="card p-6">
                                 <div className="mb-6">
-                                    <p className="text-gray-500 text-sm mb-1">Giá từ</p>
-                                    <p className="text-3xl font-bold text-primary-600">
-                                        {formatPrice(service.priceRange.min)}
-                                    </p>
+                                    {service.type === 'transport' ? (
+                                        <>
+                                            <p className="text-gray-500 text-sm mb-1">
+                                                {service.priceRange.min === service.priceRange.max ? 'Giá vé' : 'Khoảng giá'}
+                                            </p>
+                                            <p className="text-2xl lg:text-3xl font-bold text-primary-600">
+                                                {service.priceRange.min === service.priceRange.max 
+                                                    ? formatPrice(service.priceRange.min) 
+                                                    : `${formatPrice(service.priceRange.min)} - ${formatPrice(service.priceRange.max)}`}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-gray-500 text-sm mb-1">Giá từ</p>
+                                            <p className="text-3xl font-bold text-primary-600">
+                                                {formatPrice(service.priceRange.min)}
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
 
                                 <button

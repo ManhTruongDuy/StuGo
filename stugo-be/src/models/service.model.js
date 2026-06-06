@@ -99,7 +99,15 @@ const serviceSchema = new mongoose.Schema({
   // Transport specific
   vehicleType: String,
   seats: Number,
-  routes: [String],
+  routes: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      auto: true,
+      default: () => new mongoose.Types.ObjectId()
+    },
+    name: { type: String, required: true },
+    price: { type: Number, required: true, min: 0 }
+  }],
   departureTime: [String],
   // Accommodation specific
   roomTypes: [{

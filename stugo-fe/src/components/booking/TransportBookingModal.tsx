@@ -169,7 +169,8 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     };
 
     const isPremium = user?.plan === 'premium_user';
-    const basePrice = service.priceRange.min;
+    const selectedRouteObj = service.routes?.find(r => (typeof r === 'string' ? r === selectedRoute : r.name === selectedRoute));
+    const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
     const displayUnitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
     const totalPrice = displayUnitPrice * quantity;
     const depositPrice = totalPrice * 0.3;
@@ -296,21 +297,36 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             <div className="mb-6">
                                 <h3 className="font-semibold text-gray-900 mb-3">Chọn tuyến</h3>
                                 <div className="grid grid-cols-1 gap-3">
-                                    {(service.routes || []).map((route) => (
-                                        <button
-                                            key={route}
-                                            onClick={() => {
-                                                setSelectedRoute(route);
-                                                setSelectedSlot(null);
-                                            }}
-                                            className={`p-4 rounded-xl text-left transition-all border-2 ${selectedRoute === route
-                                                ? 'border-primary-500 bg-primary-50'
-                                                : 'border-gray-200 hover:border-primary-300'
-                                                }`}
-                                        >
-                                            <p className="font-medium text-gray-900">{route}</p>
-                                        </button>
-                                    ))}
+                                    {(service.routes || []).map((routeItem) => {
+                                        const routeName = typeof routeItem === 'string' ? routeItem : routeItem.name;
+                                        const routePrice = typeof routeItem === 'string' ? service.priceRange.min : routeItem.price;
+                                        const routeUnitPrice = isPremium ? routePrice : Math.round(routePrice * 1.05);
+                                        return (
+                                            <button
+                                                key={routeName}
+                                                onClick={() => {
+                                                    setSelectedRoute(routeName);
+                                                    setSelectedSlot(null);
+                                                }}
+                                                className={`p-4 rounded-xl flex items-center justify-between transition-all border-2 ${selectedRoute === routeName
+                                                    ? 'border-primary-500 bg-primary-50'
+                                                    : 'border-gray-200 hover:border-primary-300'
+                                                    }`}
+                                            >
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{routeName}</p>
+                                                    {!isPremium && (
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            {formatPrice(routePrice)} khi Premium
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <p className="font-semibold text-primary-600">
+                                                    {formatPrice(routeUnitPrice)}
+                                                </p>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -471,9 +487,9 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                 </div>
 
                                 {!isPremium && (
-                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between">
-                                        <span>Bạn đang thanh toán giá Freemium</span>
-                                        <span className="font-semibold text-right"> Chỉ {formatPrice(basePrice * quantity)} với gói Student Premium</span>
+                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between font-medium">
+                                        <span>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ)</span>
+                                        <span className="font-semibold text-right"> {formatPrice(basePrice * quantity)} khi Premium</span>
                                     </div>
                                 )}
                             </div>

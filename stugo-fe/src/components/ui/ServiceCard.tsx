@@ -79,6 +79,39 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
         }
     };
 
+    const renderPrice = () => {
+        const { min, max } = service.priceRange;
+        if (service.type === 'transport') {
+            if (min === max) {
+                return (
+                    <div>
+                        <span className="text-xs text-gray-500">Giá vé</span>
+                        <p className="text-base font-bold text-primary-600">
+                            {formatPrice(min)}
+                        </p>
+                    </div>
+                );
+            }
+            return (
+                <div>
+                    <span className="text-xs text-gray-500">Khoảng giá</span>
+                    <p className="text-sm font-bold text-primary-600">
+                        {formatPrice(min)} - {formatPrice(max)}
+                    </p>
+                </div>
+            );
+        }
+        
+        return (
+            <div>
+                <span className="text-sm text-gray-500">Từ</span>
+                <p className="text-lg font-bold text-primary-600">
+                    {formatPrice(min)}
+                </p>
+            </div>
+        );
+    };
+
     const availableSlots = getAvailableSlots();
 
     return (
@@ -173,12 +206,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
 
                 {/* Price & Action */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div>
-                        <span className="text-sm text-gray-500">Từ</span>
-                        <p className="text-lg font-bold text-primary-600">
-                            {formatPrice(service.priceRange.min)}
-                        </p>
-                    </div>
+                    {renderPrice()}
                     <Link
                         to={`/service/${service.id}`}
                         className="btn-primary py-2 px-4 text-sm"

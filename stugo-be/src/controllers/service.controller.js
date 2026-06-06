@@ -99,6 +99,13 @@ export const createTransportService = async (req, res, next) => {
       });
     }
 
+    // Calculate priceRange from routes
+    const prices = routes.map(r => typeof r === 'string' ? (req.body.priceRange?.min || 0) : (r.price || 0));
+    const priceRange = {
+      min: prices.length > 0 ? Math.min(...prices) : 0,
+      max: prices.length > 0 ? Math.max(...prices) : 0
+    };
+
     const serviceData = {
       type: 'transport',
       name: req.body.name,
@@ -117,7 +124,7 @@ export const createTransportService = async (req, res, next) => {
       images: req.body.images || [],
       openTime: req.body.openTime || '05:00',
       closeTime: req.body.closeTime || '22:00',
-      priceRange: req.body.priceRange,
+      priceRange,
       ownerId: req.userId,
       status: 'pending',
       // Transport specific
@@ -349,6 +356,15 @@ export const updateService = async (req, res, next) => {
           parseFloat(req.body.longitude),
           parseFloat(req.body.latitude)
         ]
+      };
+    }
+
+    // Update priceRange for transport dynamically based on route prices
+    if (service.type === 'transport' && updateData.routes && Array.isArray(updateData.routes) && updateData.routes.length > 0) {
+      const prices = updateData.routes.map(r => typeof r === 'string' ? (updateData.priceRange?.min || service.priceRange.min) : (r.price || 0));
+      updateData.priceRange = {
+        min: Math.min(...prices),
+        max: Math.max(...prices)
       };
     }
 

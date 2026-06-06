@@ -25,7 +25,7 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
         closeTime: '',
         vehicleType: '',
         seats: 0,
-        routes: [''],
+        routes: [] as any[],
         departureTime: [''],
         isAvailable: true,
     });
@@ -45,7 +45,9 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
                 closeTime: service.closeTime || '23:59',
                 vehicleType: service.vehicleType || '',
                 seats: service.seats || 0,
-                routes: service.routes && service.routes.length > 0 ? service.routes : [''],
+                routes: service.routes && service.routes.length > 0 
+                    ? service.routes.map((r: any) => typeof r === 'string' ? { name: r, price: service.priceRange?.min || 0 } : { name: r.name, price: r.price }) 
+                    : [{ name: '', price: 0 }],
                 departureTime: service.departureTime && service.departureTime.length > 0 ? service.departureTime : [''],
                 isAvailable: service.isAvailable !== false,
             });
@@ -65,7 +67,9 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
             const updateData = {
                 ...formData,
                 images,
-                routes: formData.routes.filter(r => r.trim()),
+                routes: formData.routes
+                    .filter((r: any) => r.name && r.name.trim())
+                    .map((r: any) => ({ name: r.name.trim(), price: Number(r.price) })),
                 departureTime: formData.departureTime.filter(t => t.trim()),
             };
             await updateService(service.id, updateData);
@@ -79,17 +83,17 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
     };
 
     const addRoute = () => {
-        setFormData({ ...formData, routes: [...formData.routes, ''] });
+        setFormData({ ...formData, routes: [...formData.routes, { name: '', price: 0 }] });
     };
 
     const removeRoute = (index: number) => {
         const newRoutes = formData.routes.filter((_, i) => i !== index);
-        setFormData({ ...formData, routes: newRoutes.length > 0 ? newRoutes : [''] });
+        setFormData({ ...formData, routes: newRoutes.length > 0 ? newRoutes : [{ name: '', price: 0 }] });
     };
 
-    const updateRoute = (index: number, value: string) => {
+    const updateRoute = (index: number, field: 'name' | 'price', value: any) => {
         const newRoutes = [...formData.routes];
-        newRoutes[index] = value;
+        newRoutes[index] = { ...newRoutes[index], [field]: value };
         setFormData({ ...formData, routes: newRoutes });
     };
 
@@ -304,21 +308,29 @@ const EditTransportModal = ({ service, onClose, onSuccess }: EditTransportModalP
                         {/* Routes */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold text-gray-900">Tuyến đường</h3>
+                                <h3 className="font-semibold text-gray-900">Tuyến đường & Giá vé</h3>
                                 <button type="button" onClick={addRoute} className="btn btn-ghost text-sm">
                                     <Plus className="w-4 h-4" />
                                     Thêm tuyến
                                 </button>
                             </div>
                             <div className="space-y-3">
-                                {formData.routes.map((route, index) => (
-                                    <div key={index} className="flex gap-2">
+                                {formData.routes.map((route: any, index) => (
+                                    <div key={index} className="flex gap-2 items-center">
                                         <input
                                             type="text"
-                                            value={route}
-                                            onChange={(e) => updateRoute(index, e.target.value)}
+                                            value={route.name}
+                                            onChange={(e) => updateRoute(index, 'name', e.target.value)}
                                             className="input flex-1"
                                             placeholder="VD: Hòa Lạc - Nội thành"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={route.price || 0}
+                                            onChange={(e) => updateRoute(index, 'price', parseInt(e.target.value) || 0)}
+                                            className="input w-36"
+                                            placeholder="Giá vé"
+                                            min="0"
                                         />
                                         {formData.routes.length > 1 && (
                                             <button

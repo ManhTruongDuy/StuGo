@@ -49,7 +49,8 @@ const CreateTransportForm = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [images, setImages] = useState<string[]>([]);
-    const [newRoute, setNewRoute] = useState('');
+    const [newRouteName, setNewRouteName] = useState('');
+    const [newRoutePrice, setNewRoutePrice] = useState('');
     const [newDepartureTime, setNewDepartureTime] = useState('');
 
     const [formData, setFormData] = useState({
@@ -63,11 +64,9 @@ const CreateTransportForm = () => {
         longitude: '',
         openTime: '05:00',
         closeTime: '22:00',
-        minPrice: '',
-        maxPrice: '',
         vehicleType: '',
         seats: '',
-        routes: [] as string[],
+        routes: [] as { name: string; price: number }[],
         departureTime: [] as string[],
     });
 
@@ -126,16 +125,23 @@ const CreateTransportForm = () => {
     };
 
     const handleAddRoute = () => {
-        if (newRoute.trim()) {
-            setFormData((prev) => ({
-                ...prev,
-                routes: [...prev.routes, newRoute.trim()],
-            }));
-            toast.success(`Đã thêm tuyến: ${newRoute.trim()}`);
-            setNewRoute('');
-        } else {
+        if (!newRouteName.trim()) {
             toast.error('Vui lòng nhập tên tuyến đường');
+            return;
         }
+        const price = parseInt(newRoutePrice);
+        if (isNaN(price) || price < 0) {
+            toast.error('Vui lòng nhập giá vé hợp lệ');
+            return;
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            routes: [...prev.routes, { name: newRouteName.trim(), price }],
+        }));
+        toast.success(`Đã thêm tuyến: ${newRouteName.trim()} (${price.toLocaleString('vi-VN')} đ)`);
+        setNewRouteName('');
+        setNewRoutePrice('');
     };
 
     const handleRemoveRoute = (index: number) => {
@@ -144,7 +150,7 @@ const CreateTransportForm = () => {
             ...prev,
             routes: prev.routes.filter((_, i) => i !== index),
         }));
-        toast.success(`Đã xóa tuyến: ${removedRoute}`);
+        toast.success(`Đã xóa tuyến: ${removedRoute.name}`);
     };
 
     const handleAddDepartureTime = () => {
@@ -180,10 +186,6 @@ const CreateTransportForm = () => {
             toast.error('⚠️ Vui lòng thêm ít nhất 1 giờ khởi hành');
             return;
         }
-        if (!formData.minPrice || !formData.maxPrice) {
-            toast.error('⚠️ Vui lòng nhập giá dịch vụ');
-            return;
-        }
 
         // Validate coordinates if provided
         if (formData.latitude || formData.longitude) {
@@ -209,6 +211,10 @@ const CreateTransportForm = () => {
         setIsLoading(true);
 
         try {
+            const prices = formData.routes.map(r => r.price);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+
             const serviceData: any = {
                 type: 'transport',
                 name: formData.name,
@@ -222,8 +228,8 @@ const CreateTransportForm = () => {
                 openTime: formData.openTime,
                 closeTime: formData.closeTime,
                 priceRange: {
-                    min: parseInt(formData.minPrice),
-                    max: parseInt(formData.maxPrice),
+                    min: minPrice,
+                    max: maxPrice,
                 },
                 images: images,
                 vehicleType: formData.vehicleType,
@@ -327,40 +333,58 @@ const CreateTransportForm = () => {
                 {/* Routes */}
                 <div className="card p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Tuyến đường <span className="text-red-500">*</span>
+                        Tuyến đường & Giá vé <span className="text-red-500">*</span>
                     </h3>
-                    <div className="flex gap-2 mb-3">
-                        <input
-                            type="text"
-                            value={newRoute}
-                            onChange={(e) => setNewRoute(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddRoute())}
-                            className="input flex-1"
-                            placeholder="VD: Hà Nội - Thái Bình"
-                        />
-                        <button
-                            type="button"
-                            onClick={handleAddRoute}
-                            className="btn-outline px-6"
-                        >
-                            Thêm
-                        </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {formData.routes.map((route, index) => (
-                            <span
-                                key={index}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm"
+                    <div className="grid sm:grid-cols-12 gap-4 mb-4">
+                        <div className="sm:col-span-7">
+                            <input
+                                type="text"
+                                value={newRouteName}
+                                onChange={(e) => setNewRouteName(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddRoute())}
+                                className="input w-full"
+                                placeholder="Tên tuyến đường (VD: Hà Nội - Thái Bình)"
+                            />
+                        </div>
+                        <div className="sm:col-span-3">
+                            <input
+                                type="number"
+                                value={newRoutePrice}
+                                onChange={(e) => setNewRoutePrice(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddRoute())}
+                                className="input w-full"
+                                placeholder="Giá vé (đ)"
+                                min="0"
+                            />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <button
+                                type="button"
+                                onClick={handleAddRoute}
+                                className="btn-outline w-full h-full min-h-[46px] flex items-center justify-center"
                             >
-                                {route}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveRoute(index)}
-                                    className="hover:text-blue-900"
-                                >
-                                    ×
-                                </button>
-                            </span>
+                                Thêm
+                            </button>
+                        </div>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        {formData.routes.map((route, index) => (
+                            <div
+                                key={index}
+                                className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 text-blue-700 rounded-xl"
+                            >
+                                <span className="font-medium text-gray-800">{route.name}</span>
+                                <div className="flex items-center gap-3">
+                                    <span className="font-semibold text-blue-700">{route.price.toLocaleString('vi-VN')} đ</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveRoute(index)}
+                                        className="text-red-500 hover:text-red-700 font-bold text-lg leading-none"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -515,36 +539,7 @@ const CreateTransportForm = () => {
                     </div>
                 </div>
 
-                {/* Pricing */}
-                <div className="card p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Giá cả</h3>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="relative">
-                            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="number"
-                                name="minPrice"
-                                value={formData.minPrice}
-                                onChange={handleChange}
-                                className="input pl-12"
-                                placeholder="Giá thấp nhất"
-                                required
-                            />
-                        </div>
-                        <div className="relative">
-                            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="number"
-                                name="maxPrice"
-                                value={formData.maxPrice}
-                                onChange={handleChange}
-                                className="input pl-12"
-                                placeholder="Giá cao nhất"
-                                required
-                            />
-                        </div>
-                    </div>
-                </div>
+
 
                 {/* Images */}
                 <div className="card p-6">
