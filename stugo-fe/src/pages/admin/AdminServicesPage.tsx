@@ -154,7 +154,7 @@ const ServiceEditModal = ({
     };
 
     const removeRoute = (index: number) => {
-        const newRoutes = form.routes.filter((_, i) => i !== index);
+        const newRoutes = form.routes.filter((_: any, i: number) => i !== index);
         setForm(f => ({ ...f, routes: newRoutes.length > 0 ? newRoutes : [{ name: '', price: 0 }] }));
     };
 
@@ -169,7 +169,7 @@ const ServiceEditModal = ({
     };
 
     const removeDepartureTime = (index: number) => {
-        const newTimes = form.departureTime.filter((_, i) => i !== index);
+        const newTimes = form.departureTime.filter((_: any, i: number) => i !== index);
         setForm(f => ({ ...f, departureTime: newTimes.length > 0 ? newTimes : [''] }));
     };
 
