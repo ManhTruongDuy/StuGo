@@ -214,6 +214,11 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
     const depositPrice = Math.round(totalPrice * 0.3);
     const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
 
+    const baseTotalPrice = bookingType === 'order'
+        ? orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        : service.priceRange.min * quantity;
+    const serviceFee = totalPrice - baseTotalPrice;
+
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
             <div className="w-full max-w-2xl max-h-[95vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl animate-scale-in overflow-hidden flex flex-col">
@@ -705,39 +710,47 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
 
                             {/* Price Breakdown */}
                             <div className="space-y-3 mb-6">
-                                {bookingType === 'order' ? (
-                                    <>
+                                {bookingType === 'order' && (
+                                    <div className="border-b border-gray-100 pb-3 mb-3 space-y-2">
                                         {orderItems.map((item, index) => (
-                                            <div key={index} className="flex items-center justify-between">
-                                                <span className="text-gray-600">
+                                            <div key={index} className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">
                                                     {item.name} × {item.quantity}
                                                 </span>
-                                                <span className="font-medium text-gray-900">
-                                                    {formatPrice((isPremium ? item.price : Math.round(item.price * 1.05)) * item.quantity)}
+                                                <span className="text-gray-700">
+                                                    {formatPrice(item.price * item.quantity)}
                                                 </span>
                                             </div>
                                         ))}
-                                    </>
-                                ) : (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">
-                                            {isPremium ? 'Đơn giá' : 'Đơn giá (gồm 5% phí dịch vụ)'} × {quantity}
-                                        </span>
+                                    </div>
+                                )}
+                                
+                                <div className="flex items-center justify-between">
+                                    <span className="text-gray-600">
+                                        {bookingType === 'order' ? 'Tổng đơn giá món ăn' : `Đơn giá × ${quantity}`}
+                                    </span>
+                                    <span className="font-medium text-gray-900">
+                                        {formatPrice(baseTotalPrice)}
+                                    </span>
+                                </div>
+                                {!isPremium && (
+                                    <div className="flex items-center justify-between text-gray-600">
+                                        <span>Phí dịch vụ (5%)</span>
                                         <span className="font-medium text-gray-900">
-                                            {formatPrice(totalPrice)}
+                                            {formatPrice(serviceFee)}
                                         </span>
                                     </div>
                                 )}
+                                <div className="flex items-center justify-between font-semibold text-gray-900 border-t border-dashed pt-2">
+                                    <span>Tổng tiền</span>
+                                    <span>
+                                        {formatPrice(totalPrice)}
+                                    </span>
+                                </div>
                                 {paymentType === 'deposit' && (
                                     <div className="flex items-center justify-between text-green-600">
                                         <span>Đặt cọc (30%)</span>
                                         <span className="font-medium">{formatPrice(depositPrice)}</span>
-                                    </div>
-                                )}
-                                {paymentType === 'full' && (
-                                    <div className="flex items-center justify-between text-blue-600">
-                                        <span>Giảm giá thanh toán sớm</span>
-                                        <span className="font-medium">-{formatPrice(depositPrice)}</span>
                                     </div>
                                 )}
                                 <div className="h-px bg-gray-200"></div>

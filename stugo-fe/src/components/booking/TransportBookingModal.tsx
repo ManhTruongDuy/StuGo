@@ -497,9 +497,23 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600">
-                                        {isPremium ? 'Đơn giá' : 'Đơn giá (gồm 5% phí dịch vụ)'} × {quantity}
+                                        Đơn giá × {quantity}
                                     </span>
                                     <span className="font-medium text-gray-900">
+                                        {formatPrice(basePrice * quantity)}
+                                    </span>
+                                </div>
+                                {!isPremium && (
+                                    <div className="flex items-center justify-between text-gray-600">
+                                        <span>Phí dịch vụ (5%)</span>
+                                        <span className="font-medium text-gray-900">
+                                            {formatPrice(totalPrice - (basePrice * quantity))}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between font-semibold text-gray-900 border-t border-dashed pt-2">
+                                    <span>Tổng tiền</span>
+                                    <span>
                                         {formatPrice(totalPrice)}
                                     </span>
                                 </div>
