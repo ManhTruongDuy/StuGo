@@ -361,13 +361,13 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                                             Sức chứa: {slot.capacity} người
                                                         </p>
                                                         <p className="text-lg font-bold text-primary-600 mt-2">
-                                                             {formatPrice(isPremium ? slot.price : Math.round(slot.price * 1.05))}
-                                                         </p>
-                                                         {!isPremium && (
-                                                             <p className="text-xs text-orange-600 mt-0.5">
-                                                                 ({formatPrice(slot.price)} đối với gói Student Premium)
-                                                             </p>
-                                                         )}
+                                                            {formatPrice(isPremium ? slot.price : Math.round(slot.price * 1.05))}
+                                                        </p>
+                                                        {!isPremium && (
+                                                            <p className="text-xs text-orange-600 mt-0.5">
+                                                                ({formatPrice(slot.price)} đối với gói Student Premium)
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     <div className="text-right">
                                                         <p className={`text-sm font-medium ${isAvailable ? 'text-green-600' : 'text-red-600'
@@ -472,7 +472,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                 {!isPremium && (
                                     <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between">
                                         <span>Bạn đang thanh toán giá Freemium</span>
-                                        <span className="font-semibold text-right">💡 Chỉ {formatPrice(baseUnitPrice * quantity)} khi premium</span>
+                                        <span className="font-semibold text-right"> Chỉ {formatPrice(baseUnitPrice * quantity)} với gói Student Premium</span>
                                     </div>
                                 )}
                             </div>
@@ -504,7 +504,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                             {paymentType === 'deposit' && (
                                 <div className="p-4 bg-yellow-50 rounded-xl text-yellow-800 text-sm mb-6">
                                     <p>
-                                        💡 Bạn chỉ cần thanh toán <strong>30% đặt cọc</strong> trước.
+                                        Bạn chỉ cần thanh toán <strong>30% đặt cọc</strong> trước.
                                         Phần còn lại thanh toán khi sử dụng dịch vụ.
                                     </p>
                                 </div>
@@ -512,7 +512,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                             {paymentType === 'full' && (
                                 <div className="p-4 bg-green-50 rounded-xl text-green-800 text-sm mb-6">
                                     <p>
-                                        ✅ Bạn sẽ không cần thanh toán thêm khi sử dụng dịch vụ.
+                                        Bạn sẽ không cần thanh toán thêm khi sử dụng dịch vụ.
                                     </p>
                                 </div>
                             )}

@@ -473,7 +473,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                 {!isPremium && (
                                     <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between">
                                         <span>Bạn đang thanh toán giá Freemium</span>
-                                        <span className="font-semibold text-right">💡 Chỉ {formatPrice(basePrice * quantity)} với gói Student Premium premium</span>
+                                        <span className="font-semibold text-right"> Chỉ {formatPrice(basePrice * quantity)} với gói Student Premium</span>
                                     </div>
                                 )}
                             </div>
@@ -505,7 +505,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             {paymentType === 'deposit' && (
                                 <div className="p-4 bg-yellow-50 rounded-xl text-yellow-800 text-sm mb-6">
                                     <p>
-                                        💡 Bạn chỉ cần thanh toán <strong>30% đặt cọc</strong> trước.
+                                        Bạn chỉ cần thanh toán <strong>30% đặt cọc</strong> trước.
                                         Phần còn lại thanh toán khi sử dụng dịch vụ.
                                     </p>
                                 </div>
@@ -513,7 +513,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             {paymentType === 'full' && (
                                 <div className="p-4 bg-green-50 rounded-xl text-green-800 text-sm mb-6">
                                     <p>
-                                        ✅ Bạn sẽ không cần thanh toán thêm khi sử dụng dịch vụ.
+                                        Bạn sẽ không cần thanh toán thêm khi sử dụng dịch vụ.
                                     </p>
                                 </div>
                             )}
