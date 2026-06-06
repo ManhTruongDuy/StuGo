@@ -10,6 +10,7 @@ export interface UpdateUserData {
     bankName?: string;
     bankAccount?: string;
     avatar?: string;
+    contracts?: string[] | null;
 }
 
 export const updateUserProfile = async (userId: string, data: UpdateUserData) => {

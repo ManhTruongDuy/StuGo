@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
     Search,
-    MoreVertical,
     Eye,
     Ban,
     Check,
@@ -19,8 +18,10 @@ import {
     Lock,
     User as UserIcon,
     FileText,
+    Edit2,
 } from 'lucide-react';
 import { getPartners, updateUserStatus, createPartner } from '../../services/admin.service';
+import { updateUserProfile } from '../../services/user.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Modal from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
@@ -71,7 +72,9 @@ const AdminPartnersPage = () => {
     // Modals & form state
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<any>(null);
+    const [editingPartner, setEditingPartner] = useState<any>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Drag and Drop state
@@ -219,6 +222,47 @@ const AdminPartnersPage = () => {
             }
         } catch (error: any) {
             const msg = error.response?.data?.message || 'Có lỗi xảy ra khi tạo đối tác';
+            toast.error(msg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        const tempErrors: Record<string, string> = {};
+        if (!formFields.fullName.trim()) tempErrors.fullName = 'Họ tên là bắt buộc';
+        if (uploadedContracts.length === 0) {
+            tempErrors.contracts = 'Bạn phải tải lên ít nhất 1 ảnh hợp đồng';
+        }
+        setErrors(tempErrors);
+        
+        if (Object.keys(tempErrors).length > 0) {
+            toast.error('Vui lòng kiểm tra lại thông tin nhập');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const payload = {
+                fullName: formFields.fullName,
+                phone: formFields.phone,
+                city: formFields.city,
+                district: formFields.district,
+                ward: formFields.ward,
+                address: formFields.address,
+                contracts: uploadedContracts
+            };
+            const result = await updateUserProfile(editingPartner.id, payload);
+            if (result.success) {
+                toast.success('Cập nhật đối tác thành công');
+                setIsEditOpen(false);
+                setEditingPartner(null);
+                fetchPartners();
+            }
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật đối tác';
             toast.error(msg);
         } finally {
             setIsSubmitting(false);
@@ -505,53 +549,55 @@ const AdminPartnersPage = () => {
                                                 {getStatusBadge(partner.status)}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="relative flex items-center justify-end">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <button
-                                                        onClick={() =>
-                                                            setActionMenuId(
-                                                                actionMenuId === partner.id ? null : partner.id
-                                                            )
-                                                        }
-                                                        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+                                                        onClick={() => {
+                                                            setSelectedPartner(partner);
+                                                            setIsDetailOpen(true);
+                                                        }}
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-primary-600"
+                                                        title="Xem chi tiết"
                                                     >
-                                                        <MoreVertical className="w-4 h-4" />
+                                                        <Eye className="w-4 h-4" />
                                                     </button>
-
-                                                    {actionMenuId === partner.id && (
-                                                        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelectedPartner(partner);
-                                                                    setIsDetailOpen(true);
-                                                                    setActionMenuId(null);
-                                                                }}
-                                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                                            >
-                                                                <Eye className="w-4 h-4" />
-                                                                Xem chi tiết
-                                                            </button>
-                                                            {partner.status === 'active' ? (
-                                                                <button
-                                                                    onClick={() =>
-                                                                        handleStatusChange(partner.id, 'banned')
-                                                                    }
-                                                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                                                >
-                                                                    <Ban className="w-4 h-4" />
-                                                                    Khóa tài khoản
-                                                                </button>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() =>
-                                                                        handleStatusChange(partner.id, 'active')
-                                                                    }
-                                                                    className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
-                                                                >
-                                                                    <Check className="w-4 h-4" />
-                                                                    Kích hoạt
-                                                                </button>
-                                                            )}
-                                                        </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingPartner(partner);
+                                                            setFormFields({
+                                                                fullName: partner.fullName || '',
+                                                                email: partner.email || '',
+                                                                password: '',
+                                                                phone: partner.phone || '',
+                                                                city: partner.city || '',
+                                                                district: partner.district || '',
+                                                                ward: partner.ward || '',
+                                                                address: partner.address || ''
+                                                            });
+                                                            setUploadedContracts(partner.contracts || []);
+                                                            setErrors({});
+                                                            setIsEditOpen(true);
+                                                        }}
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-teal-600"
+                                                        title="Chỉnh sửa"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    {partner.status === 'active' ? (
+                                                        <button
+                                                            onClick={() => handleStatusChange(partner.id, 'banned')}
+                                                            className="p-2 hover:bg-red-50 rounded-lg transition-colors text-gray-500 hover:text-red-600"
+                                                            title="Khóa tài khoản"
+                                                        >
+                                                            <Ban className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleStatusChange(partner.id, 'active')}
+                                                            className="p-2 hover:bg-green-50 rounded-lg transition-colors text-gray-500 hover:text-green-600"
+                                                            title="Kích hoạt"
+                                                        >
+                                                            <Check className="w-4 h-4" />
+                                                        </button>
                                                     )}
                                                 </div>
                                             </td>
@@ -827,6 +873,218 @@ const AdminPartnersPage = () => {
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Đang tạo...' : 'Tạo đối tác'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Edit Partner Modal */}
+            <Modal
+                isOpen={isEditOpen}
+                onClose={() => {
+                    setIsEditOpen(false);
+                    setEditingPartner(null);
+                }}
+                title="Chỉnh sửa thông tin đối tác"
+                size="lg"
+            >
+                <form onSubmit={handleEditSubmit} className="space-y-6">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Họ và tên <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    value={formFields.fullName}
+                                    onChange={handleFieldChange}
+                                    className={`input pl-10 ${errors.fullName ? 'border-red-500' : ''}`}
+                                    placeholder="Nguyễn Văn A"
+                                />
+                            </div>
+                            {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Email
+                            </label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formFields.email}
+                                    className="input pl-10 bg-gray-50 text-gray-500 cursor-not-allowed"
+                                    disabled
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Số điện thoại
+                            </label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    name="phone"
+                                    value={formFields.phone}
+                                    onChange={handleFieldChange}
+                                    className="input pl-10"
+                                    placeholder="0901234567"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-4">
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Địa chỉ</h4>
+                        <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tỉnh / Thành</label>
+                                <select
+                                    name="city"
+                                    value={formFields.city}
+                                    onChange={handleFieldChange}
+                                    className="input"
+                                >
+                                    <option value="">Chọn tỉnh/thành</option>
+                                    {cities.map((city) => (
+                                        <option key={city.code} value={city.name}>
+                                            {city.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Quận / Huyện</label>
+                                <select
+                                    name="district"
+                                    value={formFields.district}
+                                    onChange={handleFieldChange}
+                                    className="input"
+                                    disabled={!formFields.city}
+                                >
+                                    <option value="">Chọn quận/huyện</option>
+                                    {formFields.city && districts[formFields.city]?.map((d) => (
+                                        <option key={d.code} value={d.name}>
+                                            {d.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Phường / Xã</label>
+                                <input
+                                    type="text"
+                                    name="ward"
+                                    value={formFields.ward}
+                                    onChange={handleFieldChange}
+                                    className="input"
+                                    placeholder="Phường/Xã"
+                                    disabled={!formFields.district}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ chi tiết</label>
+                            <input
+                                type="text"
+                                name="address"
+                                value={formFields.address}
+                                onChange={handleFieldChange}
+                                className="input"
+                                placeholder="Số nhà, tên đường..."
+                            />
+                        </div>
+                    </div>
+
+                    {/* Contract Upload */}
+                    <div className="border-t border-gray-100 pt-4">
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                            Hợp đồng đối tác (Ảnh chụp) <span className="text-red-500">*</span>
+                        </label>
+                        
+                        {/* Drag and Drop Zone */}
+                        <div
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            className={`border-2 border-dashed rounded-2xl p-6 transition-all text-center flex flex-col items-center justify-center cursor-pointer ${
+                                isDragging 
+                                    ? 'border-primary-500 bg-primary-50' 
+                                    : errors.contracts 
+                                        ? 'border-red-300 hover:border-red-400 bg-red-50/10'
+                                        : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50/50'
+                            }`}
+                            onClick={() => document.getElementById('edit-contract-file-input')?.click()}
+                        >
+                            <Upload className={`w-10 h-10 mb-2 ${errors.contracts ? 'text-red-400' : 'text-gray-400'}`} />
+                            <p className="text-sm text-gray-600 font-medium">
+                                Kéo thả ảnh hợp đồng vào đây hoặc <span className="text-primary-600 hover:underline">chọn tệp</span>
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">Hỗ trợ PNG, JPG, JPEG, WEBP tối đa 5MB</p>
+                            <input
+                                id="edit-contract-file-input"
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
+                        </div>
+                        {errors.contracts && <p className="text-red-500 text-xs mt-1">{errors.contracts}</p>}
+
+                        {/* Upload Previews */}
+                        {uploadedContracts.length > 0 && (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                {uploadedContracts.map((img, idx) => (
+                                    <div key={idx} className="relative aspect-[3/4] rounded-xl overflow-hidden group border border-gray-200">
+                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRemoveContract(idx);
+                                            }}
+                                            className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                        <div className="absolute bottom-0 inset-x-0 bg-black/55 text-[10px] text-white py-1 px-2 truncate">
+                                            Hợp đồng #{idx + 1}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsEditOpen(false);
+                                setEditingPartner(null);
+                            }}
+                            className="btn-ghost"
+                            disabled={isSubmitting}
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
                         </button>
                     </div>
                 </form>
