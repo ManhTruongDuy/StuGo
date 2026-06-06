@@ -84,18 +84,16 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
         if (service.type === 'transport') {
             if (min === max) {
                 return (
-                    <div>
-                        <span className="text-xs text-gray-500">Giá vé</span>
-                        <p className="text-base font-bold text-primary-600">
+                    <div className="flex flex-col justify-center min-w-0">
+                        <p className="text-[15px] sm:text-base font-bold text-primary-600 truncate">
                             {formatPrice(min)}
                         </p>
                     </div>
                 );
             }
             return (
-                <div>
-                    <span className="text-xs text-gray-500">Khoảng giá</span>
-                    <p className="text-sm font-bold text-primary-600">
+                <div className="flex flex-col justify-center min-w-0">
+                    <p className="text-[15px] sm:text-base font-bold text-primary-600">
                         {formatPrice(min)} - {formatPrice(max)}
                     </p>
                 </div>
@@ -205,11 +203,11 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 )}
 
                 {/* Price & Action */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
                     {renderPrice()}
                     <Link
                         to={`/service/${service.id}`}
-                        className="btn-primary py-2 px-4 text-sm"
+                        className="btn-primary py-2 px-4 text-sm flex-shrink-0"
                     >
                         Xem chi tiết
                     </Link>

@@ -545,8 +545,8 @@ const ServiceDetailPage = () => {
                                                 {service.priceRange.min === service.priceRange.max ? 'Giá vé' : 'Khoảng giá'}
                                             </p>
                                             <p className="text-2xl lg:text-3xl font-bold text-primary-600">
-                                                {service.priceRange.min === service.priceRange.max 
-                                                    ? formatPrice(service.priceRange.min) 
+                                                {service.priceRange.min === service.priceRange.max
+                                                    ? formatPrice(service.priceRange.min)
                                                     : `${formatPrice(service.priceRange.min)} - ${formatPrice(service.priceRange.max)}`}
                                             </p>
                                         </>
