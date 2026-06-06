@@ -26,6 +26,13 @@ router.get('/stats', authenticate, adminOnly, userController.getUserOverviewStat
 router.get('/partners', authenticate, adminOnly, userController.getPartners);
 
 /**
+ * @route   POST /api/users/partners
+ * @desc    Create a new partner
+ * @access  Private (Admin)
+ */
+router.post('/partners', authenticate, adminOnly, userController.createPartner);
+
+/**
  * @route   GET /api/users/:id
  * @desc    Get user by ID
  * @access  Private

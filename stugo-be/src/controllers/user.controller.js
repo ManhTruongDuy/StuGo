@@ -206,6 +206,56 @@ export const getPartners = async (req, res, next) => {
 };
 
 /**
+ * Create a new partner (Admin only)
+ * POST /api/users/partners
+ */
+export const createPartner = async (req, res, next) => {
+  try {
+    const { email, password, fullName, phone, address, city, district, ward, contracts } = req.body;
+
+    // Validate email
+    const existingUser = await userRepository.findByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email này đã được sử dụng'
+      });
+    }
+
+    // Validate contracts
+    if (!contracts || !Array.isArray(contracts) || contracts.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Hợp đồng là bắt buộc và phải có ít nhất 1 ảnh hợp đồng'
+      });
+    }
+
+    // Create partner
+    const user = await userRepository.create({
+      email,
+      password,
+      fullName,
+      phone,
+      address,
+      city,
+      district,
+      ward,
+      contracts,
+      role: 'partner',
+      status: 'active'
+    });
+
+    res.status(201).json({
+      success: true,
+      data: user,
+      message: 'Tạo đối tác thành công'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get user overview stats (Admin only)
  * GET /api/users/stats
  */
@@ -233,5 +283,6 @@ export default {
   updateUserStatus,
   getUserStats,
   getPartners,
+  createPartner,
   getUserOverviewStats
 };

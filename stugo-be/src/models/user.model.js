@@ -72,6 +72,10 @@ const userSchema = new mongoose.Schema({
   plan: {
     type: String,
     default: 'free'
+  },
+  contracts: {
+    type: [String],
+    default: null
   }
 }, {
   timestamps: true,

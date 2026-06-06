@@ -93,6 +93,7 @@ export const getPartners = async (params?: {
         status: p.status || 'active',
         servicesCount: p.servicesCount || 0,
         totalRevenue: p.totalRevenue || 0,
+        contracts: p.contracts || null,
         createdAt: p.createdAt,
       })),
       pagination: (response.data as any).pagination,
@@ -100,6 +101,11 @@ export const getPartners = async (params?: {
   }
 
   return { data: [] };
+};
+
+export const createPartner = async (partnerData: any): Promise<any> => {
+  const response = await api.post<ApiResponse<any>>('/users/partners', partnerData);
+  return response.data;
 };
 
 // ===================== BOOKINGS =====================

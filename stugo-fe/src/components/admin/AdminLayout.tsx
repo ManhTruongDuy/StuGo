@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     DollarSign,
@@ -23,6 +24,13 @@ const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
+
+    useEffect(() => {
+        if (user && user.role !== 'admin') {
+            toast.error('Bạn không có quyền truy cập trang quản trị!');
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     const menuItems = [
         {

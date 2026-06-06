@@ -28,6 +28,7 @@ import EditServicePage from './pages/manager/EditServicePage';
 import RevenueDetailsPage from './pages/manager/RevenueDetailsPage';
 import CreateServicePage from './pages/manager/CreateServicePage';
 import WithdrawalHistoryPage from './pages/manager/WithdrawalHistoryPage';
+import ManagerContractPage from './pages/manager/ManagerContractPage';
 
 import PartnerRegisterPage from './pages/PartnerRegisterPage';
 import GoogleCallbackPage from './pages/GoogleCallbackPage';
@@ -103,6 +104,7 @@ function App() {
             <Route path="revenue" element={<RevenueDetailsPage />} />
             <Route path="create" element={<CreateServicePage />} />
             <Route path="withdrawals" element={<WithdrawalHistoryPage />} />
+            <Route path="contract" element={<ManagerContractPage />} />
             <Route path="settings" element={<AccountPage />} />
           </Route>
 

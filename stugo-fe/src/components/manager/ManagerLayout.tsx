@@ -15,6 +15,7 @@ import {
     ListChecks,
     Wallet,
     Zap,
+    FileText,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
@@ -59,6 +60,11 @@ const ManagerLayout = () => {
             icon: MapPin,
             label: 'Bản đồ dịch vụ',
             path: '/snap-map',
+        },
+        {
+            icon: FileText,
+            label: 'Hợp đồng',
+            path: '/manager/contract',
         },
         {
             icon: Settings,
