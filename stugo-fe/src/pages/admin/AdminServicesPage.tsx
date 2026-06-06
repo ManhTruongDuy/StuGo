@@ -139,9 +139,45 @@ const ServiceEditModal = ({
         status: service.status || 'active',
         latitude: service.latitude?.toString() || '',
         longitude: service.longitude?.toString() || '',
+        vehicleType: service.vehicleType || '',
+        seats: service.seats || 0,
+        routes: service.routes && service.routes.length > 0 
+            ? service.routes.map((r: any) => typeof r === 'string' ? { name: r, price: service.priceRange?.min || 0 } : { name: r.name, price: r.price }) 
+            : [{ name: '', price: 0 }],
+        departureTime: service.departureTime && service.departureTime.length > 0 ? service.departureTime : [''],
     });
 
     const set = (key: string, val: any) => setForm(f => ({ ...f, [key]: val }));
+
+    const addRoute = () => {
+        setForm(f => ({ ...f, routes: [...f.routes, { name: '', price: 0 }] }));
+    };
+
+    const removeRoute = (index: number) => {
+        const newRoutes = form.routes.filter((_, i) => i !== index);
+        setForm(f => ({ ...f, routes: newRoutes.length > 0 ? newRoutes : [{ name: '', price: 0 }] }));
+    };
+
+    const updateRoute = (index: number, field: 'name' | 'price', value: any) => {
+        const newRoutes = [...form.routes];
+        newRoutes[index] = { ...newRoutes[index], [field]: value };
+        setForm(f => ({ ...f, routes: newRoutes }));
+    };
+
+    const addDepartureTime = () => {
+        setForm(f => ({ ...f, departureTime: [...f.departureTime, ''] }));
+    };
+
+    const removeDepartureTime = (index: number) => {
+        const newTimes = form.departureTime.filter((_, i) => i !== index);
+        setForm(f => ({ ...f, departureTime: newTimes.length > 0 ? newTimes : [''] }));
+    };
+
+    const updateDepartureTime = (index: number, value: string) => {
+        const newTimes = [...form.departureTime];
+        newTimes[index] = value;
+        setForm(f => ({ ...f, departureTime: newTimes }));
+    };
 
     const handleSave = async () => {
         if (!form.name.trim() || !form.address.trim()) {
@@ -150,7 +186,7 @@ const ServiceEditModal = ({
         }
         try {
             setSaving(true);
-            const payload = {
+            const payload: any = {
                 name: form.name,
                 description: form.description,
                 address: form.address,
@@ -159,16 +195,39 @@ const ServiceEditModal = ({
                 ward: form.ward,
                 openTime: form.openTime,
                 closeTime: form.closeTime,
-                priceRange: {
-                    min: parseInt(form.priceMin) || 0,
-                    max: parseInt(form.priceMax) || 0,
-                },
                 isAvailable: form.isAvailable,
                 status: form.status,
                 latitude: parseFloat(form.latitude) || 0,
                 longitude: parseFloat(form.longitude) || 0,
                 images,
             };
+
+            if (service.type === 'transport') {
+                const cleanRoutes = form.routes
+                    .filter((r: any) => r.name && r.name.trim())
+                    .map((r: any) => ({ name: r.name.trim(), price: Number(r.price) }));
+                
+                payload.vehicleType = form.vehicleType;
+                payload.seats = Number(form.seats) || 0;
+                payload.routes = cleanRoutes;
+                payload.departureTime = form.departureTime.filter((t: string) => t.trim());
+
+                if (cleanRoutes.length > 0) {
+                    const prices = cleanRoutes.map((r: any) => r.price);
+                    payload.priceRange = {
+                        min: Math.min(...prices),
+                        max: Math.max(...prices)
+                    };
+                } else {
+                    payload.priceRange = { min: 0, max: 0 };
+                }
+            } else {
+                payload.priceRange = {
+                    min: parseInt(form.priceMin) || 0,
+                    max: parseInt(form.priceMax) || 0,
+                };
+            }
+
             await api.put(`/services/${service.id}`, payload);
             toast.success('Đã cập nhật dịch vụ');
             onSaved({ ...service, ...payload, id: service.id });
@@ -243,15 +302,109 @@ const ServiceEditModal = ({
                             <label className="block text-sm font-medium text-gray-700 mb-1">Giờ đóng cửa</label>
                             <input type="time" value={form.closeTime} onChange={e => set('closeTime', e.target.value)} className="input w-full" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Giá thấp nhất (VNĐ)</label>
-                            <input type="number" value={form.priceMin} onChange={e => set('priceMin', e.target.value)} className="input w-full" min="0" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Giá cao nhất (VNĐ)</label>
-                            <input type="number" value={form.priceMax} onChange={e => set('priceMax', e.target.value)} className="input w-full" min="0" />
-                        </div>
+                        {service.type !== 'transport' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Giá thấp nhất (VNĐ)</label>
+                                    <input type="number" value={form.priceMin} onChange={e => set('priceMin', e.target.value)} className="input w-full" min="0" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Giá cao nhất (VNĐ)</label>
+                                    <input type="number" value={form.priceMax} onChange={e => set('priceMax', e.target.value)} className="input w-full" min="0" />
+                                </div>
+                            </>
+                        )}
                     </div>
+
+                    {/* Transport Specific fields */}
+                    {service.type === 'transport' && (
+                        <>
+                            <div className="border-t border-gray-100 pt-4 space-y-4">
+                                <label className="block text-sm font-semibold text-gray-700">Thông tin xe & Giờ khởi hành</label>
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Loại xe</label>
+                                        <input value={form.vehicleType} onChange={e => set('vehicleType', e.target.value)} className="input w-full" placeholder="VD: Xe giường nằm" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Số ghế</label>
+                                        <input type="number" value={form.seats} onChange={e => set('seats', parseInt(e.target.value) || 0)} className="input w-full" min="0" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Routes */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Tuyến đường & Giá vé</label>
+                                    <button type="button" onClick={addRoute} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm tuyến
+                                    </button>
+                                </div>
+                                <div className="space-y-3">
+                                    {form.routes.map((route: any, index: number) => (
+                                        <div key={index} className="flex gap-2 items-center">
+                                            <input
+                                                type="text"
+                                                value={route.name}
+                                                onChange={(e) => updateRoute(index, 'name', e.target.value)}
+                                                className="input flex-1"
+                                                placeholder="VD: Hòa Lạc - Nội thành"
+                                            />
+                                            <input
+                                                type="number"
+                                                value={route.price || 0}
+                                                onChange={(e) => updateRoute(index, 'price', parseInt(e.target.value) || 0)}
+                                                className="input w-36"
+                                                placeholder="Giá vé"
+                                                min="0"
+                                            />
+                                            {form.routes.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeRoute(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Departure Times */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Giờ khởi hành</label>
+                                    <button type="button" onClick={addDepartureTime} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm giờ
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {form.departureTime.map((time: string, index: number) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input
+                                                type="time"
+                                                value={time}
+                                                onChange={(e) => updateDepartureTime(index, e.target.value)}
+                                                className="input flex-1"
+                                            />
+                                            {form.departureTime.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeDepartureTime(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* Status */}
                     <div className="flex flex-wrap gap-4">
