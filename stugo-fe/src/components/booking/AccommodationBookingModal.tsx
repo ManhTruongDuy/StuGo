@@ -201,10 +201,11 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
 
     const isPremium = user?.plan === 'premium_user';
     const roomType = availableSlots.find((s: any) => s.roomTypeId === selectedRoomType);
-    const totalPrice = (roomType?.price || service.priceRange.min) * quantity;
+    const baseUnitPrice = roomType?.price || service.priceRange.min;
+    const displayUnitPrice = isPremium ? baseUnitPrice : Math.round(baseUnitPrice * 1.05);
+    const totalPrice = displayUnitPrice * quantity;
     const depositPrice = totalPrice * 0.3;
-    const discountAmount = isPremium ? totalPrice * 0.1 : 0;
-    const finalPaymentAmount = paymentType === 'full' ? totalPrice - discountAmount : depositPrice;
+    const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
@@ -360,8 +361,13 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                                             Sức chứa: {slot.capacity} người
                                                         </p>
                                                         <p className="text-lg font-bold text-primary-600 mt-2">
-                                                            {formatPrice(slot.price)}
-                                                        </p>
+                                                             {formatPrice(isPremium ? slot.price : Math.round(slot.price * 1.05))}
+                                                         </p>
+                                                         {!isPremium && (
+                                                             <p className="text-xs text-orange-600 mt-0.5">
+                                                                 ({formatPrice(slot.price)} đối với gói Student Premium)
+                                                             </p>
+                                                         )}
                                                     </div>
                                                     <div className="text-right">
                                                         <p className={`text-sm font-medium ${isAvailable ? 'text-green-600' : 'text-red-600'
@@ -453,32 +459,29 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                     >
                                         <div className="flex items-center gap-2">
                                             <p className="font-semibold text-gray-900">Thanh toán toàn bộ</p>
-                                            {isPremium && (
-                                                <div className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                                    Giảm 10%
-                                                </div>
-                                            )}
                                         </div>
                                         <p className="text-sm text-gray-500 mt-1 text-left">
-                                            {isPremium ? (
-                                                <>
-                                                    <span className="line-through mr-2">{formatPrice(totalPrice)}</span>
-                                                    <span className="font-semibold text-primary-600">{formatPrice(totalPrice - discountAmount)}</span>
-                                                </>
-                                            ) : (
-                                                formatPrice(totalPrice)
-                                            )}
+                                            {formatPrice(totalPrice)}
                                         </p>
                                         <p className="text-xs text-gray-400 mt-2 text-left">
                                             Thanh toán một lần, không cần thanh toán thêm
                                         </p>
                                     </button>
                                 </div>
+
+                                {!isPremium && (
+                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-3 rounded-xl border border-orange-100 flex flex-col gap-1">
+                                        <p className="font-medium">💡 Giá tốt hơn đối với gói Student Premium:</p>
+                                        <p>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ). Nâng cấp lên <strong>Student Premium</strong> để chỉ trả <strong>{formatPrice(baseUnitPrice * quantity)}</strong> (tiết kiệm {formatPrice(totalPrice - baseUnitPrice * quantity)}).</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-gray-600">Đơn giá × {quantity}</span>
+                                    <span className="text-gray-600">
+                                        {isPremium ? 'Đơn giá' : 'Đơn giá (gồm 5% phí dịch vụ)'} × {quantity}
+                                    </span>
                                     <span className="font-medium text-gray-900">
                                         {formatPrice(totalPrice)}
                                     </span>
@@ -487,12 +490,6 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                     <div className="flex items-center justify-between text-green-600">
                                         <span>Đặt cọc (30%)</span>
                                         <span className="font-medium">{formatPrice(depositPrice)}</span>
-                                    </div>
-                                )}
-                                {paymentType === 'full' && isPremium && (
-                                    <div className="flex items-center justify-between text-blue-600">
-                                        <span>Giảm giá Premium (10%)</span>
-                                        <span className="font-medium">-{formatPrice(discountAmount)}</span>
                                     </div>
                                 )}
                                 <div className="h-px bg-gray-200"></div>

@@ -198,7 +198,9 @@ export const createBooking = async (req, res, next) => {
       }
 
       // Calculate pricing
-      const unitPrice = service.priceRange.min;
+      const isPremium = req.user && req.user.plan === 'premium_user';
+      const basePrice = service.priceRange.min;
+      const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * quantity;
       const depositAmount = Math.round(totalAmount * 0.3);
 
@@ -269,7 +271,9 @@ export const createBooking = async (req, res, next) => {
       }
 
       // Calculate pricing
-      const unitPrice = roomType.price || service.priceRange.min;
+      const isPremium = req.user && req.user.plan === 'premium_user';
+      const basePrice = roomType.price || service.priceRange.min;
+      const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * quantity;
       const depositAmount = Math.round(totalAmount * 0.3);
 
@@ -410,7 +414,10 @@ export const createBooking = async (req, res, next) => {
         }
 
         // Validate menu items and calculate total
+        const isPremium = req.user && req.user.plan === 'premium_user';
         let totalAmount = 0;
+        const processedOrderItems = [];
+
         for (const item of orderItems) {
           // Try multiple ways to find menuItem
           let menuItem = null;
@@ -451,7 +458,15 @@ export const createBooking = async (req, res, next) => {
             });
           }
 
-          totalAmount += menuItem.price * item.quantity;
+          const basePrice = menuItem.price;
+          const itemPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
+          totalAmount += itemPrice * item.quantity;
+          processedOrderItems.push({
+            menuItemId: item.menuItemId,
+            name: item.name,
+            price: itemPrice,
+            quantity: item.quantity
+          });
         }
 
         const depositAmount = Math.round(totalAmount * 0.3);
@@ -469,7 +484,7 @@ export const createBooking = async (req, res, next) => {
           quantity: orderItems.reduce((sum, item) => sum + item.quantity, 0),
           bookingType: 'order',
           orderType,
-          orderItems,
+          orderItems: processedOrderItems,
           unitPrice: 0,
           totalAmount,
           depositAmount,

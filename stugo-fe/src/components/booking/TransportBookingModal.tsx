@@ -169,10 +169,11 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     };
 
     const isPremium = user?.plan === 'premium_user';
-    const totalPrice = service.priceRange.min * quantity;
+    const basePrice = service.priceRange.min;
+    const displayUnitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
+    const totalPrice = displayUnitPrice * quantity;
     const depositPrice = totalPrice * 0.3;
-    const discountAmount = isPremium ? totalPrice * 0.1 : 0;
-    const finalPaymentAmount = paymentType === 'full' ? totalPrice - discountAmount : depositPrice;
+    const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
@@ -459,32 +460,29 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                     >
                                         <div className="flex items-center gap-2">
                                             <p className="font-semibold text-gray-900">Thanh toán toàn bộ</p>
-                                            {isPremium && (
-                                                <div className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                                    Giảm 10%
-                                                </div>
-                                            )}
                                         </div>
                                         <p className="text-sm text-gray-500 mt-1 text-left">
-                                            {isPremium ? (
-                                                <>
-                                                    <span className="line-through mr-2">{formatPrice(totalPrice)}</span>
-                                                    <span className="font-semibold text-primary-600">{formatPrice(totalPrice - discountAmount)}</span>
-                                                </>
-                                            ) : (
-                                                formatPrice(totalPrice)
-                                            )}
+                                            {formatPrice(totalPrice)}
                                         </p>
                                         <p className="text-xs text-gray-400 mt-2 text-left">
                                             Thanh toán một lần, không cần thanh toán thêm
                                         </p>
                                     </button>
                                 </div>
+                                
+                                {!isPremium && (
+                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-3 rounded-xl border border-orange-100 flex flex-col gap-1">
+                                        <p className="font-medium">💡 Giá tốt hơn đối với gói Student Premium:</p>
+                                        <p>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ). Nâng cấp lên <strong>Student Premium</strong> để chỉ trả <strong>{formatPrice(basePrice * quantity)}</strong> (tiết kiệm {formatPrice(totalPrice - basePrice * quantity)}).</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-gray-600">Đơn giá × {quantity}</span>
+                                    <span className="text-gray-600">
+                                        {isPremium ? 'Đơn giá' : 'Đơn giá (gồm 5% phí dịch vụ)'} × {quantity}
+                                    </span>
                                     <span className="font-medium text-gray-900">
                                         {formatPrice(totalPrice)}
                                     </span>
@@ -493,12 +491,6 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                     <div className="flex items-center justify-between text-green-600">
                                         <span>Đặt cọc (30%)</span>
                                         <span className="font-medium">{formatPrice(depositPrice)}</span>
-                                    </div>
-                                )}
-                                {paymentType === 'full' && isPremium && (
-                                    <div className="flex items-center justify-between text-blue-600">
-                                        <span>Giảm giá Premium (10%)</span>
-                                        <span className="font-medium">-{formatPrice(discountAmount)}</span>
                                     </div>
                                 )}
                                 <div className="h-px bg-gray-200"></div>

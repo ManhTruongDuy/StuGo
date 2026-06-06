@@ -136,7 +136,7 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                 bookingData.orderItems = orderItems.map(item => ({
                     menuItemId: item.menuItemId,
                     name: item.name,
-                    price: item.price,
+                    price: isPremium ? item.price : Math.round(item.price * 1.05),
                     quantity: item.quantity
                 }));
                 bookingData.quantity = orderItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -196,11 +196,18 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
         }
     };
 
+    const isPremium = user?.plan === 'premium_user';
+
     const getTotalPrice = () => {
         if (bookingType === 'order') {
-            return orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            return orderItems.reduce((sum, item) => {
+                const displayPrice = isPremium ? item.price : Math.round(item.price * 1.05);
+                return sum + (displayPrice * item.quantity);
+            }, 0);
         }
-        return service.priceRange.min * quantity;
+        const basePrice = service.priceRange.min;
+        const displayPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
+        return displayPrice * quantity;
     };
 
     const totalPrice = getTotalPrice();
@@ -467,8 +474,13 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                                                                                     <p className="text-sm text-gray-500 mt-1">{item.description}</p>
                                                                                 )}
                                                                                 <p className="text-lg font-bold text-primary-600 mt-2">
-                                                                                    {formatPrice(item.price)}
+                                                                                    {formatPrice(isPremium ? item.price : Math.round(item.price * 1.05))}
                                                                                 </p>
+                                                                                {!isPremium && (
+                                                                                    <p className="text-xs text-orange-600 font-normal mt-0.5">
+                                                                                        ({formatPrice(item.price)} đối với Student Premium)
+                                                                                    </p>
+                                                                                )}
                                                                             </div>
                                                                             <div className="flex items-center gap-3 ml-4">
                                                                                 {itemQuantity > 0 && (
@@ -531,7 +543,10 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                                                         <div className="flex items-center justify-between mb-3">
                                                             <span className="font-semibold text-gray-900">Tổng đơn hàng:</span>
                                                             <span className="text-xl font-bold text-primary-600">
-                                                                {formatPrice(orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                                                                {formatPrice(orderItems.reduce((sum, item) => {
+                                                                    const displayPrice = isPremium ? item.price : Math.round(item.price * 1.05);
+                                                                    return sum + (displayPrice * item.quantity);
+                                                                }, 0))}
                                                             </span>
                                                         </div>
                                                         <div className="text-sm text-gray-600">
@@ -598,7 +613,7 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                                                             {item.name} × {item.quantity}
                                                         </span>
                                                         <span className="font-medium text-gray-900">
-                                                            {formatPrice(item.price * item.quantity)}
+                                                            {formatPrice((isPremium ? item.price : Math.round(item.price * 1.05)) * item.quantity)}
                                                         </span>
                                                     </div>
                                                 ))}
@@ -668,6 +683,24 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                                         </p>
                                     </button>
                                 </div>
+
+                                {(() => {
+                                    const getBaseTotalPrice = () => {
+                                        if (bookingType === 'order') {
+                                            return orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                                        }
+                                        return service.priceRange.min * quantity;
+                                    };
+                                    const baseTotalPrice = getBaseTotalPrice();
+                                    const savings = totalPrice - baseTotalPrice;
+
+                                    return !isPremium && savings > 0 ? (
+                                        <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-3 rounded-xl border border-orange-100 flex flex-col gap-1">
+                                            <p className="font-medium">💡 Giá tốt hơn đối với gói Student Premium:</p>
+                                            <p>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ). Nâng cấp lên <strong>Student Premium</strong> để chỉ trả <strong>{formatPrice(baseTotalPrice)}</strong> (tiết kiệm {formatPrice(savings)}).</p>
+                                        </div>
+                                    ) : null;
+                                })()}
                             </div>
 
                             {/* Price Breakdown */}
@@ -680,7 +713,7 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                                                     {item.name} × {item.quantity}
                                                 </span>
                                                 <span className="font-medium text-gray-900">
-                                                    {formatPrice(item.price * item.quantity)}
+                                                    {formatPrice((isPremium ? item.price : Math.round(item.price * 1.05)) * item.quantity)}
                                                 </span>
                                             </div>
                                         ))}
@@ -688,7 +721,7 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                                 ) : (
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-600">
-                                            Đơn giá × {quantity}
+                                            {isPremium ? 'Đơn giá' : 'Đơn giá (gồm 5% phí dịch vụ)'} × {quantity}
                                         </span>
                                         <span className="font-medium text-gray-900">
                                             {formatPrice(totalPrice)}
