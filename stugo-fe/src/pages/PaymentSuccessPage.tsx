@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Calendar, MapPin, CreditCard, FileText, Home, Package, Clock, User } from 'lucide-react';
+import { CheckCircle, Calendar, MapPin, CreditCard, FileText, Home, Package, Clock, User, Armchair } from 'lucide-react';
 import { getPaymentByOrderCode, checkPaymentStatus } from '../services/payment.service';
 import { getBookingById } from '../services/booking.service';
 import toast from 'react-hot-toast';
@@ -24,6 +24,7 @@ interface BookingInfo {
     date: string;
     timeSlot?: string;
     route?: string;
+    seats?: string[];
     roomTypeName?: string;
     quantity: number;
     totalAmount: number;
@@ -140,6 +141,7 @@ const PaymentSuccessPage = () => {
                             date: bookingInfo.date,
                             timeSlot: bookingInfo.timeSlot,
                             route: bookingInfo.route,
+                            seats: bookingInfo.seats,
                             roomTypeName: bookingInfo.roomTypeName,
                             quantity: bookingInfo.quantity,
                             totalAmount: bookingInfo.totalAmount,
@@ -204,6 +206,7 @@ const PaymentSuccessPage = () => {
                             date: bookingInfo.date,
                             timeSlot: bookingInfo.timeSlot,
                             route: bookingInfo.route,
+                            seats: bookingInfo.seats,
                             roomTypeName: bookingInfo.roomTypeName,
                             quantity: bookingInfo.quantity,
                             totalAmount: bookingInfo.totalAmount,
@@ -383,6 +386,16 @@ const PaymentSuccessPage = () => {
                                 <p className="font-semibold text-gray-900">{booking.quantity}</p>
                             </div>
                         </div>
+
+                        {booking.seats && booking.seats.length > 0 && (
+                            <div className="flex items-start gap-4">
+                                <Armchair className="w-5 h-5 text-gray-400 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-500">Ghế đã chọn</p>
+                                    <p className="font-semibold text-gray-900">{booking.seats.join(', ')}</p>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="pt-4 border-t border-gray-200">
                             <div className="flex justify-between items-center mb-2">

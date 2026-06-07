@@ -78,6 +78,10 @@ const bookingSchema = new mongoose.Schema({
     email: String,
     note: String
   },
+  seats: {
+    type: [String],
+    default: []
+  },
   cancelReason: String,
   cancelledAt: Date,
   refundAmount: {

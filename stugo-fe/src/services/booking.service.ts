@@ -19,6 +19,7 @@ export const createBooking = async (bookingData: {
     price: number;
     quantity: number;
   }>;
+  seats?: string[]; // For transport seats
   customerInfo?: {
     name?: string;
     phone?: string;
@@ -44,6 +45,8 @@ export const createBooking = async (bookingData: {
         depositAmount: booking.depositAmount,
         status: booking.status || 'pending',
         paymentStatus: booking.paymentStatus || 'pending',
+        route: booking.route,
+        seats: booking.seats,
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
       };
@@ -183,6 +186,7 @@ export const getBookingById = async (bookingId: string): Promise<Booking | null>
         timeSlot: booking.timeSlot,
         ...(booking.route && { route: booking.route }),
         ...(booking.roomTypeName && { roomTypeName: booking.roomTypeName }),
+        seats: booking.seats,
         quantity: booking.quantity,
         totalAmount: booking.totalAmount,
         depositAmount: booking.depositAmount,

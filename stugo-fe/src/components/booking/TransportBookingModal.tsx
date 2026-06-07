@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     X,
     Calendar,
     Clock,
     ChevronLeft,
     ChevronRight,
-    Minus,
-    Plus,
     Users,
     CreditCard,
     Loader2
@@ -30,10 +28,10 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
 
     const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
     const [availableSlots, setAvailableSlots] = useState<any[]>([]);
-    const [step, setStep] = useState<'date' | 'time' | 'confirm'>('date');
+    const [step, setStep] = useState<'date' | 'time' | 'seats' | 'confirm'>('date');
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-    const [quantity, setLocalQuantity] = useState(1);
+    const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
     const [monthOffset, setMonthOffset] = useState(0);
     const [isCreating, setIsCreating] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -59,6 +57,107 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
             currency: 'VND',
         }).format(price);
     };
+
+    // Seeded random number generator
+    const getSeededRandom = (seed: string) => {
+        let h = 0;
+        for (let i = 0; i < seed.length; i++) {
+            h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
+        }
+        return function () {
+            let t = h += 0x6D2B79F5;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    };
+
+    // Seeded random occupied seats generator
+    const getOccupiedSeats = (
+        serviceId: string,
+        dateStr: string,
+        timeSlot: string,
+        route: string,
+        totalSeats: number,
+        bookedSeatsList: string[]
+    ) => {
+        const seed = `${serviceId}-${dateStr}-${timeSlot}-${route}`;
+        const random = getSeededRandom(seed);
+
+        // Occupy between 30% and 60% of the seats randomly
+        const percentage = 0.3 + random() * 0.3;
+        const numRandomOccupied = Math.floor(totalSeats * percentage);
+
+        // Generate all seat IDs
+        const allSeatIds: string[] = [];
+        const isSleeper = service.vehicleType?.toLowerCase().includes('giường') || 
+                          service.vehicleType?.toLowerCase().includes('nằm') || 
+                          totalSeats >= 20;
+
+        if (isSleeper) {
+            const half = Math.ceil(totalSeats / 2);
+            for (let i = 1; i <= half; i++) {
+                allSeatIds.push(`A${i.toString().padStart(2, '0')}`);
+            }
+            const otherHalf = totalSeats - half;
+            for (let i = 1; i <= otherHalf; i++) {
+                allSeatIds.push(`B${i.toString().padStart(2, '0')}`);
+            }
+        } else {
+            for (let i = 1; i <= totalSeats; i++) {
+                allSeatIds.push(`A${i.toString().padStart(2, '0')}`);
+            }
+        }
+
+        const occupiedSet = new Set<string>(bookedSeatsList);
+        const candidateSeats = allSeatIds.filter(seat => !occupiedSet.has(seat));
+
+        const shuffledCandidates = [...candidateSeats].sort(() => random() - 0.5);
+        const toOccupyCount = Math.min(numRandomOccupied, shuffledCandidates.length);
+        for (let i = 0; i < toOccupyCount; i++) {
+            occupiedSet.add(shuffledCandidates[i]);
+        }
+
+        return Array.from(occupiedSet);
+    };
+
+    const totalSeats = service.seats || 24;
+    const isSleeper = service.vehicleType?.toLowerCase().includes('giường') || 
+                      service.vehicleType?.toLowerCase().includes('nằm') || 
+                      totalSeats >= 20;
+
+    // Generate all seat IDs
+    const allSeats = useMemo(() => {
+        const seatsList: string[] = [];
+        if (isSleeper) {
+            const half = Math.ceil(totalSeats / 2);
+            for (let i = 1; i <= half; i++) {
+                seatsList.push(`A${i.toString().padStart(2, '0')}`);
+            }
+            const otherHalf = totalSeats - half;
+            for (let i = 1; i <= otherHalf; i++) {
+                seatsList.push(`B${i.toString().padStart(2, '0')}`);
+            }
+        } else {
+            for (let i = 1; i <= totalSeats; i++) {
+                seatsList.push(`A${i.toString().padStart(2, '0')}`);
+            }
+        }
+        return seatsList;
+    }, [totalSeats, isSleeper]);
+
+    const occupiedSeats = useMemo(() => {
+        if (!selectedDate || !selectedRoute || !selectedSlot) return [];
+        const dateStr = format(selectedDate, 'yyyy-MM-dd');
+        const currentSlot = availableSlots.find(
+            (slot: any) => slot.route === selectedRoute && slot.time === selectedSlot
+        );
+        const bookedList = currentSlot?.bookedSeatsList || [];
+        return getOccupiedSeats(service.id, dateStr, selectedSlot, selectedRoute, totalSeats, bookedList);
+    }, [selectedDate, selectedRoute, selectedSlot, availableSlots, service.id, totalSeats]);
+
+    const lowerDeckSeats = useMemo(() => allSeats.filter(s => s.startsWith('A')), [allSeats]);
+    const upperDeckSeats = useMemo(() => allSeats.filter(s => s.startsWith('B')), [allSeats]);
 
     // Fetch available slots when date is selected
     useEffect(() => {
@@ -86,12 +185,13 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         setSelectedDate(date);
         setSelectedSlot(null);
         setSelectedRoute(null);
+        setSelectedSeats([]);
         setStep('time');
     };
 
     const handleConfirm = async () => {
-        if (!selectedDate || !selectedRoute || !selectedSlot) {
-            toast.error('Vui lòng chọn chuyến và giờ khởi hành');
+        if (!selectedDate || !selectedRoute || !selectedSlot || selectedSeats.length === 0) {
+            toast.error('Vui lòng chọn đầy đủ chuyến, giờ và chỗ ngồi');
             return;
         }
 
@@ -108,7 +208,8 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                 date: format(selectedDate, 'yyyy-MM-dd'),
                 route: selectedRoute,
                 timeSlot: selectedSlot,
-                quantity: quantity,
+                quantity: selectedSeats.length,
+                seats: selectedSeats,
                 customerInfo: {
                     name: user.fullName,
                     email: user.email,
@@ -120,7 +221,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                 setService(service);
                 setDate(format(selectedDate, 'yyyy-MM-dd'));
                 setTimeSlot(selectedSlot);
-                setQuantity(quantity);
+                setQuantity(selectedSeats.length);
 
                 // Create payment link
                 try {
@@ -168,13 +269,56 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         }
     };
 
+    const quantityToUse = selectedSeats.length || 1;
     const isPremium = user?.plan === 'premium_user';
     const selectedRouteObj = service.routes?.find(r => (typeof r === 'string' ? r === selectedRoute : r.name === selectedRoute));
     const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
     const displayUnitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
-    const totalPrice = displayUnitPrice * quantity;
+    const totalPrice = displayUnitPrice * quantityToUse;
     const depositPrice = totalPrice * 0.3;
     const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
+
+    const renderSeat = (seatId: string) => {
+        const isOccupied = occupiedSeats.includes(seatId);
+        const isSelected = selectedSeats.includes(seatId);
+
+        let seatClass = "";
+        let pillowClass = "";
+
+        if (isOccupied) {
+            seatClass = "bg-gray-100 border-gray-200 text-gray-300 cursor-not-allowed";
+            pillowClass = "bg-gray-200 border-gray-300";
+        } else if (isSelected) {
+            seatClass = "bg-primary-500 border-primary-600 text-white shadow-md scale-95";
+            pillowClass = "bg-primary-600 border-primary-700";
+        } else {
+            seatClass = "bg-white border-primary-500 text-primary-600 hover:bg-primary-50 hover:scale-105 active:scale-95";
+            pillowClass = "bg-primary-50 border-primary-100";
+        }
+
+        return (
+            <button
+                key={seatId}
+                disabled={isOccupied}
+                onClick={() => {
+                    if (isSelected) {
+                        setSelectedSeats(selectedSeats.filter(s => s !== seatId));
+                    } else {
+                        setSelectedSeats([...selectedSeats, seatId]);
+                    }
+                }}
+                className={`w-12 h-16 border rounded-xl flex flex-col justify-between items-center p-1.5 transition-all duration-200 relative ${seatClass}`}
+            >
+                {isOccupied ? (
+                    <span className="text-gray-300 font-bold text-sm select-none">✕</span>
+                ) : (
+                    <span className="text-xs font-bold font-mono tracking-tight">{seatId}</span>
+                )}
+                {/* Pillow/headrest at the bottom */}
+                <div className={`h-2.5 rounded-md border w-full transition-colors duration-200 ${pillowClass}`}></div>
+            </button>
+        );
+    };
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
@@ -184,7 +328,11 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                     <div className="flex items-center gap-2 sm:gap-4">
                         {step !== 'date' && (
                             <button
-                                onClick={() => setStep(step === 'confirm' ? 'time' : 'date')}
+                                onClick={() => {
+                                    if (step === 'confirm') setStep('seats');
+                                    else if (step === 'seats') setStep('time');
+                                    else setStep('date');
+                                }}
                                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 <ChevronLeft className="w-5 h-5" />
@@ -194,6 +342,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                                 {step === 'date' && 'Chọn ngày'}
                                 {step === 'time' && 'Chọn chuyến & giờ'}
+                                {step === 'seats' && 'Chọn chỗ ngồi'}
                                 {step === 'confirm' && 'Xác nhận đặt chỗ'}
                             </h2>
                             <p className="text-xs sm:text-sm text-gray-500 truncate max-w-[200px] sm:max-w-none">{service.name}</p>
@@ -307,6 +456,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                 onClick={() => {
                                                     setSelectedRoute(routeName);
                                                     setSelectedSlot(null);
+                                                    setSelectedSeats([]);
                                                 }}
                                                 className={`p-4 rounded-xl flex items-center justify-between transition-all border-2 ${selectedRoute === routeName
                                                     ? 'border-primary-500 bg-primary-50'
@@ -344,7 +494,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                 .filter((slot: any) => slot.route === selectedRoute)
                                                 .map((slot: any) => {
                                                     const isSelected = selectedSlot === slot.time;
-                                                    const isAvailable = slot.available && slot.availableSeats >= quantity;
+                                                    const isAvailable = slot.available && slot.availableSeats >= 1;
 
                                                     return (
                                                         <button
@@ -352,9 +502,9 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                             onClick={() => {
                                                                 if (isAvailable) {
                                                                     setSelectedSlot(slot.time);
-                                                                    setStep('confirm');
+                                                                    setStep('seats');
                                                                 } else {
-                                                                    toast.error(`Chỉ còn ${slot.availableSeats} ghế`);
+                                                                    toast.error(`Không còn ghế trống`);
                                                                 }
                                                             }}
                                                             disabled={!isAvailable}
@@ -380,7 +530,116 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                         </div>
                     )}
 
-                    {/* Step 3: Confirmation */}
+                    {/* Step 3: Seat Selection */}
+                    {step === 'seats' && selectedDate && selectedRoute && selectedSlot && (
+                        <div className="animate-fade-in flex flex-col items-center">
+                            <div className="text-center mb-6">
+                                <p className="text-gray-500">Tuyến: <span className="font-semibold text-gray-900">{selectedRoute}</span> | Giờ: <span className="font-semibold text-gray-900">{selectedSlot}</span></p>
+                                <p className="text-sm text-gray-500 mt-1">Vui lòng chọn chỗ ngồi (Chọn tối đa theo số ghế trống)</p>
+                            </div>
+
+                            {/* Decks/Grid */}
+                            <div className="w-full mb-6">
+                                {isSleeper ? (
+                                    <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
+                                        {/* Tầng dưới */}
+                                        <div className="flex flex-col items-center">
+                                            <h4 className="text-sm font-semibold text-gray-600 mb-2">Tầng dưới</h4>
+                                            <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
+                                                {/* Driver Section */}
+                                                <div className="flex justify-between items-center px-1">
+                                                    <div className="p-1.5 rounded-full bg-gray-200 text-gray-500">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                                            <circle cx="12" cy="12" r="10" />
+                                                            <circle cx="12" cy="12" r="3" />
+                                                            <line x1="12" y1="2" x2="12" y2="9" />
+                                                            <line x1="2" y1="12" x2="9" y2="12" />
+                                                            <line x1="15" y1="12" x2="22" y2="12" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="w-6 h-6"></div>
+                                                </div>
+                                                {/* Seats Grid */}
+                                                <div className="grid grid-cols-2 gap-3 justify-items-center">
+                                                    {lowerDeckSeats.map(seat => renderSeat(seat))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Tầng trên */}
+                                        <div className="flex flex-col items-center">
+                                            <h4 className="text-sm font-semibold text-gray-600 mb-2">Tầng trên</h4>
+                                            <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
+                                                <div className="h-9"></div>
+                                                {/* Seats Grid */}
+                                                <div className="grid grid-cols-2 gap-3 justify-items-center">
+                                                    {upperDeckSeats.map(seat => renderSeat(seat))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center max-w-[200px] mx-auto">
+                                        <h4 className="text-sm font-semibold text-gray-600 mb-2">Sơ đồ ghế</h4>
+                                        <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
+                                            {/* Driver Section */}
+                                            <div className="flex justify-between items-center px-1">
+                                                <div className="p-1.5 rounded-full bg-gray-200 text-gray-500">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                                        <circle cx="12" cy="12" r="10" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                        <line x1="12" y1="2" x2="12" y2="9" />
+                                                        <line x1="2" y1="12" x2="9" y2="12" />
+                                                        <line x1="15" y1="12" x2="22" y2="12" />
+                                                    </svg>
+                                                </div>
+                                                <div className="w-6 h-6"></div>
+                                            </div>
+                                            {/* Seats Grid */}
+                                            <div className="grid grid-cols-2 gap-3 justify-items-center">
+                                                {allSeats.map(seat => renderSeat(seat))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Legend */}
+                            <div className="flex justify-center gap-6 text-xs text-gray-650 mb-6 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-4 h-5 border border-gray-200 bg-gray-100 rounded flex items-center justify-center text-[10px] text-gray-300">✕</div>
+                                    <span>Đã đặt</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-4 h-5 border border-primary-500 bg-white rounded"></div>
+                                    <span>Trống</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-4 h-5 bg-primary-500 border border-primary-600 rounded"></div>
+                                    <span>Đang chọn</span>
+                                </div>
+                            </div>
+
+                            {/* Selection summary */}
+                            <div className="w-full bg-primary-50 border border-primary-100 rounded-xl p-4 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-500">Ghế đã chọn</p>
+                                    <p className="font-semibold text-primary-700">
+                                        {selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn ghế'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setStep('confirm')}
+                                    disabled={selectedSeats.length === 0}
+                                    className="px-5 py-2.5 bg-primary-500 text-white rounded-xl font-medium text-sm hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary-200"
+                                >
+                                    Tiếp tục
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 4: Confirmation */}
                     {step === 'confirm' && selectedDate && selectedRoute && selectedSlot && (
                         <div className="animate-fade-in">
                             <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-6 mb-6">
@@ -407,46 +666,19 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                 </div>
                             </div>
 
-                            {(() => {
-                                const currentSlot = availableSlots.find(
-                                    (slot: any) => slot.route === selectedRoute && slot.time === selectedSlot
-                                );
-                                const maxSeats = currentSlot?.availableSeats || 10;
-
-                                return (
-                                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <Users className="w-5 h-5 text-gray-500" />
-                                            <span className="font-medium text-gray-900">Số lượng ghế</span>
-                                            <span className="text-sm text-gray-500">
-                                                (Còn {maxSeats} ghế)
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <button
-                                                onClick={() => setLocalQuantity(Math.max(1, quantity - 1))}
-                                                className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                                            >
-                                                <Minus className="w-4 h-4" />
-                                            </button>
-                                            <span className="text-xl font-bold w-8 text-center">{quantity}</span>
-                                            <button
-                                                onClick={() => {
-                                                    if (quantity >= maxSeats) {
-                                                        toast.error(`Chỉ còn ${maxSeats} ghế khả dụng`);
-                                                    } else {
-                                                        setLocalQuantity(Math.min(maxSeats, quantity + 1));
-                                                    }
-                                                }}
-                                                disabled={quantity >= maxSeats}
-                                                className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-6">
+                                <div className="flex items-center gap-3">
+                                    <Users className="w-5 h-5 text-gray-500" />
+                                    <div>
+                                        <p className="font-medium text-gray-900">Chỗ ngồi đã chọn</p>
+                                        <p className="text-xs text-gray-500">Danh sách ghế ngồi đặt giữ chỗ</p>
                                     </div>
-                                );
-                            })()}
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-gray-900 text-lg">{selectedSeats.join(', ')}</p>
+                                    <p className="text-xs text-gray-500">({selectedSeats.length} ghế)</p>
+                                </div>
+                            </div>
 
                             {/* Payment Type Selection */}
                             <div className="mb-6">
@@ -489,7 +721,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                 {!isPremium && (
                                     <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between font-medium">
                                         <span>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ)</span>
-                                        <span className="font-semibold text-right"> {formatPrice(basePrice * quantity)} khi Premium</span>
+                                        <span className="font-semibold text-right"> {formatPrice(basePrice * quantityToUse)} khi Premium</span>
                                     </div>
                                 )}
                             </div>
@@ -497,17 +729,17 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600">
-                                        Đơn giá × {quantity}
+                                        Đơn giá × {quantityToUse}
                                     </span>
                                     <span className="font-medium text-gray-900">
-                                        {formatPrice(basePrice * quantity)}
+                                        {formatPrice(basePrice * quantityToUse)}
                                     </span>
                                 </div>
                                 {!isPremium && (
                                     <div className="flex items-center justify-between text-gray-600">
                                         <span>Phí dịch vụ (5%)</span>
                                         <span className="font-medium text-gray-900">
-                                            {formatPrice(totalPrice - (basePrice * quantity))}
+                                            {formatPrice(totalPrice - (basePrice * quantityToUse))}
                                         </span>
                                     </div>
                                 )}

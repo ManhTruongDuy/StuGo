@@ -124,7 +124,7 @@ export const getBookingById = async (req, res, next) => {
  */
 export const createBooking = async (req, res, next) => {
   try {
-    const { serviceId, date, timeSlot, quantity, route, roomTypeId, customerInfo, orderItems } = req.body;
+    const { serviceId, date, timeSlot, quantity, route, roomTypeId, customerInfo, orderItems, seats } = req.body;
 
     // Get service details - convert to plain object to ensure subdocument _id is accessible
     const serviceDoc = await serviceRepository.findById(serviceId);
@@ -191,18 +191,37 @@ export const createBooking = async (req, res, next) => {
       const bookedSeats = bookingsForSlot.reduce((sum, b) => sum + (b.quantity || 0), 0);
       const availableSeats = (service.seats || 0) - bookedSeats;
 
-      if (availableSeats < quantity) {
+      const bookingQuantity = (seats && Array.isArray(seats) && seats.length > 0) ? seats.length : quantity;
+
+      if (availableSeats < bookingQuantity) {
         return res.status(400).json({
           success: false,
           message: `Chỉ còn ${availableSeats} ghế trống. Vui lòng chọn số lượng ít hơn.`
         });
       }
 
+      // Check if selected seats are already booked
+      if (seats && Array.isArray(seats) && seats.length > 0) {
+        const alreadyBookedSeats = [];
+        bookingsForSlot.forEach(b => {
+          if (b.seats && Array.isArray(b.seats)) {
+            alreadyBookedSeats.push(...b.seats);
+          }
+        });
+        const conflictSeats = seats.filter(s => alreadyBookedSeats.includes(s));
+        if (conflictSeats.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Ghế ${conflictSeats.join(', ')} đã có người đặt. Vui lòng chọn chỗ ngồi khác.`
+          });
+        }
+      }
+
       // Calculate pricing
       const isPremium = req.user && req.user.plan === 'premium_user';
       const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
       const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
-      const totalAmount = unitPrice * quantity;
+      const totalAmount = unitPrice * bookingQuantity;
       const depositAmount = Math.round(totalAmount * 0.3);
 
       // Use the already normalized bookingDate from above
@@ -215,7 +234,8 @@ export const createBooking = async (req, res, next) => {
         date: bookingDate,
         timeSlot,
         route,
-        quantity,
+        quantity: bookingQuantity,
+        seats: seats || [],
         unitPrice,
         totalAmount,
         depositAmount,
@@ -739,6 +759,13 @@ export const getAvailableSlots = async (req, res, next) => {
           const bookedSeats = bookingsForSlot.reduce((sum, b) => sum + (b.quantity || 0), 0);
           const availableSeats = totalSeats - bookedSeats;
 
+          const bookedSeatsList = [];
+          bookingsForSlot.forEach(b => {
+            if (b.seats && Array.isArray(b.seats)) {
+              bookedSeatsList.push(...b.seats);
+            }
+          });
+
           slots.push({
             route: routeName,
             time: timeSlot,
@@ -746,7 +773,8 @@ export const getAvailableSlots = async (req, res, next) => {
             availableSeats,
             totalSeats,
             bookedSeats,
-            price: routePrice
+            price: routePrice,
+            bookedSeatsList
           });
         }
       }

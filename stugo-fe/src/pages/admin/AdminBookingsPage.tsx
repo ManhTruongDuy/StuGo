@@ -10,6 +10,10 @@ import {
     Utensils,
     ChevronLeft,
     ChevronRight,
+    User,
+    Phone,
+    Mail,
+    DollarSign,
 } from 'lucide-react';
 import { getAdminBookings, confirmBooking, cancelBooking } from '../../services/admin.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -26,6 +30,8 @@ const AdminBookingsPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState<any>(null);
+    const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
 
     const fetchBookings = async () => {
         try {
@@ -263,6 +269,10 @@ const AdminBookingsPage = () => {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
+                                                        onClick={() => {
+                                                            setSelectedBooking(booking);
+                                                            setShowDetailModal(true);
+                                                        }}
                                                         className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
                                                         title="Xem chi tiết"
                                                     >
@@ -330,7 +340,241 @@ const AdminBookingsPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Detail Modal */}
+            {showDetailModal && selectedBooking && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col text-left">
+                        {/* Header - Fixed */}
+                        <div className="p-6 border-b border-gray-200 flex-shrink-0">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        Chi tiết đặt chỗ (Admin)
+                                    </h2>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Mã: #{selectedBooking.id?.slice(-8).toUpperCase()}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowDetailModal(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <XCircle className="w-6 h-6 text-gray-500" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content - Scrollable */}
+                        <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                            {/* Status Cards */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                                    <p className="text-xs text-blue-600 font-medium mb-1">Trạng thái đặt chỗ</p>
+                                    <div className="flex items-center justify-center">
+                                        {getStatusBadge(selectedBooking.status)}
+                                    </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200 font-semibold text-center flex flex-col items-center">
+                                    <p className="text-xs text-green-600 font-medium mb-1 w-full text-left">Trạng thái thanh toán</p>
+                                    <div className="flex items-center justify-center">
+                                        {getPaymentStatusBadge(selectedBooking.paymentStatus)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Booking Info Card */}
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                                        <Calendar className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900">Thông tin đặt chỗ</h3>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-white p-3 rounded-lg">
+                                        <p className="text-xs text-gray-500 mb-1">Mã đặt chỗ</p>
+                                        <p className="font-medium text-primary-600">
+                                            #{selectedBooking.id?.slice(-8).toUpperCase()}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-lg">
+                                        <p className="text-xs text-gray-500 mb-1">Loại dịch vụ</p>
+                                        <p className="font-medium text-gray-900 capitalize">{selectedBooking.serviceType}</p>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-lg col-span-2">
+                                        <p className="text-xs text-gray-500 mb-1">Dịch vụ</p>
+                                        <p className="font-medium text-gray-900">{selectedBooking.serviceName}</p>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-lg">
+                                        <p className="text-xs text-gray-500 mb-1">Ngày sử dụng</p>
+                                        <p className="font-medium text-gray-900">
+                                            {new Date(selectedBooking.date).toLocaleDateString('vi-VN')}
+                                        </p>
+                                    </div>
+                                    {selectedBooking.timeSlot && (
+                                        <div className="bg-white p-3 rounded-lg">
+                                            <p className="text-xs text-gray-500 mb-1">Giờ</p>
+                                            <p className="font-medium text-gray-900">{selectedBooking.timeSlot}</p>
+                                        </div>
+                                    )}
+                                    {selectedBooking.route && (
+                                        <div className="bg-white p-3 rounded-lg col-span-2">
+                                            <p className="text-xs text-gray-500 mb-1">Tuyến đường</p>
+                                            <p className="font-medium text-gray-950 font-semibold">{selectedBooking.route}</p>
+                                        </div>
+                                    )}
+                                    {selectedBooking.seats && selectedBooking.seats.length > 0 && (
+                                        <div className="bg-white p-3 rounded-lg col-span-2">
+                                            <p className="text-xs text-gray-500 mb-1">Ghế đã đặt</p>
+                                            <p className="font-medium text-primary-600 font-semibold">{selectedBooking.seats.join(', ')}</p>
+                                        </div>
+                                    )}
+                                    <div className="bg-white p-3 rounded-lg">
+                                        <p className="text-xs text-gray-500 mb-1">Số lượng</p>
+                                        <p className="font-medium text-gray-900">{selectedBooking.quantity}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Customer Info Card */}
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                                        <User className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900">Thông tin khách hàng</h3>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3 bg-white p-3 rounded-lg">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                                            <User className="w-5 h-5 text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500">Họ tên</p>
+                                            <p className="font-medium text-gray-900 truncate">
+                                                {selectedBooking.customerInfo?.name || selectedBooking.userName || 'N/A'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-white p-3 rounded-lg">
+                                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                            <Phone className="w-5 h-5 text-green-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500">Số điện thoại</p>
+                                            <p className="font-medium text-gray-900">
+                                                {selectedBooking.customerInfo?.phone || 'N/A'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-white p-3 rounded-lg">
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                            <Mail className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500">Email</p>
+                                            <p className="font-medium text-gray-900 truncate">
+                                                {selectedBooking.customerInfo?.email || selectedBooking.userEmail || 'N/A'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Payment Info Card */}
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                                        <DollarSign className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900">Thông tin thanh toán</h3>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="bg-white p-4 rounded-lg border-l-4 border-blue-500">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Tổng tiền</span>
+                                            <span className="text-lg font-bold text-gray-900">
+                                                {formatPrice(selectedBooking.totalAmount || 0)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-lg border-l-4 border-green-500">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Đã thanh toán</span>
+                                            <span className="text-lg font-bold text-green-600">
+                                                {formatPrice((selectedBooking.totalAmount || 0) - (selectedBooking.remainingAmount || 0))}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-lg border-l-4 border-orange-500">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Còn lại</span>
+                                            <span className="text-lg font-bold text-orange-650">
+                                                {formatPrice(selectedBooking.remainingAmount !== undefined ? selectedBooking.remainingAmount : selectedBooking.totalAmount)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer - Fixed */}
+                        <div className="p-6 border-t border-gray-200 flex-shrink-0">
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowDetailModal(false)}
+                                    className="px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-55 transition-colors font-medium text-sm flex-1 text-center bg-gray-50"
+                                >
+                                    Đóng
+                                </button>
+                                {selectedBooking.status === 'pending' && (
+                                    <button
+                                        onClick={() => {
+                                            handleConfirm(selectedBooking.id);
+                                            setShowDetailModal(false);
+                                        }}
+                                        className="px-5 py-2.5 rounded-xl text-white bg-green-600 hover:bg-green-700 transition-colors font-semibold text-sm flex-1 text-center flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle className="w-5 h-5" />
+                                        Xác nhận đặt chỗ
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+    );
+};
+
+const getPaymentStatusBadge = (status: string) => {
+    const badges: { [key: string]: { label: string; className: string } } = {
+        pending: {
+            label: 'Chưa thanh toán',
+            className: 'bg-gray-150 text-gray-750 border border-gray-200',
+        },
+        deposit_paid: {
+            label: 'Đã đặt cọc',
+            className: 'bg-orange-100 text-orange-750 border border-orange-200',
+        },
+        fully_paid: {
+            label: 'Đã thanh toán',
+            className: 'bg-green-100 text-green-750 border border-green-200',
+        },
+        refunded: {
+            label: 'Đã hoàn tiền',
+            className: 'bg-blue-100 text-blue-750 border border-blue-200',
+        },
+    };
+
+    const badge = badges[status] || badges.pending;
+
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>
+            {badge.label}
+        </span>
     );
 };
 

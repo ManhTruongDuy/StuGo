@@ -110,6 +110,7 @@ export interface Booking {
   date: string;
   timeSlot?: string;
   route?: string;
+  seats?: string[];
   roomTypeName?: string;
   quantity: number;
   totalAmount: number;

@@ -852,6 +852,15 @@ const BookingHistoryPage = () => {
                                             </div>
                                         </div>
                                     )}
+                                    {(selectedBooking as any).seats && (selectedBooking as any).seats.length > 0 && (
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl sm:col-span-2">
+                                            <Users className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs text-gray-500">Chỗ ngồi đã đặt</p>
+                                                <p className="text-sm font-semibold text-gray-900">{(selectedBooking as any).seats.join(', ')}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                     {(selectedBooking as any).roomTypeName && (
                                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                                             <Home className="w-4 h-4 text-primary-500 flex-shrink-0" />

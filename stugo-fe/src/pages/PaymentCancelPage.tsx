@@ -24,6 +24,7 @@ interface BookingInfo {
     date: string;
     timeSlot?: string;
     route?: string;
+    seats?: string[];
     roomTypeName?: string;
     quantity: number;
     totalAmount: number;
@@ -93,6 +94,7 @@ const PaymentCancelPage = () => {
                             date: bookingInfo.date,
                             timeSlot: bookingInfo.timeSlot,
                             route: bookingInfo.route,
+                            seats: bookingInfo.seats,
                             roomTypeName: bookingInfo.roomTypeName,
                             quantity: bookingInfo.quantity,
                             totalAmount: bookingInfo.totalAmount,
@@ -278,6 +280,16 @@ const PaymentCancelPage = () => {
                             <div>
                                 <p className="text-sm text-gray-500">Loại phòng</p>
                                 <p className="font-semibold text-gray-900">{booking.roomTypeName}</p>
+                            </div>
+                        )}
+                        <div>
+                            <p className="text-sm text-gray-500">Số lượng</p>
+                            <p className="font-semibold text-gray-900">{booking.quantity}</p>
+                        </div>
+                        {booking.seats && booking.seats.length > 0 && (
+                            <div>
+                                <p className="text-sm text-gray-500">Ghế đã chọn</p>
+                                <p className="font-semibold text-gray-900">{booking.seats.join(', ')}</p>
                             </div>
                         )}
                         <div className="pt-3 border-t border-gray-200">

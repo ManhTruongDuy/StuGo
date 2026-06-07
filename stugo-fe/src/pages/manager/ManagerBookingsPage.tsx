@@ -494,6 +494,18 @@ const ManagerBookingsPage = () => {
                                             <p className="font-medium text-gray-900">{selectedBooking.timeSlot}</p>
                                         </div>
                                     )}
+                                    {selectedBooking.route && (
+                                        <div className="bg-white p-3 rounded-lg col-span-2">
+                                            <p className="text-xs text-gray-500 mb-1">Tuyến đường</p>
+                                            <p className="font-medium text-gray-950 font-semibold">{selectedBooking.route}</p>
+                                        </div>
+                                    )}
+                                    {selectedBooking.seats && selectedBooking.seats.length > 0 && (
+                                        <div className="bg-white p-3 rounded-lg col-span-2">
+                                            <p className="text-xs text-gray-500 mb-1">Ghế đã đặt</p>
+                                            <p className="font-medium text-primary-600 font-semibold">{selectedBooking.seats.join(', ')}</p>
+                                        </div>
+                                    )}
                                     <div className="bg-white p-3 rounded-lg">
                                         <p className="text-xs text-gray-500 mb-1">Số lượng</p>
                                         <p className="font-medium text-gray-900">{selectedBooking.quantity}</p>
