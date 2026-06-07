@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 const SubscriptionPaymentPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { updateUser } = useAuthStore();
+    const { user, updateUser } = useAuthStore();
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isComplete, setIsComplete] = useState(false);
@@ -179,7 +179,7 @@ const SubscriptionPaymentPage = () => {
                         <div className="flex justify-between border-t border-gray-200 pt-3">
                             <span className="font-semibold text-gray-900">Tổng cộng</span>
                             <span className="text-xl font-bold text-primary-600">
-                                {planDetails.price === 0 ? 'Miễn phí' : formatPrice(planDetails.price)}
+                                {planDetails.price === 0 ? (user?.role === 'partner' ? 'Dùng thử' : 'Miễn phí') : formatPrice(planDetails.price)}
                             </span>
                         </div>
                     </div>
@@ -195,7 +195,7 @@ const SubscriptionPaymentPage = () => {
                                 Đang xử lý...
                             </span>
                         ) : planDetails.price === 0 ? (
-                            'Kích hoạt miễn phí'
+                            user?.role === 'partner' ? 'Kích hoạt dùng thử' : 'Kích hoạt miễn phí'
                         ) : (
                             'Thanh toán qua PayOS'
                         )}

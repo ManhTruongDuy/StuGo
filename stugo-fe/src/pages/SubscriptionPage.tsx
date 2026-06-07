@@ -146,7 +146,7 @@ const SubscriptionPage = () => {
 
     const formatPrice = (price: number) =>
         price === 0
-            ? 'Miễn phí'
+            ? (role === 'partner' ? 'Dùng thử' : 'Miễn phí')
             : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) + '/tháng';
 
     const handleSelectPlan = (plan: Plan) => {
@@ -272,7 +272,7 @@ const SubscriptionPage = () => {
                                     <div className="flex items-end justify-center gap-2">
                                         <span className="text-2xl font-bold text-gray-900">
                                             {role === 'partner' && plan.originalCode === 'business_basic' && isTrialEligible
-                                                ? 'Miễn phí'
+                                                ? 'Dùng thử'
                                                 : formatPrice(plan.price)}
                                         </span>
                                     </div>

@@ -136,7 +136,7 @@ const ManagerLayout = () => {
                             <Zap className="w-4 h-4 text-teal-400 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium text-teal-300 uppercase tracking-wide">
-                                    {user?.plan && user.plan !== 'free' ? user.plan : 'Gói miễn phí'}
+                                    {user?.plan && user.plan !== 'free' ? user.plan : 'Gói dùng thử'}
                                 </p>
                             </div>
                             {(!user?.plan || user.plan === 'free') && (

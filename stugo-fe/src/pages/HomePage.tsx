@@ -441,7 +441,7 @@ const HomePage = () => {
                                     <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
                                     <div className="mb-1">
                                         <span className="text-2xl font-bold text-gray-900">
-                                            {plan.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price) + '/tháng'}
+                                            {plan.price === 0 ? 'Dùng thử' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price) + '/tháng'}
                                         </span>
                                     </div>
                                     {plan.originalPrice && plan.originalPrice !== plan.price && (

@@ -250,7 +250,7 @@ const ManagerDashboard = () => {
                             <Zap className="w-5 h-5 text-teal-600" />
                         </div>
                         <div>
-                            <p className="font-semibold text-teal-900">Bạn đang dùng gói miễn phí</p>
+                            <p className="font-semibold text-teal-900">Bạn đang dùng gói dùng thử</p>
                             <p className="text-sm text-teal-700">Nâng cấp để mở khóa đầy đủ tính năng quản lý</p>
                         </div>
                     </div>
