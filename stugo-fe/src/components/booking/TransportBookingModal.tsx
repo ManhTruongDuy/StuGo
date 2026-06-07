@@ -35,7 +35,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     const [monthOffset, setMonthOffset] = useState(0);
     const [isCreating, setIsCreating] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-    const [paymentType, setPaymentType] = useState<'deposit' | 'full'>('full');
+    const paymentType = 'full';
 
     const today = new Date();
     const currentMonth = addMonths(today, monthOffset);
@@ -275,8 +275,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
     const displayUnitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
     const totalPrice = displayUnitPrice * quantityToUse;
-    const depositPrice = totalPrice * 0.3;
-    const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
+    const finalPaymentAmount = totalPrice;
 
     const renderSeat = (seatId: string) => {
         const isOccupied = occupiedSeats.includes(seatId);
@@ -729,6 +728,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             </div>
                         </div>
                     )}
+                </div>
 
                 {/* Footer */}
                 <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 flex-shrink-0">

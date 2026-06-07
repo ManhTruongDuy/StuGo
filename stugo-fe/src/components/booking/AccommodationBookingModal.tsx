@@ -35,7 +35,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
     const [monthOffset, setMonthOffset] = useState(0);
     const [isCreating, setIsCreating] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-    const [paymentType, setPaymentType] = useState<'deposit' | 'full'>('full');
+    const paymentType = 'full';
 
     const today = new Date();
     const currentMonth = addMonths(today, monthOffset);
@@ -204,8 +204,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
     const baseUnitPrice = roomType?.price || service.priceRange.min;
     const displayUnitPrice = isPremium ? baseUnitPrice : Math.round(baseUnitPrice * 1.05);
     const totalPrice = displayUnitPrice * quantity;
-    const depositPrice = totalPrice * 0.3;
-    const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
+    const finalPaymentAmount = totalPrice;
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">

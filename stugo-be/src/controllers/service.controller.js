@@ -100,11 +100,20 @@ export const createTransportService = async (req, res, next) => {
     }
 
     // Calculate priceRange from routes
-    const prices = routes.map(r => typeof r === 'string' ? (req.body.priceRange?.min || 0) : (r.price || 0));
+    const cleanRoutes = routes.map(r => {
+      if (typeof r === 'string') {
+        return { name: r, price: req.body.priceRange?.min || 0 };
+      }
+      return { name: r.name, price: Number(r.price) || 0 };
+    });
+    const prices = cleanRoutes.map(r => r.price || 0);
     const priceRange = {
       min: prices.length > 0 ? Math.min(...prices) : 0,
       max: prices.length > 0 ? Math.max(...prices) : 0
     };
+
+    const ownerId = (req.userRole === 'admin' && req.body.ownerId) ? req.body.ownerId : req.userId;
+    const status = req.userRole === 'admin' ? (req.body.status || 'active') : 'pending';
 
     const serviceData = {
       type: 'transport',
@@ -125,12 +134,12 @@ export const createTransportService = async (req, res, next) => {
       openTime: req.body.openTime || '05:00',
       closeTime: req.body.closeTime || '22:00',
       priceRange,
-      ownerId: req.userId,
-      status: 'pending',
+      ownerId,
+      status,
       // Transport specific
       vehicleType,
       seats: parseInt(seats),
-      routes,
+      routes: cleanRoutes,
       departureTime
     };
 
@@ -172,6 +181,9 @@ export const createAccommodationService = async (req, res, next) => {
       }
     }
 
+    const ownerId = (req.userRole === 'admin' && req.body.ownerId) ? req.body.ownerId : req.userId;
+    const status = req.userRole === 'admin' ? (req.body.status || 'active') : 'pending';
+
     const serviceData = {
       type: 'accommodation',
       name: req.body.name,
@@ -191,8 +203,8 @@ export const createAccommodationService = async (req, res, next) => {
       openTime: req.body.openTime || '00:00',
       closeTime: req.body.closeTime || '23:59',
       priceRange: req.body.priceRange,
-      ownerId: req.userId,
-      status: 'pending',
+      ownerId,
+      status,
       // Accommodation specific
       roomTypes: roomTypes.map(rt => ({
         name: rt.name,
@@ -243,6 +255,9 @@ export const createRestaurantService = async (req, res, next) => {
       }
     }
 
+    const ownerId = (req.userRole === 'admin' && req.body.ownerId) ? req.body.ownerId : req.userId;
+    const status = req.userRole === 'admin' ? (req.body.status || 'active') : 'pending';
+
     const serviceData = {
       type: 'restaurant',
       name: req.body.name,
@@ -262,8 +277,8 @@ export const createRestaurantService = async (req, res, next) => {
       openTime: req.body.openTime || '08:00',
       closeTime: req.body.closeTime || '22:00',
       priceRange: req.body.priceRange,
-      ownerId: req.userId,
-      status: 'pending',
+      ownerId,
+      status,
       // Restaurant specific
       cuisine: cuisine || [],
       menuItems: menuItems.map(item => ({
@@ -348,6 +363,11 @@ export const updateService = async (req, res, next) => {
 
     const updateData = { ...req.body };
 
+    // Prevent non-admin users from changing ownerId
+    if (req.userRole !== 'admin') {
+      delete updateData.ownerId;
+    }
+
     // Update location if coordinates provided
     if (req.body.longitude && req.body.latitude) {
       updateData.location = {
@@ -360,12 +380,21 @@ export const updateService = async (req, res, next) => {
     }
 
     // Update priceRange for transport dynamically based on route prices
-    if (service.type === 'transport' && updateData.routes && Array.isArray(updateData.routes) && updateData.routes.length > 0) {
-      const prices = updateData.routes.map(r => typeof r === 'string' ? (updateData.priceRange?.min || service.priceRange.min) : (r.price || 0));
-      updateData.priceRange = {
-        min: Math.min(...prices),
-        max: Math.max(...prices)
-      };
+    if (service.type === 'transport' && updateData.routes && Array.isArray(updateData.routes)) {
+      const cleanRoutes = updateData.routes.map(r => {
+        if (typeof r === 'string') {
+          return { name: r, price: updateData.priceRange?.min || service.priceRange?.min || 0 };
+        }
+        return { name: r.name, price: Number(r.price) || 0 };
+      });
+      updateData.routes = cleanRoutes;
+      if (cleanRoutes.length > 0) {
+        const prices = cleanRoutes.map(r => r.price || 0);
+        updateData.priceRange = {
+          min: Math.min(...prices),
+          max: Math.max(...prices)
+        };
+      }
     }
 
     const updated = await serviceRepository.updateById(req.params.id, updateData);

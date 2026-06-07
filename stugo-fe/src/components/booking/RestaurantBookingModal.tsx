@@ -46,7 +46,7 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
     const [monthOffset, setMonthOffset] = useState(0);
     const [isCreating, setIsCreating] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-    const [paymentType, setPaymentType] = useState<'deposit' | 'full'>('full');
+    const paymentType = 'full';
 
     const today = new Date();
     const currentMonth = addMonths(today, monthOffset);
@@ -211,8 +211,7 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
     };
 
     const totalPrice = getTotalPrice();
-    const depositPrice = Math.round(totalPrice * 0.3);
-    const finalPaymentAmount = paymentType === 'full' ? totalPrice : depositPrice;
+    const finalPaymentAmount = totalPrice;
 
     const baseTotalPrice = bookingType === 'order'
         ? orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
