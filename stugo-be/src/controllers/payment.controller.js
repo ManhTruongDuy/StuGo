@@ -16,7 +16,7 @@ const generateOrderCode = () => {
  * Common payment creation logic
  */
 const createPaymentLink = async (req, booking, items) => {
-  const { bookingId, paymentType = 'deposit' } = req.body;
+  const { bookingId, paymentType = 'full' } = req.body;
   const payos = getPayOS();
 
   // Check if booking belongs to user

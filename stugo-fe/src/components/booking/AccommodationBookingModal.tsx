@@ -35,7 +35,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
     const [monthOffset, setMonthOffset] = useState(0);
     const [isCreating, setIsCreating] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-    const [paymentType, setPaymentType] = useState<'deposit' | 'full'>('deposit');
+    const [paymentType, setPaymentType] = useState<'deposit' | 'full'>('full');
 
     const today = new Date();
     const currentMonth = addMonths(today, monthOffset);
@@ -431,44 +431,7 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                 </div>
                             </div>
 
-                            {/* Payment Type Selection */}
                             <div className="mb-6">
-                                <h3 className="font-semibold text-gray-900 mb-3">Chọn phương thức thanh toán</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button
-                                        onClick={() => setPaymentType('deposit')}
-                                        className={`p-4 rounded-xl border-2 transition-all ${paymentType === 'deposit'
-                                            ? 'border-primary-500 bg-primary-50'
-                                            : 'border-gray-200 hover:border-primary-300'
-                                            }`}
-                                    >
-                                        <p className="font-semibold text-gray-900">Đặt cọc 30%</p>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            {formatPrice(depositPrice)}
-                                        </p>
-                                        <p className="text-xs text-gray-400 mt-2">
-                                            Thanh toán phần còn lại khi sử dụng
-                                        </p>
-                                    </button>
-                                    <button
-                                        onClick={() => setPaymentType('full')}
-                                        className={`p-4 rounded-xl border-2 transition-all relative overflow-hidden ${paymentType === 'full'
-                                            ? 'border-primary-500 bg-primary-50'
-                                            : 'border-gray-200 hover:border-primary-300'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-semibold text-gray-900">Thanh toán toàn bộ</p>
-                                        </div>
-                                        <p className="text-sm text-gray-500 mt-1 text-left">
-                                            {formatPrice(totalPrice)}
-                                        </p>
-                                        <p className="text-xs text-gray-400 mt-2 text-left">
-                                            Thanh toán một lần, không cần thanh toán thêm
-                                        </p>
-                                    </button>
-                                </div>
-
                                 {!isPremium && (
                                     <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between">
                                         <span>Bạn đang thanh toán giá Freemium</span>
@@ -500,12 +463,6 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                         {formatPrice(totalPrice)}
                                     </span>
                                 </div>
-                                {paymentType === 'deposit' && (
-                                    <div className="flex items-center justify-between text-green-600">
-                                        <span>Đặt cọc (30%)</span>
-                                        <span className="font-medium">{formatPrice(depositPrice)}</span>
-                                    </div>
-                                )}
                                 <div className="h-px bg-gray-200"></div>
                                 <div className="flex items-center justify-between text-lg">
                                     <span className="font-semibold text-gray-900">Tổng thanh toán</span>
@@ -515,21 +472,11 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                                 </div>
                             </div>
 
-                            {paymentType === 'deposit' && (
-                                <div className="p-4 bg-yellow-50 rounded-xl text-yellow-800 text-sm mb-6">
-                                    <p>
-                                        Bạn chỉ cần thanh toán <strong>30% đặt cọc</strong> trước.
-                                        Phần còn lại thanh toán khi sử dụng dịch vụ.
-                                    </p>
-                                </div>
-                            )}
-                            {paymentType === 'full' && (
-                                <div className="p-4 bg-green-50 rounded-xl text-green-800 text-sm mb-6">
-                                    <p>
-                                        Bạn sẽ không cần thanh toán thêm khi sử dụng dịch vụ.
-                                    </p>
-                                </div>
-                            )}
+                            <div className="p-4 bg-green-50 rounded-xl text-green-800 text-sm mb-6">
+                                <p>
+                                    Bạn sẽ không cần thanh toán thêm khi sử dụng dịch vụ.
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>

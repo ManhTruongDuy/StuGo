@@ -222,7 +222,7 @@ export const createBooking = async (req, res, next) => {
       const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
       const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * bookingQuantity;
-      const depositAmount = Math.round(totalAmount * 0.3);
+      const depositAmount = totalAmount;
 
       // Use the already normalized bookingDate from above
       // Create booking
@@ -296,7 +296,7 @@ export const createBooking = async (req, res, next) => {
       const basePrice = roomType.price || service.priceRange.min;
       const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * quantity;
-      const depositAmount = Math.round(totalAmount * 0.3);
+      const depositAmount = totalAmount;
 
       // Normalize date to start of day for consistency
       const accommodationBookingDate = new Date(date);
@@ -490,7 +490,7 @@ export const createBooking = async (req, res, next) => {
           });
         }
 
-        const depositAmount = Math.round(totalAmount * 0.3);
+        const depositAmount = totalAmount;
 
         // Normalize date to start of day for consistency
         const orderDate = new Date(date);

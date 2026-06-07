@@ -14,18 +14,18 @@ import fc from 'fast-check';
  * Pure deposit calculation extracted from booking.controller.js.
  */
 function calculateDeposit(totalAmount) {
-  const depositAmount = Math.round(totalAmount * 0.3);
-  const remainingAmount = totalAmount - depositAmount;
+  const depositAmount = totalAmount;
+  const remainingAmount = 0;
   return { depositAmount, remainingAmount };
 }
 
-// Property 1: depositAmount = round(totalAmount * 0.3)
+// Property 1: depositAmount = totalAmount
 fc.assert(
   fc.property(
     fc.integer({ min: 0, max: 100_000_000 }),  // totalAmount in VND
     (totalAmount) => {
       const { depositAmount } = calculateDeposit(totalAmount);
-      return depositAmount === Math.round(totalAmount * 0.3);
+      return depositAmount === totalAmount;
     }
   ),
   { numRuns: 10000 }
@@ -68,3 +68,4 @@ fc.assert(
 );
 
 console.log('✅ Property 2 (Deposit Invariant): PASSED — depositAmount and remainingAmount are always correct');
+

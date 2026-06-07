@@ -34,7 +34,7 @@ const PaymentPage = () => {
     const insuranceFee = currentBooking.hasInsurance ? 20000 * currentBooking.quantity : 0;
     const serviceFee = subTotal * serviceFeePercent;
     const finalTotalAmount = subTotal + insuranceFee + serviceFee;
-    const finalDepositAmount = finalTotalAmount * 0.3;
+    const finalDepositAmount = finalTotalAmount;
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -474,10 +474,7 @@ const PaymentPage = () => {
                                         </span>
                                     </div>
                                 )}
-                                <div className="flex justify-between text-sm text-green-600">
-                                    <span>Đặt cọc (30%)</span>
-                                    <span>{formatPrice(finalDepositAmount)}</span>
-                                </div>
+                                <div className="h-px bg-gray-100 my-2"></div>
                             </div>
 
                             <div className="flex justify-between py-4 border-t border-gray-100">

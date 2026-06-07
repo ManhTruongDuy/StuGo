@@ -47,7 +47,7 @@ export const createPayment = async (bookingId: string): Promise<CreatePaymentRes
  * @param bookingId - Booking ID
  * @param paymentType - Payment type: 'deposit' (30%) or 'full' (100%)
  */
-export const createAccommodationPayment = async (bookingId: string, paymentType: 'deposit' | 'full' = 'deposit'): Promise<CreatePaymentResponse | null> => {
+export const createAccommodationPayment = async (bookingId: string, paymentType: 'deposit' | 'full' = 'full'): Promise<CreatePaymentResponse | null> => {
   try {
     const response = await api.post<ApiResponse<CreatePaymentResponse>>('/payments/accommodation', {
       bookingId,
@@ -70,7 +70,7 @@ export const createAccommodationPayment = async (bookingId: string, paymentType:
  * @param bookingId - Booking ID
  * @param paymentType - Payment type: 'deposit' (30%) or 'full' (100%)
  */
-export const createRestaurantPayment = async (bookingId: string, paymentType: 'deposit' | 'full' = 'deposit'): Promise<CreatePaymentResponse | null> => {
+export const createRestaurantPayment = async (bookingId: string, paymentType: 'deposit' | 'full' = 'full'): Promise<CreatePaymentResponse | null> => {
   try {
     const response = await api.post<ApiResponse<CreatePaymentResponse>>('/payments/restaurant', {
       bookingId,
@@ -93,7 +93,7 @@ export const createRestaurantPayment = async (bookingId: string, paymentType: 'd
  * @param bookingId - Booking ID
  * @param paymentType - Payment type: 'deposit' (30%) or 'full' (100%)
  */
-export const createTransportPayment = async (bookingId: string, paymentType: 'deposit' | 'full' = 'deposit'): Promise<CreatePaymentResponse | null> => {
+export const createTransportPayment = async (bookingId: string, paymentType: 'deposit' | 'full' = 'full'): Promise<CreatePaymentResponse | null> => {
   try {
     const response = await api.post<ApiResponse<CreatePaymentResponse>>('/payments/transport', {
       bookingId,

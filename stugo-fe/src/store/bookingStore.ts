@@ -89,7 +89,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         totalAmount += 20000 * quantity;
       }
       
-      const depositAmount = totalAmount * 0.3; // 30% deposit
+      const depositAmount = totalAmount; // No deposit, pay in full
       set((state) => ({
         currentBooking: {
           ...state.currentBooking,
