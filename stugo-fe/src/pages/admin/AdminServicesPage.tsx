@@ -5,6 +5,7 @@ import {
     Loader2, Upload, Link as LinkIcon, Save,
 } from 'lucide-react';
 import { getServices } from '../../services/service.service';
+import { getPartners } from '../../services/admin.service';
 import api from '../../services/api';
 import type { Service, ServiceType } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -124,6 +125,9 @@ const ServiceEditModal = ({
 }) => {
     const [saving, setSaving] = useState(false);
     const [images, setImages] = useState<string[]>(service.images || []);
+    const [partners, setPartners] = useState<any[]>([]);
+    const [loadingPartners, setLoadingPartners] = useState(false);
+
     const [form, setForm] = useState({
         name: service.name || '',
         description: service.description || '',
@@ -139,25 +143,58 @@ const ServiceEditModal = ({
         status: service.status || 'active',
         latitude: service.latitude?.toString() || '',
         longitude: service.longitude?.toString() || '',
+        ownerId: service.ownerId || '',
+        type: service.type || 'transport',
+
+        // Transport specific
         vehicleType: service.vehicleType || '',
         seats: service.seats || 0,
         routes: service.routes && service.routes.length > 0 
             ? service.routes.map((r: any) => typeof r === 'string' ? { name: r, price: service.priceRange?.min || 0 } : { name: r.name, price: r.price }) 
             : [{ name: '', price: 0 }],
         departureTime: service.departureTime && service.departureTime.length > 0 ? service.departureTime : [''],
+
+        // Accommodation specific
+        roomTypes: service.roomTypes && service.roomTypes.length > 0
+            ? service.roomTypes.map((rt: any) => ({ name: rt.name, price: rt.price, capacity: rt.capacity || 2, available: rt.available || 1 }))
+            : [{ name: '', price: 0, capacity: 2, available: 1 }],
+        amenities: service.amenities && service.amenities.length > 0 ? service.amenities : [''],
+        rules: service.rules && service.rules.length > 0 ? service.rules : [''],
+
+        // Restaurant specific
+        cuisine: service.cuisine && service.cuisine.length > 0 ? service.cuisine : [''],
+        menuItems: service.menuItems && service.menuItems.length > 0
+            ? service.menuItems.map((mi: any) => ({ name: mi.name, price: mi.price, description: mi.description || '', category: mi.category || '' }))
+            : [{ name: '', price: 0, description: '', category: '' }],
+        hasDelivery: service.hasDelivery === true,
+        hasReservation: service.hasReservation === true,
     });
+
+    useEffect(() => {
+        const fetchPartnersList = async () => {
+            try {
+                setLoadingPartners(true);
+                const result = await getPartners({ limit: 200 });
+                setPartners(result.data || []);
+            } catch (error) {
+                console.error('Error fetching partners:', error);
+            } finally {
+                setLoadingPartners(false);
+            }
+        };
+        fetchPartnersList();
+    }, []);
 
     const set = (key: string, val: any) => setForm(f => ({ ...f, [key]: val }));
 
+    // Transport Helpers
     const addRoute = () => {
         setForm(f => ({ ...f, routes: [...f.routes, { name: '', price: 0 }] }));
     };
-
     const removeRoute = (index: number) => {
         const newRoutes = form.routes.filter((_: any, i: number) => i !== index);
         setForm(f => ({ ...f, routes: newRoutes.length > 0 ? newRoutes : [{ name: '', price: 0 }] }));
     };
-
     const updateRoute = (index: number, field: 'name' | 'price', value: any) => {
         const newRoutes = [...form.routes];
         newRoutes[index] = { ...newRoutes[index], [field]: value };
@@ -167,16 +204,75 @@ const ServiceEditModal = ({
     const addDepartureTime = () => {
         setForm(f => ({ ...f, departureTime: [...f.departureTime, ''] }));
     };
-
     const removeDepartureTime = (index: number) => {
         const newTimes = form.departureTime.filter((_: any, i: number) => i !== index);
         setForm(f => ({ ...f, departureTime: newTimes.length > 0 ? newTimes : [''] }));
     };
-
     const updateDepartureTime = (index: number, value: string) => {
         const newTimes = [...form.departureTime];
         newTimes[index] = value;
         setForm(f => ({ ...f, departureTime: newTimes }));
+    };
+
+    // Accommodation Helpers
+    const addRoomType = () => {
+        setForm(f => ({ ...f, roomTypes: [...f.roomTypes, { name: '', price: 0, capacity: 2, available: 1 }] }));
+    };
+    const removeRoomType = (index: number) => {
+        const newRoomTypes = form.roomTypes.filter((_: any, i: number) => i !== index);
+        setForm(f => ({ ...f, roomTypes: newRoomTypes.length > 0 ? newRoomTypes : [{ name: '', price: 0, capacity: 2, available: 1 }] }));
+    };
+    const updateRoomType = (index: number, field: string, value: any) => {
+        const newRoomTypes = [...form.roomTypes];
+        newRoomTypes[index] = { ...newRoomTypes[index], [field]: value };
+        setForm(f => ({ ...f, roomTypes: newRoomTypes }));
+    };
+
+    const addAmenity = () => setForm(f => ({ ...f, amenities: [...f.amenities, ''] }));
+    const removeAmenity = (index: number) => {
+        const newAmenities = form.amenities.filter((_: any, i: number) => i !== index);
+        setForm(f => ({ ...f, amenities: newAmenities.length > 0 ? newAmenities : [''] }));
+    };
+    const updateAmenity = (index: number, value: string) => {
+        const newAmenities = [...form.amenities];
+        newAmenities[index] = value;
+        setForm(f => ({ ...f, amenities: newAmenities }));
+    };
+
+    const addRule = () => setForm(f => ({ ...f, rules: [...f.rules, ''] }));
+    const removeRule = (index: number) => {
+        const newRules = form.rules.filter((_: any, i: number) => i !== index);
+        setForm(f => ({ ...f, rules: newRules.length > 0 ? newRules : [''] }));
+    };
+    const updateRule = (index: number, value: string) => {
+        const newRules = [...form.rules];
+        newRules[index] = value;
+        setForm(f => ({ ...f, rules: newRules }));
+    };
+
+    // Restaurant Helpers
+    const addCuisine = () => setForm(f => ({ ...f, cuisine: [...f.cuisine, ''] }));
+    const removeCuisine = (index: number) => {
+        const newCuisine = form.cuisine.filter((_: any, i: number) => i !== index);
+        setForm(f => ({ ...f, cuisine: newCuisine.length > 0 ? newCuisine : [''] }));
+    };
+    const updateCuisine = (index: number, value: string) => {
+        const newCuisine = [...form.cuisine];
+        newCuisine[index] = value;
+        setForm(f => ({ ...f, cuisine: newCuisine }));
+    };
+
+    const addMenuItem = () => {
+        setForm(f => ({ ...f, menuItems: [...f.menuItems, { name: '', price: 0, description: '', category: '' }] }));
+    };
+    const removeMenuItem = (index: number) => {
+        const newMenuItems = form.menuItems.filter((_: any, i: number) => i !== index);
+        setForm(f => ({ ...f, menuItems: newMenuItems.length > 0 ? newMenuItems : [{ name: '', price: 0, description: '', category: '' }] }));
+    };
+    const updateMenuItem = (index: number, field: string, value: any) => {
+        const newMenuItems = [...form.menuItems];
+        newMenuItems[index] = { ...newMenuItems[index], [field]: value };
+        setForm(f => ({ ...f, menuItems: newMenuItems }));
     };
 
     const handleSave = async () => {
@@ -184,10 +280,15 @@ const ServiceEditModal = ({
             toast.error('Tên và địa chỉ là bắt buộc');
             return;
         }
+        if (!form.ownerId) {
+            toast.error('Vui lòng chọn đối tác sở hữu dịch vụ');
+            return;
+        }
         try {
             setSaving(true);
             const payload: any = {
                 name: form.name,
+                type: form.type,
                 description: form.description,
                 address: form.address,
                 city: form.city,
@@ -200,9 +301,10 @@ const ServiceEditModal = ({
                 latitude: parseFloat(form.latitude) || 0,
                 longitude: parseFloat(form.longitude) || 0,
                 images,
+                ownerId: form.ownerId,
             };
 
-            if (service.type === 'transport') {
+            if (form.type === 'transport') {
                 const cleanRoutes = form.routes
                     .filter((r: any) => r.name && r.name.trim())
                     .map((r: any) => ({ name: r.name.trim(), price: Number(r.price) }));
@@ -221,19 +323,76 @@ const ServiceEditModal = ({
                 } else {
                     payload.priceRange = { min: 0, max: 0 };
                 }
-            } else {
-                payload.priceRange = {
-                    min: parseInt(form.priceMin) || 0,
-                    max: parseInt(form.priceMax) || 0,
-                };
+            } else if (form.type === 'accommodation') {
+                const cleanRoomTypes = form.roomTypes
+                    .filter((rt: any) => rt.name && rt.name.trim())
+                    .map((rt: any) => ({
+                        name: rt.name.trim(),
+                        price: Number(rt.price),
+                        capacity: Number(rt.capacity) || 2,
+                        available: Number(rt.available) || 1,
+                        images: rt.images || [],
+                    }));
+                payload.roomTypes = cleanRoomTypes;
+                payload.amenities = form.amenities.filter((a: string) => a.trim());
+                payload.rules = form.rules.filter((r: string) => r.trim());
+
+                if (cleanRoomTypes.length > 0) {
+                    const prices = cleanRoomTypes.map((rt: any) => rt.price);
+                    payload.priceRange = {
+                        min: Math.min(...prices),
+                        max: Math.max(...prices)
+                    };
+                } else {
+                    payload.priceRange = { min: 0, max: 0 };
+                }
+            } else if (form.type === 'restaurant') {
+                const cleanMenuItems = form.menuItems
+                    .filter((item: any) => item.name && item.name.trim())
+                    .map((item: any) => ({
+                        name: item.name.trim(),
+                        price: Number(item.price),
+                        description: item.description || '',
+                        category: item.category || '',
+                        image: item.image || '',
+                    }));
+                payload.menuItems = cleanMenuItems;
+                payload.cuisine = form.cuisine.filter((c: string) => c.trim());
+                payload.hasDelivery = form.hasDelivery;
+                payload.hasReservation = form.hasReservation;
+
+                if (cleanMenuItems.length > 0) {
+                    const prices = cleanMenuItems.map((item: any) => item.price);
+                    payload.priceRange = {
+                        min: Math.min(...prices),
+                        max: Math.max(...prices)
+                    };
+                } else {
+                    payload.priceRange = {
+                        min: parseInt(form.priceMin) || 0,
+                        max: parseInt(form.priceMax) || 0,
+                    };
+                }
             }
 
-            await api.put(`/services/${service.id}`, payload);
-            toast.success('Đã cập nhật dịch vụ');
-            onSaved({ ...service, ...payload, id: service.id });
-            onClose();
-        } catch {
-            toast.error('Không thể cập nhật dịch vụ');
+            if (service.isNew) {
+                const response = await api.post('/services', payload);
+                if (response.data.success) {
+                    toast.success('Đã tạo dịch vụ thành công');
+                    onSaved({ ...response.data.data, id: response.data.data._id || response.data.data.id });
+                    onClose();
+                } else {
+                    toast.error(response.data.message || 'Không thể tạo dịch vụ');
+                }
+            } else {
+                await api.put(`/services/${service.id}`, payload);
+                toast.success('Đã cập nhật dịch vụ');
+                onSaved({ ...service, ...payload, id: service.id });
+                onClose();
+            }
+        } catch (error: any) {
+            console.error('Error saving service:', error);
+            toast.error(error.response?.data?.message || 'Không thể lưu dịch vụ');
         } finally {
             setSaving(false);
         }
@@ -245,8 +404,12 @@ const ServiceEditModal = ({
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
                     <div>
-                        <h3 className="font-bold text-gray-900 text-lg">Chỉnh sửa dịch vụ</h3>
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{service.name}</p>
+                        <h3 className="font-bold text-gray-900 text-lg">
+                            {service.isNew ? 'Thêm dịch vụ mới' : 'Chỉnh sửa dịch vụ'}
+                        </h3>
+                        {!service.isNew && (
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{service.name}</p>
+                        )}
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
                         <X className="w-5 h-5 text-gray-500" />
@@ -263,6 +426,41 @@ const ServiceEditModal = ({
                             onAdd={(urls) => setImages(prev => [...prev, ...urls])}
                             onRemove={(i) => setImages(prev => prev.filter((_, idx) => idx !== i))}
                         />
+                    </div>
+
+                    {/* Service Type & Partner */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Loại dịch vụ</label>
+                            <select
+                                value={form.type}
+                                onChange={e => set('type', e.target.value)}
+                                disabled={!service.isNew}
+                                className="input w-full bg-gray-55 disabled:opacity-75 disabled:cursor-not-allowed"
+                            >
+                                <option value="transport">Nhà xe (Transport)</option>
+                                <option value="accommodation">Nhà trọ (Accommodation)</option>
+                                <option value="restaurant">Quán ăn (Restaurant)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                Đối tác sở hữu <span className="text-red-500">*</span>
+                                {loadingPartners && <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-450" />}
+                            </label>
+                            <select
+                                value={form.ownerId}
+                                onChange={e => set('ownerId', e.target.value)}
+                                className="input w-full"
+                            >
+                                <option value="">-- Chọn đối tác sở hữu --</option>
+                                {partners.map((p: any) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.fullName} ({p.email})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     {/* Basic info */}
@@ -302,7 +500,7 @@ const ServiceEditModal = ({
                             <label className="block text-sm font-medium text-gray-700 mb-1">Giờ đóng cửa</label>
                             <input type="time" value={form.closeTime} onChange={e => set('closeTime', e.target.value)} className="input w-full" />
                         </div>
-                        {service.type !== 'transport' && (
+                        {form.type !== 'transport' && form.type !== 'accommodation' && (
                             <>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Giá thấp nhất (VNĐ)</label>
@@ -317,7 +515,7 @@ const ServiceEditModal = ({
                     </div>
 
                     {/* Transport Specific fields */}
-                    {service.type === 'transport' && (
+                    {form.type === 'transport' && (
                         <>
                             <div className="border-t border-gray-100 pt-4 space-y-4">
                                 <label className="block text-sm font-semibold text-gray-700">Thông tin xe & Giờ khởi hành</label>
@@ -406,8 +604,258 @@ const ServiceEditModal = ({
                         </>
                     )}
 
+                    {/* Accommodation Specific fields */}
+                    {form.type === 'accommodation' && (
+                        <>
+                            {/* Room Types */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Các loại phòng</label>
+                                    <button type="button" onClick={addRoomType} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm loại phòng
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {form.roomTypes.map((room: any, index: number) => (
+                                        <div key={index} className="border border-gray-150 rounded-xl p-3 space-y-3 bg-gray-50/50">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={room.name}
+                                                    onChange={(e) => updateRoomType(index, 'name', e.target.value)}
+                                                    className="input flex-1"
+                                                    placeholder="Tên loại phòng (VD: Phòng đơn Standard)"
+                                                />
+                                                {form.roomTypes.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeRoomType(index)}
+                                                        className="p-2 text-red-500 hover:bg-red-55 rounded-lg"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Giá (VNĐ)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={room.price || 0}
+                                                        onChange={(e) => updateRoomType(index, 'price', parseInt(e.target.value) || 0)}
+                                                        className="input w-full text-sm"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Sức chứa (Người)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={room.capacity || 2}
+                                                        onChange={(e) => updateRoomType(index, 'capacity', parseInt(e.target.value) || 2)}
+                                                        className="input w-full text-sm"
+                                                        min="1"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Số phòng trống</label>
+                                                    <input
+                                                        type="number"
+                                                        value={room.available || 1}
+                                                        onChange={(e) => updateRoomType(index, 'available', parseInt(e.target.value) || 1)}
+                                                        className="input w-full text-sm"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Amenities */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Tiện ích</label>
+                                    <button type="button" onClick={addAmenity} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm tiện ích
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {form.amenities.map((amenity: string, index: number) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={amenity}
+                                                onChange={(e) => updateAmenity(index, e.target.value)}
+                                                className="input flex-1"
+                                                placeholder="VD: Wifi miễn phí"
+                                            />
+                                            {form.amenities.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeAmenity(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Rules */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Nội quy</label>
+                                    <button type="button" onClick={addRule} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm nội quy
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    {form.rules.map((rule: string, index: number) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={rule}
+                                                onChange={(e) => updateRule(index, e.target.value)}
+                                                className="input flex-1"
+                                                placeholder="VD: Không làm ồn sau 22:00"
+                                            />
+                                            {form.rules.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeRule(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Restaurant Specific fields */}
+                    {form.type === 'restaurant' && (
+                        <>
+                            {/* Cuisine */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Ẩm thực</label>
+                                    <button type="button" onClick={addCuisine} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm ẩm thực
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {form.cuisine.map((cuisine: string, index: number) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={cuisine}
+                                                onChange={(e) => updateCuisine(index, e.target.value)}
+                                                className="input flex-1"
+                                                placeholder="VD: Đồ uống / Đồ nướng"
+                                            />
+                                            {form.cuisine.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeCuisine(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Menu Items */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-semibold text-gray-700">Danh sách món ăn (Menu)</label>
+                                    <button type="button" onClick={addMenuItem} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm món ăn
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {form.menuItems.map((item: any, index: number) => (
+                                        <div key={index} className="border border-gray-150 rounded-xl p-3 space-y-3 bg-gray-50/50">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={item.name}
+                                                    onChange={(e) => updateMenuItem(index, 'name', e.target.value)}
+                                                    className="input flex-1"
+                                                    placeholder="Tên món ăn (VD: Lẩu Thái)"
+                                                />
+                                                {form.menuItems.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeMenuItem(index)}
+                                                        className="p-2 text-red-500 hover:bg-red-55 rounded-lg"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Giá tiền (VNĐ)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={item.price || 0}
+                                                        onChange={(e) => updateMenuItem(index, 'price', parseInt(e.target.value) || 0)}
+                                                        className="input w-full text-sm"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Phân loại món</label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.category}
+                                                        onChange={(e) => updateMenuItem(index, 'category', e.target.value)}
+                                                        className="input w-full text-sm"
+                                                        placeholder="VD: Món chính"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-0.5">Mô tả món ăn</label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.description}
+                                                        onChange={(e) => updateMenuItem(index, 'description', e.target.value)}
+                                                        className="input w-full text-sm"
+                                                        placeholder="VD: Nhiều topping đặc biệt..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Features */}
+                            <div className="border-t border-gray-100 pt-4 flex gap-6">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked={form.hasDelivery} onChange={e => set('hasDelivery', e.target.checked)} className="w-4 h-4 text-primary-600 rounded" />
+                                    <span className="text-sm text-gray-700">Có giao hàng</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked={form.hasReservation} onChange={e => set('hasReservation', e.target.checked)} className="w-4 h-4 text-primary-600 rounded" />
+                                    <span className="text-sm text-gray-700">Cho đặt bàn trước</span>
+                                </label>
+                            </div>
+                        </>
+                    )}
+
                     {/* Status */}
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-wrap gap-4 border-t border-gray-100 pt-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" checked={form.isAvailable} onChange={e => set('isAvailable', e.target.checked)} className="w-4 h-4 text-primary-600 rounded" />
                             <span className="text-sm text-gray-700">Đang hoạt động</span>
@@ -432,7 +880,7 @@ const ServiceEditModal = ({
                     <button onClick={handleSave} disabled={saving}
                         className="flex-1 py-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Lưu thay đổi
+                        {service.isNew ? 'Tạo mới dịch vụ' : 'Lưu thay đổi'}
                     </button>
                 </div>
             </div>
@@ -509,8 +957,45 @@ const AdminServicesPage = () => {
         return `Đến ${fmt.format(service.priceRange.max)}`;
     };
 
-    const handleSaved = (updated: any) => {
-        setServices(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
+    const handleSaved = (saved: any) => {
+        setServices(prev => {
+            const exists = prev.some(s => s.id === saved.id);
+            if (exists) {
+                return prev.map(s => s.id === saved.id ? { ...s, ...saved } : s);
+            }
+            return [saved, ...prev];
+        });
+    };
+
+    const handleAddClick = () => {
+        setEditingService({
+            isNew: true,
+            type: 'transport',
+            name: '',
+            description: '',
+            address: '',
+            city: '',
+            district: '',
+            ward: '',
+            images: [],
+            openTime: '08:00',
+            closeTime: '22:00',
+            priceRange: { min: 0, max: 0 },
+            isAvailable: true,
+            status: 'pending',
+            ownerId: '',
+            vehicleType: '',
+            seats: 0,
+            routes: [{ name: '', price: 0 }],
+            departureTime: [''],
+            roomTypes: [{ name: '', price: 0, capacity: 2, available: 1 }],
+            amenities: [''],
+            rules: [''],
+            cuisine: [''],
+            menuItems: [{ name: '', price: 0, description: '', category: '' }],
+            hasDelivery: false,
+            hasReservation: false,
+        });
     };
 
     if (loading) return <div className="flex items-center justify-center min-h-[400px]"><LoadingSpinner /></div>;
@@ -525,9 +1010,17 @@ const AdminServicesPage = () => {
                 />
             )}
 
-            <div>
-                <h1 className="text-2xl font-display font-bold text-gray-900">Quản lý dịch vụ</h1>
-                <p className="text-gray-500">Theo dõi tất cả dịch vụ nhà xe, nhà trọ, quán ăn trên hệ thống</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-display font-bold text-gray-900">Quản lý dịch vụ</h1>
+                    <p className="text-gray-500">Theo dõi tất cả dịch vụ nhà xe, nhà trọ, quán ăn trên hệ thống</p>
+                </div>
+                <button
+                    onClick={handleAddClick}
+                    className="self-start sm:self-auto px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-sm font-medium flex items-center gap-2 transition-colors shadow-md shadow-primary-200"
+                >
+                    <Plus className="w-4 h-4" /> Thêm dịch vụ
+                </button>
             </div>
 
             {/* Stats */}
