@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
+    // If already connected or connecting, skip
+    if (mongoose.connection.readyState >= 1) {
+        return;
+    }
+    
     try {
         await mongoose.connect(process.env.MONGODB_URI, {
             maxPoolSize: 10,        // maintain up to 10 socket connections
@@ -11,7 +16,10 @@ const connectDB = async () => {
         console.log('MongoDB connected successfully');
     } catch (error) {
         console.error("MongoDB connection failed: ", error);
-        process.exit(1);
+        // Do not exit process in Vercel to allow the function instance to recover
+        if (!process.env.VERCEL) {
+            process.exit(1);
+        }
     }
 };
 

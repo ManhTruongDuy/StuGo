@@ -48,7 +48,8 @@ import {
   dashboardRoutes,
   reviewRoutes,
   subscriptionRoutes,
-  transactionRoutes
+  transactionRoutes,
+  chatbotRoutes
 } from './routes/index.js';
 
 const app = express();
@@ -119,6 +120,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -266,6 +268,11 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+} else {
+  // For Vercel Serverless Functions
+  connectDB().catch(console.error);
+}
 
 export default app;

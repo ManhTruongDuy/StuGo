@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { Toaster } from 'react-hot-toast';
+import { AIChatbot } from '../ui/AIChatbot';
 
 const Layout = () => {
     return (
@@ -35,6 +36,7 @@ const Layout = () => {
                     },
                 }}
             />
+            <AIChatbot />
         </div>
     );
 };
