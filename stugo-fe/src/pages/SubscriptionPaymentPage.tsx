@@ -34,13 +34,18 @@ const SubscriptionPaymentPage = () => {
         }
 
         if (location.state?.planName && location.state?.planPrice !== undefined) {
-            setPlanDetails({ name: location.state.planName, price: location.state.planPrice, duration: '1 tháng' });
+            setPlanDetails({ name: location.state.planName, price: location.state.planPrice, duration: location.state.duration || '1 tháng' });
         } else {
             // Fallback: fetch plan details from backend
             api.get('/subscriptions/plans').then(res => {
                 const plan = res.data.plans?.find((p: any) => p._id === planId);
                 if (plan) {
-                    setPlanDetails({ name: plan.name, price: plan.price, duration: '1 tháng' });
+                    const isTrial = user?.role === 'partner' && plan.code === 'business_basic';
+                    setPlanDetails({
+                        name: plan.name,
+                        price: isTrial ? 0 : plan.price,
+                        duration: isTrial ? '4 tuần' : '1 tháng'
+                    });
                 }
             }).catch(() => {});
         }

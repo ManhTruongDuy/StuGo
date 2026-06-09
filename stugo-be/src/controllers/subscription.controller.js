@@ -37,9 +37,9 @@ export const createSubscription = async (req, res) => {
     let messageStr = 'Đăng ký tạm thời được tạo. Vui lòng thanh toán.';
 
     if (isFirstSubscription) {
-      finalDurationDays = 60; // 2 months free trial
+      finalDurationDays = 28; // 4 weeks free trial
       finalStatus = 'active';
-      messageStr = 'Đăng ký thành công. Bạn nhận được 2 tháng sử dụng miễn phí.';
+      messageStr = 'Đăng ký thành công. Bạn nhận được 4 tuần sử dụng miễn phí.';
     }
 
     endDate.setDate(startDate.getDate() + finalDurationDays);
@@ -117,7 +117,7 @@ export const createSubscriptionPayment = async (req, res) => {
       // First subscription = free trial, activate directly
       const startDate = new Date();
       const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 60);
+      endDate.setDate(startDate.getDate() + 28);
 
       const subscription = new Subscription({ userId, planId, startDate, endDate, status: 'active' });
       await subscription.save();
@@ -127,7 +127,7 @@ export const createSubscriptionPayment = async (req, res) => {
         success: true,
         isTrial: true,
         subscription,
-        message: 'Kích hoạt thành công! Bạn nhận được 2 tháng dùng thử miễn phí.'
+        message: 'Kích hoạt thành công! Bạn nhận được 4 tuần dùng thử miễn phí.'
       });
     }
 

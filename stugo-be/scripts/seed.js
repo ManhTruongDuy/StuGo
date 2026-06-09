@@ -46,7 +46,7 @@ const seedData = async () => {
         name: 'Business Basic',
         description: 'Dành cho nhà xe mới bắt đầu trên StuGo',
         price: 299000,
-        durationDays: 30, // Trial overrides this to 60 days
+        durationDays: 30, // Trial overrides this to 28 days
         features: ['Đăng tuyến xe trên StuGo', 'Quản lý đặt vé', 'Quản lý ghế trống'],
         targetRole: 'partner',
         status: 'active'
@@ -79,7 +79,7 @@ const seedData = async () => {
     // Only seed a subscription for the partner (as an active trial), not admin/student
     // This ensures the trial logic works correctly for new partners
     const now = new Date();
-    const trialEnd = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 60 days
+    const trialEnd = new Date(now.getTime() + 28 * 24 * 60 * 60 * 1000); // 28 days
     const partnerSub = await Subscription.create({
       userId: partner._id,
       planId: plans[1]._id,

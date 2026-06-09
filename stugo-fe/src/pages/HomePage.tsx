@@ -414,7 +414,7 @@ const HomePage = () => {
                                     name: 'Business Basic',
                                     price: 0,
                                     originalPrice: 299000,
-                                    badge: 'FREE Trial 2 tháng',
+                                    badge: 'FREE Trial 4 tuần',
                                     badgeColor: 'from-teal-500 to-emerald-500',
                                     description: 'Dành cho nhà xe mới bắt đầu trên StuGo',
                                     features: ['Đăng tuyến xe trên StuGo', 'Quản lý đặt vé', 'Quản lý ghế trống', 'Dashboard quản lý khách hàng', 'Theo dõi lịch trình chuyến xe', 'Hỗ trợ kỹ thuật cơ bản'],

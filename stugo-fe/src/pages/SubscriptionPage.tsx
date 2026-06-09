@@ -72,11 +72,11 @@ const PARTNER_PLANS: Plan[] = [
         name: 'Business Basic',
         price: 0,
         originalPrice: 299000,
-        durationDays: 60,
+        durationDays: 28,
         icon: Bus,
-        badge: 'FREE Trial 2 tháng',
+        badge: 'FREE Trial 4 tuần',
         badgeColor: 'from-teal-500 to-emerald-500',
-        mvpOffer: 'Miễn phí hoàn toàn trong 2 tháng đầu',
+        mvpOffer: 'Miễn phí hoàn toàn trong 4 tuần đầu',
         description: 'Dành cho nhà xe mới bắt đầu trên StuGo',
         features: [
             'Đăng tuyến xe trên StuGo',
@@ -150,9 +150,15 @@ const SubscriptionPage = () => {
             : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) + '/tháng';
 
     const handleSelectPlan = (plan: Plan) => {
-        if (plan.price === 0) return;
+        if (plan.originalCode === 'free') return;
+        const isTrial = role === 'partner' && plan.originalCode === 'business_basic' && isTrialEligible;
         navigate('/subscription/payment', {
-            state: { planId: plan._id, planName: plan.name, planPrice: plan.price },
+            state: { 
+                planId: plan._id, 
+                planName: plan.name, 
+                planPrice: isTrial ? 0 : plan.price,
+                duration: isTrial ? '4 tuần' : '1 tháng'
+            },
         });
     };
 
@@ -212,10 +218,10 @@ const SubscriptionPage = () => {
                     <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl p-6 mb-8 text-white flex items-start gap-4 shadow-lg">
                         <Gift className="w-8 h-8 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="font-bold text-lg mb-1">Dùng thử miễn phí 2 tháng dành cho đối tác mới!</p>
+                            <p className="font-bold text-lg mb-1">Dùng thử miễn phí 4 tuần dành cho đối tác mới!</p>
                             <p className="text-teal-100 text-sm">
                                 Kích hoạt ngay hôm nay — không cần thanh toán, không cần thẻ tín dụng.
-                                Trải nghiệm đầy đủ tính năng trong 60 ngày đầu tiên.
+                                Trải nghiệm đầy đủ tính năng trong 28 ngày đầu tiên.
                             </p>
                         </div>
                     </div>

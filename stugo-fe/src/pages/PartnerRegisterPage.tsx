@@ -9,7 +9,7 @@ const BENEFITS = [
     'Tiếp cận hàng nghìn sinh viên mỗi ngày',
     'Quản lý đặt chỗ & doanh thu dễ dàng',
     'Dashboard thống kê chi tiết',
-    'Dùng thử miễn phí 2 tháng',
+    'Dùng thử miễn phí 4 tuần',
     'Hỗ trợ kỹ thuật tận tình',
 ];
 
