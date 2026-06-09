@@ -20,6 +20,7 @@ interface Plan {
     icon?: any;
     description?: string;
     mvpOffer?: string;
+    originalCode?: string;
 }
 
 // ─── User plans (MVP) ────────────────────────────────────────────────────────
