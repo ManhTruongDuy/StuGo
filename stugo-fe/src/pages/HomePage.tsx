@@ -133,7 +133,7 @@ const HomePage = () => {
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20 pb-8">
                     <div className="animate-fade-in">
                         {user && isProUser ? (
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-400 backdrop-blur-sm rounded-full text-white text-sm font-semibold mb-6 shadow-lg shadow-yellow-500/20 animate-pulse border border-yellow-300/30">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-400 backdrop-blur-sm rounded-full text-white text-sm font-semibold mb-6 shadow-lg shadow-yellow-500/20 transition-all duration-300 hover:scale-105 cursor-default hover:animate-pulse border border-yellow-300/30">
                                 <Crown className="w-4 h-4 text-white" />
                                 Thành viên Premium - Chào mừng {user.fullName}!
                             </span>
