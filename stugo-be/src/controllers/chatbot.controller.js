@@ -64,15 +64,30 @@ If the user asks for something outside of this database, politely inform them th
 Do not make up any transportation services.
 Answer the user's query clearly, concisely, and in a friendly manner.`;
 
-    // 4. Initialize model
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro",
-      systemInstruction: systemInstruction
-    });
-
-    // 5. Generate response
-    const result = await model.generateContent(message);
-    const responseText = result.response.text();
+    // 4. Generate response with fallback
+    let responseText;
+    try {
+      console.log('🤖 Attempting AI generation using gemini-1.5-flash...');
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        systemInstruction: systemInstruction
+      });
+      const result = await model.generateContent(message);
+      responseText = result.response.text();
+    } catch (flashError) {
+      console.warn('⚠️ Gemini 1.5 Flash generation failed, falling back to gemini-1.5-pro:', flashError.message);
+      try {
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-1.5-pro",
+          systemInstruction: systemInstruction
+        });
+        const result = await model.generateContent(message);
+        responseText = result.response.text();
+      } catch (proError) {
+        console.error('❌ Both Gemini Flash and Pro models failed:', proError);
+        throw proError; // Let the outer catch handle it
+      }
+    }
 
     res.json({
       success: true,
@@ -82,7 +97,8 @@ Answer the user's query clearly, concisely, and in a friendly manner.`;
     console.error('Chatbot error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to generate response from AI'
+      message: 'Failed to generate response from AI',
+      error: error.message
     });
   }
 };
