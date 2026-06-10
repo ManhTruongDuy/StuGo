@@ -247,8 +247,12 @@ const SubscriptionPage = () => {
                 <div className={`grid gap-6 mb-16 mt-6 ${plans.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-3xl mx-auto'}`}>
                     {plans.map((plan) => {
                         const Icon = plan.icon || Shield;
-                        const isActive = activeSub?.planId?._id === plan._id || activeSub?.planId === plan._id;
-                        const isFree = plan.price === 0 && role === 'user';
+                        const isActive = activeSub?.planId?._id === plan._id || 
+                                         activeSub?.planId === plan._id || 
+                                         user?.plan === plan.originalCode ||
+                                         (plan.originalCode === 'premium_user' && user?.plan === 'premium') ||
+                                         (plan.originalCode === 'free' && (!user?.plan || user.plan === 'free'));
+                        const isFree = plan.price === 0 && role === 'user' && !isActive;
 
                         return (
                             <div

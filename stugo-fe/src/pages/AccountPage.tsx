@@ -235,7 +235,15 @@ const AccountPage = () => {
                                     Gói dịch vụ hiện tại
                                 </h2>
                                 <p className="text-gray-600 mt-1">
-                                    Bạn đang sử dụng gói <span className="font-bold text-primary-700 uppercase">{user?.plan || 'free'}</span>
+                                    Bạn đang sử dụng gói <span className="font-bold text-primary-700 uppercase">{
+                                        user?.plan === 'premium_user' || user?.plan === 'premium' 
+                                            ? 'STUDENT PREMIUM' 
+                                            : user?.plan === 'business_basic' 
+                                                ? 'BUSINESS BASIC' 
+                                                : user?.plan === 'business_premium' 
+                                                    ? 'BUSINESS PREMIUM' 
+                                                    : 'FREE'
+                                    }</span>
                                 </p>
                             </div>
                             <button
@@ -243,7 +251,7 @@ const AccountPage = () => {
                                 onClick={() => window.location.href = '/subscription'}
                                 className="btn-primary flex-shrink-0"
                             >
-                                Nâng cấp gói
+                                {user?.plan && user.plan !== 'free' ? 'Xem chi tiết gói' : 'Nâng cấp gói'}
                             </button>
                         </div>
                     </div>

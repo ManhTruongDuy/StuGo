@@ -264,7 +264,13 @@ const ManagerDashboard = () => {
                         <Zap className="w-5 h-5 text-teal-600" />
                     </div>
                     <div>
-                        <p className="font-semibold text-teal-900">Gói <span className="uppercase">{user.plan}</span> đang hoạt động</p>
+                        <p className="font-semibold text-teal-900">Gói <span className="uppercase">{
+                            user.plan === 'business_basic' 
+                                ? 'BUSINESS BASIC' 
+                                : user.plan === 'business_premium' 
+                                    ? 'BUSINESS PREMIUM' 
+                                    : user.plan
+                        }</span> đang hoạt động</p>
                         <p className="text-sm text-teal-700">Bạn đang sử dụng đầy đủ tính năng đối tác</p>
                     </div>
                 </div>
