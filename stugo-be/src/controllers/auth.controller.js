@@ -53,7 +53,8 @@ export const register = async (req, res, next) => {
           avatar: user.avatar || user.avatarUrl,
           phone: user.phone,
           role: user.role,
-          status: user.status
+          status: user.status,
+          plan: user.plan
         },
         token
       },
@@ -111,7 +112,8 @@ export const loginWithEmail = async (req, res, next) => {
           avatar: user.avatar || user.avatarUrl,
           phone: user.phone,
           role: user.role,
-          status: user.status
+          status: user.status,
+          plan: user.plan
         },
         token
       },
@@ -152,7 +154,8 @@ export const getCurrentUser = async (req, res, next) => {
         district: user.district,
         ward: user.ward,
         role: user.role,
-        status: user.status
+        status: user.status,
+        plan: user.plan
       }
     });
   } catch (error) {
