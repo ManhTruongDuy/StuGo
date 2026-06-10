@@ -31,6 +31,7 @@ const GoogleCallbackPage = () => {
                         avatar: u.avatar,
                         phone: u.phone,
                         role: u.role,
+                        plan: (u.plan === 'premium' ? 'premium_user' : u.plan) as any,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
                     }, token);

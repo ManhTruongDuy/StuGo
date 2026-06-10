@@ -218,7 +218,7 @@ export const createBooking = async (req, res, next) => {
       }
 
       // Calculate pricing
-      const isPremium = req.user && req.user.plan === 'premium_user';
+      const isPremium = req.user && (req.user.plan === 'premium_user' || req.user.plan === 'premium');
       const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
       const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * bookingQuantity;
@@ -292,7 +292,7 @@ export const createBooking = async (req, res, next) => {
       }
 
       // Calculate pricing
-      const isPremium = req.user && req.user.plan === 'premium_user';
+      const isPremium = req.user && (req.user.plan === 'premium_user' || req.user.plan === 'premium');
       const basePrice = roomType.price || service.priceRange.min;
       const unitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
       const totalAmount = unitPrice * quantity;
@@ -435,7 +435,7 @@ export const createBooking = async (req, res, next) => {
         }
 
         // Validate menu items and calculate total
-        const isPremium = req.user && req.user.plan === 'premium_user';
+        const isPremium = req.user && (req.user.plan === 'premium_user' || req.user.plan === 'premium');
         let totalAmount = 0;
         const processedOrderItems = [];
 

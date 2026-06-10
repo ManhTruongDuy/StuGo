@@ -92,6 +92,11 @@ userSchema.virtual('avatarUrl').get(function () {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.fullName)}&background=0ea5e9&color=fff`;
 });
 
+// Virtual for checking if user is Pro
+userSchema.virtual('isPro').get(function () {
+  return this.plan && this.plan !== 'free';
+});
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   // Tạm thời vô hiệu hóa việc băm mật khẩu

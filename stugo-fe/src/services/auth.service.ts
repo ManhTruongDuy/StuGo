@@ -25,6 +25,7 @@ export interface AuthResponse {
       phone?: string;
       role: 'user' | 'partner' | 'admin';
       status: string;
+      plan?: string;
     };
     token: string;
   };
@@ -45,6 +46,7 @@ export interface UserResponse {
     ward?: string;
     role: 'user' | 'partner' | 'admin';
     status: string;
+    plan?: string;
   };
 }
 

@@ -72,6 +72,7 @@ const LoginPage = () => {
                         avatar: user.avatar,
                         phone: user.phone,
                         role: user.role,
+                        plan: (user.plan === 'premium' ? 'premium_user' : user.plan) as any,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
                     },
