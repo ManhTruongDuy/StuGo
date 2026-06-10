@@ -19,6 +19,7 @@ import ServiceCard from '../components/ui/ServiceCard';
 import { getPopularServices } from '../services';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import type { Service } from '../types';
+import { useAuthStore } from '../store/authStore';
 
 const stats = [
     { icon: Star, value: '4.8', label: 'Đánh giá trung bình' },
@@ -27,11 +28,55 @@ const stats = [
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const { user, isPro: checkIsPro } = useAuthStore();
+    const isProUser = checkIsPro();
     const [popularServices, setPopularServices] = useState<Service[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [pricingTab, setPricingTab] = useState<'user' | 'partner'>('user');
+
+    const getPlanBtnProps = (price: number) => {
+        if (!user) {
+            return {
+                text: price === 0 ? 'Bắt đầu miễn phí' : 'Đăng ký ngay',
+                className: price === 0 
+                    ? 'border-2 border-gray-200 text-gray-700 hover:border-primary-300 hover:bg-gray-50' 
+                    : 'bg-primary-500 text-white hover:bg-primary-600',
+                to: '/subscription'
+            };
+        }
+
+        if (price === 0) {
+            if (isProUser) {
+                return {
+                    text: 'Gói cơ bản',
+                    className: 'border border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed pointer-events-none',
+                    to: '#'
+                };
+            } else {
+                return {
+                    text: 'Gói hiện tại của bạn',
+                    className: 'border-2 border-primary-200 text-primary-600 bg-primary-50/50 cursor-not-allowed pointer-events-none font-semibold',
+                    to: '#'
+                };
+            }
+        } else {
+            if (isProUser) {
+                return {
+                    text: 'Đang hoạt động ✨',
+                    className: 'bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-500 text-white shadow-lg shadow-orange-500/20 hover:scale-[1.01] font-semibold border-none',
+                    to: '/subscription'
+                };
+            } else {
+                return {
+                    text: 'Nâng cấp ngay',
+                    className: 'bg-primary-500 text-white hover:bg-primary-600 font-semibold shadow-md shadow-primary-500/10',
+                    to: '/subscription'
+                };
+            }
+        }
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,10 +132,22 @@ const HomePage = () => {
                 {/* Content */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20 pb-8">
                     <div className="animate-fade-in">
-                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-6">
-                            <Zap className="w-4 h-4 text-yellow-300" />
-                            Nền tảng #1 cho sinh viên
-                        </span>
+                        {user && isProUser ? (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-400 backdrop-blur-sm rounded-full text-white text-sm font-semibold mb-6 shadow-lg shadow-yellow-500/20 animate-pulse border border-yellow-300/30">
+                                <Crown className="w-4 h-4 text-white" />
+                                Thành viên Premium - Chào mừng {user.fullName}!
+                            </span>
+                        ) : user ? (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-6">
+                                <Zap className="w-4 h-4 text-yellow-300" />
+                                Chào mừng trở lại, {user.fullName}!
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-6">
+                                <Zap className="w-4 h-4 text-yellow-300" />
+                                Nền tảng #1 cho sinh viên
+                            </span>
+                        )}
 
                         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-white mb-6 leading-tight">
                             Kết nối sinh viên với
@@ -398,9 +455,17 @@ const HomePage = () => {
                                             </li>
                                         ))}
                                     </ul>
-                                    <Link to="/subscription" className={`text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-colors ${plan.popular ? 'bg-primary-500 text-white hover:bg-primary-600' : 'border-2 border-gray-200 text-gray-700 hover:border-primary-300'}`}>
-                                        {plan.price === 0 ? 'Bắt đầu miễn phí' : 'Đăng ký ngay'}
-                                    </Link>
+                                    {(() => {
+                                        const btnProps = getPlanBtnProps(plan.price);
+                                        return (
+                                            <Link 
+                                                to={btnProps.to} 
+                                                className={`text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 block ${btnProps.className}`}
+                                            >
+                                                {btnProps.text}
+                                            </Link>
+                                        );
+                                    })()}
                                 </div>
                             ))}
                         </div>
@@ -482,17 +547,17 @@ const HomePage = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
-                            to="/login"
-                            className="btn bg-white text-primary-600 hover:bg-gray-100 shadow-xl text-lg px-8 py-4"
+                            to={user ? "/services" : "/login"}
+                            className="btn bg-white text-primary-600 hover:bg-gray-100 shadow-xl text-lg px-8 py-4 transition-all duration-200"
                         >
-                            Bắt đầu ngay
+                            {user ? "Khám phá dịch vụ ngay" : "Bắt đầu ngay"}
                             <ArrowRight className="w-5 h-5" />
                         </Link>
                         <Link
-                            to="/partner"
-                            className="btn border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-4"
+                            to={user?.role === 'partner' ? "/manager" : "/partner"}
+                            className="btn border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-4 transition-all duration-200"
                         >
-                            Trở thành đối tác
+                            {user?.role === 'partner' ? "Kênh đối tác" : "Trở thành đối tác"}
                         </Link>
                     </div>
                 </div>
