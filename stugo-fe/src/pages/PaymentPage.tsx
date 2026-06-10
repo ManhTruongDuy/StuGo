@@ -25,6 +25,7 @@ const PaymentPage = () => {
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('vietqr');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isComplete, setIsComplete] = useState(false);
+    const [bookingCode, setBookingCode] = useState('');
     
     const isPremiumUser = isPro();
     const serviceFeePercent = isPremiumUser ? 0 : 0.05;
@@ -61,6 +62,7 @@ const PaymentPage = () => {
         // Simulate payment processing
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
+        setBookingCode(`#STG${Date.now().toString().slice(-8)}`);
         setIsProcessing(false);
         setIsComplete(true);
 
@@ -115,7 +117,7 @@ const PaymentPage = () => {
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Mã đặt chỗ</span>
                                     <span className="font-medium text-gray-900">
-                                        #STG{Date.now().toString().slice(-8)}
+                                        {bookingCode}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
