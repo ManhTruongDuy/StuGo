@@ -18,12 +18,16 @@ export const chatWithAI = async (req, res) => {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const rawApiKey = process.env.GEMINI_API_KEY;
+    if (!rawApiKey) {
       return res.status(500).json({ 
         success: false, 
         message: 'AI Chatbot is not configured properly on the server.' 
       });
     }
+
+    // Strip quotes and trim whitespace if they were mistakenly added in environment config
+    const apiKey = rawApiKey.trim().replace(/^['"]|['"]$/g, '');
 
     if (!message) {
       return res.status(400).json({ 
@@ -32,7 +36,7 @@ export const chatWithAI = async (req, res) => {
       });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     // 2. Fetch all transportation services from the database
     const transports = await Service.find({ type: 'transport', status: 'active' }).select('-ownerId -__v');
