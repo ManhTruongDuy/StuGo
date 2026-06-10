@@ -54,6 +54,8 @@ import {
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" }
