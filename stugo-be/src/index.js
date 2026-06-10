@@ -54,23 +54,6 @@ import {
 
 const app = express();
 
-// Ensure MongoDB is connected for Vercel Serverless Functions before handling requests
-if (process.env.VERCEL) {
-  app.use(async (req, res, next) => {
-    try {
-      await connectDB();
-      next();
-    } catch (error) {
-      console.error('Database connection middleware error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Không thể kết nối đến cơ sở dữ liệu (Database connection failed)',
-        error: error.message
-      });
-    }
-  });
-}
-
 // Middleware
 app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" }
