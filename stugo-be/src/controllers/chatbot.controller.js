@@ -68,29 +68,19 @@ If the user asks for something outside of this database, politely inform them th
 Do not make up any transportation services.
 Answer the user's query clearly, concisely, and in a friendly manner.`;
 
-    // 4. Generate response with fallback
+    // 4. Generate response
     let responseText;
     try {
-      console.log('🤖 Attempting AI generation using gemini-1.5-flash...');
+      console.log('🤖 Attempting AI generation using gemini-2.5-flash...');
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         systemInstruction: systemInstruction
       });
       const result = await model.generateContent(message);
       responseText = result.response.text();
-    } catch (flashError) {
-      console.warn('⚠️ Gemini 1.5 Flash generation failed, falling back to gemini-1.5-pro:', flashError.message);
-      try {
-        const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-pro",
-          systemInstruction: systemInstruction
-        });
-        const result = await model.generateContent(message);
-        responseText = result.response.text();
-      } catch (proError) {
-        console.error('❌ Both Gemini Flash and Pro models failed:', proError);
-        throw proError; // Let the outer catch handle it
-      }
+    } catch (error) {
+      console.error('❌ Gemini 2.5 Flash generation failed:', error);
+      throw error;
     }
 
     res.json({
