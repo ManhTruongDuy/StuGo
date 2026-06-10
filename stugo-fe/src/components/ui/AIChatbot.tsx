@@ -129,7 +129,7 @@ export const AIChatbot: React.FC = () => {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="bg-indigo-600 text-white p-2.5 rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-md shadow-indigo-500/20"
+                className="w-10 h-10 shrink-0 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-md shadow-indigo-500/20"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -139,17 +139,17 @@ export const AIChatbot: React.FC = () => {
       ) : (
         <button
           onClick={() => setIsOpen(true)}
-          className="relative bg-gradient-to-tr from-primary-600 via-indigo-600 to-secondary-500 text-white p-4 rounded-full shadow-2xl hover:scale-105 hover:shadow-indigo-500/40 transition-all duration-300 flex items-center gap-2 group animate-float border border-white/20"
+          className="relative bg-gradient-to-tr from-primary-600 via-indigo-600 to-secondary-500 text-white p-4 rounded-full shadow-2xl hover:scale-105 hover:shadow-indigo-500/40 transition-all duration-300 flex items-center group animate-float border border-white/20 shrink-0"
         >
           {/* Inner ring pulse */}
           <span className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary-500 to-secondary-500 opacity-30 blur-sm animate-pulse-slow group-hover:opacity-60 transition-opacity"></span>
           
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex items-center justify-center w-6 h-6">
             <MessageSquare className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
             <Sparkles className="w-3.5 h-3.5 text-yellow-300 absolute -top-1.5 -right-1.5 animate-pulse" />
           </div>
 
-          <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-1 transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 font-display font-semibold text-sm">
+          <span className="max-w-0 overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:max-w-xs group-hover:ml-2.5 font-display font-semibold text-sm">
             Trợ lý AI
           </span>
           
