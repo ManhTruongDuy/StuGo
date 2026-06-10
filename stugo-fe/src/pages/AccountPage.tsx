@@ -236,7 +236,7 @@ const AccountPage = () => {
                                 </h2>
                                 <p className="text-gray-600 mt-1">
                                     Bạn đang sử dụng gói <span className="font-bold text-primary-700 uppercase">{
-                                        user?.plan === 'premium_user' || user?.plan === 'premium' 
+                                        user?.plan === 'premium_user' || (user?.plan as any) === 'premium' 
                                             ? 'STUDENT PREMIUM' 
                                             : user?.plan === 'business_basic' 
                                                 ? 'BUSINESS BASIC' 

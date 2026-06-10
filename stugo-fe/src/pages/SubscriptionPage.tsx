@@ -250,7 +250,7 @@ const SubscriptionPage = () => {
                         const isActive = activeSub?.planId?._id === plan._id || 
                                          activeSub?.planId === plan._id || 
                                          user?.plan === plan.originalCode ||
-                                         (plan.originalCode === 'premium_user' && user?.plan === 'premium') ||
+                                         (plan.originalCode === 'premium_user' && (user?.plan as any) === 'premium') ||
                                          (plan.originalCode === 'free' && (!user?.plan || user.plan === 'free'));
                         const isFree = plan.price === 0 && role === 'user' && !isActive;
 
