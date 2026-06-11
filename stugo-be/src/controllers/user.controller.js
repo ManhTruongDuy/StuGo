@@ -9,7 +9,8 @@ export const getUsers = async (req, res, next) => {
     const { role, search, status } = req.query;
     const options = {
       page: req.query.page || 1,
-      limit: req.query.limit || 20
+      limit: req.query.limit || 20,
+      sort: { isMock: 1, createdAt: -1 }
     };
 
     const filter = {};

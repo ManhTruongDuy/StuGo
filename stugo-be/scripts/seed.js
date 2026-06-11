@@ -66,9 +66,9 @@ const seedData = async () => {
     console.log('Seeding Users...');
     const salt = await bcrypt.genSalt(10);
     const users = await User.insertMany([
-      { email: 'admin@stugo.com', password: 'password123', fullName: 'System Admin', role: 'admin', city: 'Da Nang', status: 'active' },
-      { email: 'partner@stugo.com', password: 'password123', fullName: 'Partner Owner', role: 'partner', city: 'Da Nang', status: 'active' },
-      { email: 'user@stugo.com', password: 'password123', fullName: 'Student User', role: 'user', city: 'Da Nang', status: 'active' }
+      { email: 'admin@stugo.com', password: 'password123', fullName: 'System Admin', role: 'admin', city: 'Da Nang', status: 'active', isMock: true },
+      { email: 'partner@stugo.com', password: 'password123', fullName: 'Partner Owner', role: 'partner', city: 'Da Nang', status: 'active', isMock: true },
+      { email: 'user@stugo.com', password: 'password123', fullName: 'Student User', role: 'user', city: 'Da Nang', status: 'active', isMock: true }
     ]);
 
     const admin = users[0];

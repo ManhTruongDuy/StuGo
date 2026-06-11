@@ -150,6 +150,7 @@ const seed = async () => {
         city: assignedCity,
         role: 'partner',
         status: 'active',
+        isMock: true,
       });
       created++;
 
@@ -197,6 +198,7 @@ const seed = async () => {
         city: assignedCity,
         role: 'user',
         status: 'active',
+        isMock: true,
       });
       created++;
 

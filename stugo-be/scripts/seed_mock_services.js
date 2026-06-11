@@ -24,7 +24,8 @@ const seedMockData = async () => {
         fullName: 'Nguyễn Văn Đối Tác',
         phone: '0987654321',
         role: 'partner',
-        status: 'active'
+        status: 'active',
+        isMock: true
       });
       await partner.save();
     }

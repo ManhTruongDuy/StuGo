@@ -76,6 +76,10 @@ const userSchema = new mongoose.Schema({
   contracts: {
     type: [String],
     default: null
+  },
+  isMock: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true,
