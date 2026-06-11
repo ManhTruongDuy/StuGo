@@ -28,55 +28,70 @@ const getWeightedCity = () => {
 };
 
 const PARTNER_DATA = [
-  { fullName: 'Trần Văn Hùng', email: 'hungtran.transport@gmail.com' },
-  { fullName: 'Nguyễn Thị Lan', email: 'lannguyen.shuttle@gmail.com' },
-  { fullName: 'Lê Minh Đức', email: 'ducminh.le92@gmail.com' },
-  { fullName: 'Phạm Thị Hoa', email: 'hoapham.busline@gmail.com' },
-  { fullName: 'Hoàng Văn Nam', email: 'namhoang.garage@gmail.com' },
-  { fullName: 'Vũ Thị Mai', email: 'maivu.logistics@gmail.com' },
-  { fullName: 'Đặng Quốc Tuấn', email: 'tuandang.limo@gmail.com' },
-  { fullName: 'Bùi Thị Thu', email: 'thubui.dailybus@gmail.com' },
-  { fullName: 'Đinh Văn Khoa', email: 'khoadinh.xe02@gmail.com' },
-  { fullName: 'Lý Thị Ngọc', email: 'ngocly.travel90@gmail.com' },
+  { fullName: 'Nguyễn Quốc Hùng', email: 'quochung.nguyen80@gmail.com' },
+  { fullName: 'Phạm Minh Tuấn', email: 'tuanpham.hanoi@gmail.com' },
+  { fullName: 'Đỗ Thị Mai', email: 'maido.hcm@gmail.com' },
 ];
 
 const STUDENT_DATA = [
-  { fullName: 'Nguyễn Hoàng Anh', email: 'anhnh.student@gmail.com' },
-  { fullName: 'Trần Minh Quang', email: 'quangtm2004@gmail.com' },
-  { fullName: 'Lê Thùy Linh', email: 'linhlt.k62@gmail.com' },
-  { fullName: 'Phạm Đức Duy', email: 'duypd.graphics@gmail.com' },
-  { fullName: 'Hoàng Ngọc Diệp', email: 'diephn.art@gmail.com' },
-  { fullName: 'Vũ Minh Triết', email: 'trietvm.tech@gmail.com' },
-  { fullName: 'Đỗ Thị Giang', email: 'giangdt.hust@gmail.com' },
-  { fullName: 'Bùi Quang Hiếu', email: 'hieubq.neu@gmail.com' },
-  { fullName: 'Trịnh Tiến Đạt', email: 'dattne.design@gmail.com' },
-  { fullName: 'Đinh Tuấn Kiên', email: 'kiendt2005@gmail.com' },
-  { fullName: 'Phan Bảo Nam', email: 'nampb.ftu@gmail.com' },
-  { fullName: 'Cao Phương Linh', email: 'linhcp.bka@gmail.com' },
-  { fullName: 'Đặng Quốc Minh', email: 'minhdq.dev@gmail.com' },
-  { fullName: 'Hồ Thanh Nga', email: 'ngaht.media@gmail.com' },
-  { fullName: 'Lý Bảo Oanh', email: 'oanhlb.edu@gmail.com' },
-  { fullName: 'Tô Hồng Phúc', email: 'phucth.student@gmail.com' },
-  { fullName: 'Lưu Minh Quân', email: 'quanlm2003@gmail.com' },
-  { fullName: 'Trương Hoàng Long', email: 'longth.uiux@gmail.com' },
-  { fullName: 'Dương Khánh Sơn', email: 'sondk.digital@gmail.com' },
-  { fullName: 'Ngô Thanh Tùng', email: 'tungnt.it@gmail.com' },
-  { fullName: 'Vương Thu Uyên', email: 'uyenvt.marketing@gmail.com' },
-  { fullName: 'Đào Quốc Vinh', email: 'vinhdq.2004@gmail.com' },
-  { fullName: 'Lê Thanh Xuân', email: 'xuanlt.student@gmail.com' },
-  { fullName: 'Trần Hải Yến', email: 'yenth.ajc@gmail.com' },
-  { fullName: 'Bùi Tiến Dũng', email: 'dungbt.hnu@gmail.com' },
-  { fullName: 'Phạm Tuấn Anh', email: 'anhpt.creative@gmail.com' },
-  { fullName: 'Nguyễn Gia Bảo', email: 'baong2005@gmail.com' },
-  { fullName: 'Hoàng Minh Châu', email: 'chaohm.design@gmail.com' },
-  { fullName: 'Vũ Khánh Duy', email: 'duyvk.stu@gmail.com' },
-  { fullName: 'Đỗ Thục Anh', email: 'anhdt.vnu@gmail.com' },
+  { fullName: 'Nguyễn Văn Nam', email: 'namnv.2003@gmail.com' },
+  { fullName: 'Trần Thị Hương', email: 'huongtt.99@gmail.com' },
+  { fullName: 'Lê Anh Tuấn', email: 'anhtuan.le01@gmail.com' },
+  { fullName: 'Phạm Hải Đăng', email: 'haidang.pham2002@gmail.com' },
+  { fullName: 'Hoàng Thanh Trúc', email: 'tructh.04@gmail.com' },
+  { fullName: 'Vũ Quốc Khánh', email: 'khanhvq.hn@gmail.com' },
+  { fullName: 'Đỗ Minh Quân', email: 'quanmd2003@gmail.com' },
+  { fullName: 'Bùi Phương Thảo', email: 'thaobp.work@gmail.com' },
+  { fullName: 'Trịnh Gia Huy', email: 'huygia.trinh@gmail.com' },
+  { fullName: 'Đinh Ngọc Diệp', email: 'diepnd.hanoi@gmail.com' },
+  { fullName: 'Phan Văn Lâm', email: 'lamphan99@gmail.com' },
+  { fullName: 'Cao Minh Hải', email: 'haicm.2002@gmail.com' },
+  { fullName: 'Đặng Tiến Đạt', email: 'datdat.tien98@gmail.com' },
+  { fullName: 'Hồ Mỹ Linh', email: 'linhmh.97@gmail.com' },
+  { fullName: 'Lý Quang Thắng', email: 'thangq.ly@gmail.com' },
+  { fullName: 'Tô Minh Đức', email: 'ducminh.to@gmail.com' },
+  { fullName: 'Lưu Khánh Huyền', email: 'huyenlk.2004@gmail.com' },
+  { fullName: 'Trương Quốc Bảo', email: 'baotrung.truong@gmail.com' },
+  { fullName: 'Dương Thùy Trang', email: 'trangdt.96@gmail.com' },
+  { fullName: 'Ngô Minh Hiếu', email: 'hieunm.2001@gmail.com' },
+  { fullName: 'Vương Quốc Cường', email: 'cuongvq.hn@gmail.com' },
+  { fullName: 'Đào Thị Thắm', email: 'thamdao.99@gmail.com' },
+  { fullName: 'Lê Minh Sơn', email: 'sonminh.le@gmail.com' },
+  { fullName: 'Trần Thu Hà', email: 'hatran.1999@gmail.com' },
+  { fullName: 'Bùi Văn Quyết', email: 'quyetbv@gmail.com' },
+  { fullName: 'Phạm Thúy Quỳnh', email: 'quynhpt.2003@gmail.com' },
+  { fullName: 'Nguyễn Hữu Thắng', email: 'thangnh.haiphong@gmail.com' },
+  { fullName: 'Hoàng Đức Mạnh', email: 'manhhoang03@gmail.com' },
+  { fullName: 'Vũ Thị Ngọc', email: 'ngocvt.2002@gmail.com' },
+  { fullName: 'Đỗ Hồng Đăng', email: 'danghongdo@gmail.com' },
+  { fullName: 'Lê Thanh Bình', email: 'binhthanh.le@gmail.com' },
+  { fullName: 'Trần Văn Sơn', email: 'sontran.vch@gmail.com' },
+  { fullName: 'Hoàng Thu Thảo', email: 'thaohoang91@gmail.com' },
+  { fullName: 'Vũ Anh Kiệt', email: 'kietvu.99@gmail.com' },
+  { fullName: 'Bùi Quốc Anh', email: 'quocanh.bui99@gmail.com' },
+  { fullName: 'Phan Thị Tuyết', email: 'tuyetphan.dn@gmail.com' },
+  { fullName: 'Nguyễn Văn Đạt', email: 'datvannguyen02@gmail.com' },
 ];
 
 const seed = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
+
+    // Clean up existing seeded users and their subscriptions to ensure correct roles
+    const allEmails = [
+      ...PARTNER_DATA.map(p => p.email),
+      ...STUDENT_DATA.map(s => s.email),
+      // Clean up previous variants
+      'kietvu.business@gmail.com',
+      'quocanh.bui78@gmail.com',
+      'datvannguyen75@gmail.com'
+    ];
+    const usersToDelete = await User.find({ email: { $in: allEmails } }).select('_id');
+    const userIdsToDelete = usersToDelete.map(u => u._id);
+    await Subscription.deleteMany({ userId: { $in: userIdsToDelete } });
+    await User.deleteMany({ email: { $in: allEmails } });
+    console.log('🧹 Cleaned up existing users and their subscriptions to ensure clean state');
 
     // Get hoặc Tạo Subscription Plans mặc định
     let plans = await SubscriptionPlan.find({ status: 'active' });
@@ -116,7 +131,7 @@ const seed = async () => {
 
     let created = 0;
 
-    // ─── Tạo 10 Đối Tác (Partners) ───────────────────────────────────────────
+    // ─── Tạo 3 Đối Tác (Partners) ───────────────────────────────────────────
     console.log('\n👔 Creating partner accounts...');
     for (let i = 0; i < PARTNER_DATA.length; i++) {
       const p = PARTNER_DATA[i];
@@ -138,10 +153,10 @@ const seed = async () => {
       });
       created++;
 
-      // Cấp Subscription cho 7/10 đối tác
-      if (i < 7 && partnerBasicPlan) {
+      // Cấp Subscription cho 2/3 đối tác (1 Basic, 1 Premium, 1 no sub)
+      if (i < 2 && partnerBasicPlan) {
         const now = new Date();
-        const isBasic = i < 4;
+        const isBasic = i < 1;
         const plan = isBasic ? partnerBasicPlan : (partnerPremiumPlan || partnerBasicPlan);
         const durationDays = plan.durationDays || 30;
 
@@ -163,7 +178,7 @@ const seed = async () => {
       }
     }
 
-    // ─── Tạo 30 Sinh Viên (Students) ─────────────────────────────────────────
+    // ─── Tạo 37 Sinh Viên (Students) ─────────────────────────────────────────
     console.log('\n🎓 Creating student accounts...');
     for (let i = 0; i < STUDENT_DATA.length; i++) {
       const s = STUDENT_DATA[i];
@@ -186,7 +201,7 @@ const seed = async () => {
       created++;
 
       // Cấp Premium cho 10/30 sinh viên đầu tiên
-      if (i < 10 && studentPlan) {
+      if (i < 4 && studentPlan) {
         const now = new Date();
         const sub = await Subscription.create({
           userId: user._id,

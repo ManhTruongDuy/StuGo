@@ -47,6 +47,14 @@ export const getAdminUsers = async (params?: {
   return { data: [] };
 };
 
+export const getUserOverviewStats = async (): Promise<{ total: number; active: number; banned: number } | null> => {
+  const response = await api.get<ApiResponse<any>>('/users/stats');
+  if (response.data.success) {
+    return response.data.data;
+  }
+  return null;
+};
+
 export const updateUserStatus = async (
   userId: string,
   status: 'active' | 'banned' | 'pending'

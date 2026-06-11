@@ -27,15 +27,16 @@ class UserRepository extends BaseRepository {
     return this.model.find({ role: 'admin' });
   }
 
-  async searchUsers(query, options = {}) {
-    const filter = {
+  async searchUsers(query, filter = {}, options = {}) {
+    const searchFilter = {
+      ...filter,
       $or: [
         { fullName: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } },
         { phone: { $regex: query, $options: 'i' } }
       ]
     };
-    return this.find(filter, options);
+    return this.find(searchFilter, options);
   }
 
   async getStats() {

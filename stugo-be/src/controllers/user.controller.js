@@ -12,14 +12,15 @@ export const getUsers = async (req, res, next) => {
       limit: req.query.limit || 20
     };
 
+    const filter = {};
+    if (role) filter.role = role;
+    if (status) filter.status = status;
+
     let result;
     
     if (search) {
-      result = await userRepository.searchUsers(search, options);
+      result = await userRepository.searchUsers(search, filter, options);
     } else {
-      const filter = {};
-      if (role) filter.role = role;
-      if (status) filter.status = status;
       result = await userRepository.find(filter, options);
     }
 
@@ -261,14 +262,16 @@ export const createPartner = async (req, res, next) => {
  */
 export const getUserOverviewStats = async (req, res, next) => {
   try {
-    const stats = await userRepository.getStats();
-    const newUsers = await userRepository.getNewUsersCount(30);
+    const total = await userRepository.count({});
+    const active = await userRepository.count({ status: 'active' });
+    const banned = await userRepository.count({ status: 'banned' });
 
     res.json({
       success: true,
       data: {
-        ...stats,
-        newUsersLast30Days: newUsers
+        total,
+        active,
+        banned
       }
     });
   } catch (error) {
