@@ -111,23 +111,24 @@ export const createSubscriptionPayment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy gói đăng ký' });
     }
 
-    // Check if this is first subscription (free trial)
-    const existingSub = await Subscription.findOne({ userId });
-    if (!existingSub) {
-      // First subscription = free trial, activate directly
+    // Check if this plan is free (e.g. trial or freemium)
+    if (plan.price === 0) {
+      // Activate directly without PayOS
       const startDate = new Date();
       const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 28);
+      // If it's a partner trial, duration is 28 days, else use plan duration
+      const durationDays = plan.code === 'business_basic' ? 28 : (plan.durationDays || 30);
+      endDate.setDate(startDate.getDate() + durationDays);
 
       const subscription = new Subscription({ userId, planId, startDate, endDate, status: 'active' });
       await subscription.save();
-      await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.name?.toLowerCase() || 'standard' });
+      await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.code });
 
       return res.status(201).json({
         success: true,
         isTrial: true,
         subscription,
-        message: 'Kích hoạt thành công! Bạn nhận được 4 tuần dùng thử miễn phí.'
+        message: 'Kích hoạt thành công!'
       });
     }
 
@@ -176,7 +177,7 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
 
     const subscription = new Subscription({ userId, planId, startDate, endDate, status: 'active', orderCode });
     await subscription.save();
-    await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.name?.toLowerCase() || 'standard' });
+    await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.code });
 
     res.json({ success: true, subscription, message: 'Kích hoạt gói thành công!' });
   } catch (error) {
