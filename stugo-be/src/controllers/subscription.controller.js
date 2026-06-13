@@ -1,6 +1,7 @@
 import SubscriptionPlan from '../models/subscription-plan.model.js';
 import Subscription from '../models/subscription.model.js';
 import User from '../models/user.model.js';
+import Payment from '../models/payment.model.js';
 import payos from '../config/payos.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -150,13 +151,37 @@ export const createSubscriptionPayment = async (req, res) => {
     };
 
     let checkoutUrl = null;
+    let paymentLinkId = null;
+    let qrCode = null;
     try {
       const payosResponse = await payos.paymentRequests.create(paymentData);
-      checkoutUrl = payosResponse?.checkoutUrl;
+      if (payosResponse) {
+        if (payosResponse.data) {
+          checkoutUrl = payosResponse.data.checkoutUrl || payosResponse.data.link;
+          qrCode = payosResponse.data.qrCode || payosResponse.data.qr;
+          paymentLinkId = payosResponse.data.paymentLinkId || payosResponse.data.id;
+        } else {
+          checkoutUrl = payosResponse.checkoutUrl || payosResponse.link;
+          qrCode = payosResponse.qrCode || payosResponse.qr;
+          paymentLinkId = payosResponse.paymentLinkId || payosResponse.id;
+        }
+      }
     } catch (payosErr) {
       console.error('PayOS error:', payosErr.message || payosErr);
       return res.status(502).json({ success: false, message: 'Không thể tạo link thanh toán. Vui lòng thử lại sau.' });
     }
+
+    // Save pending payment record to database
+    await Payment.create({
+      userId,
+      orderCode,
+      amount,
+      description,
+      status: 'pending',
+      checkoutUrl,
+      payosPaymentLinkId: paymentLinkId,
+      qrCode
+    });
 
     res.json({ success: true, checkoutUrl, orderCode });
   } catch (error) {
@@ -172,6 +197,58 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
     const plan = await SubscriptionPlan.findById(planId);
     if (!plan) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy gói đăng ký' });
+    }
+
+    // Verify payment status with PayOS API
+    let isPaid = false;
+    let payosTransactionId = '';
+    try {
+      let info;
+      if (payos.paymentRequests?.getPaymentLinkInformation) {
+        info = await payos.paymentRequests.getPaymentLinkInformation(parseInt(orderCode));
+      } else if (payos.getPaymentLinkInformation) {
+        info = await payos.getPaymentLinkInformation(parseInt(orderCode));
+      }
+      if (info?.status === 'PAID' || info?.data?.status === 'PAID') {
+        isPaid = true;
+        // Try to get transaction ID/reference from PayOS info
+        const transactions = info?.data?.transactions || info?.transactions || [];
+        if (transactions.length > 0) {
+          payosTransactionId = transactions[0].reference || transactions[0].transactionId;
+        }
+      }
+    } catch (payosErr) {
+      console.warn('PayOS verification failed during subscription activation:', payosErr.message);
+      // Fallback for dev/test environment if not production
+      if (process.env.NODE_ENV !== 'production') {
+        isPaid = true;
+      }
+    }
+
+    if (!isPaid) {
+      return res.status(400).json({ success: false, message: 'Giao dịch chưa được thanh toán trên PayOS hoặc không hợp lệ' });
+    }
+
+    // Update payment status in database
+    const payment = await Payment.findOne({ orderCode: parseInt(orderCode) });
+    if (payment) {
+      payment.status = 'paid';
+      payment.paidAt = new Date();
+      if (payosTransactionId) {
+        payment.payosTransactionId = payosTransactionId;
+      }
+      await payment.save();
+    } else {
+      // Fallback: create paid payment if it didn't exist for some reason
+      await Payment.create({
+        userId,
+        orderCode: parseInt(orderCode),
+        amount: plan.price,
+        description: `StuGo ${plan.name}`.substring(0, 25),
+        status: 'paid',
+        paidAt: new Date(),
+        payosTransactionId: payosTransactionId || `payos_${orderCode}_${Date.now()}`
+      });
     }
 
     const startDate = new Date();

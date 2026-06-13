@@ -468,7 +468,10 @@ export const checkPaymentStatus = async (req, res, next) => {
     }
 
     // Payment confirmed — update records
-    const booking = await bookingRepository.findById(payment.bookingId);
+    let booking = null;
+    if (payment.bookingId) {
+      booking = await bookingRepository.findById(payment.bookingId);
+    }
     const isRemainingPayment = payment.description?.includes('Phần còn lại');
 
     const updatedPayment = await paymentRepository.updatePaymentStatus(
@@ -528,7 +531,7 @@ export const handleWebhook = async (req, res, next) => {
         { transactionId: webhookData.reference }
       );
 
-      if (payment) {
+      if (payment && payment.bookingId) {
         // Update booking payment status based on payment type
         const bookingPaymentStatus = payment.paymentType === 'full' ? 'fully_paid' : 'deposit_paid';
         await bookingRepository.updatePaymentStatus(payment.bookingId, bookingPaymentStatus);

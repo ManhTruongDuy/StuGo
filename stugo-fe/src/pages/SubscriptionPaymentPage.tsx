@@ -21,10 +21,48 @@ const SubscriptionPaymentPage = () => {
     const [isComplete, setIsComplete] = useState(false);
     const [planDetails, setPlanDetails] = useState<{ name: string; price: number; duration: string } | null>(null);
 
-    // planId passed via navigation state OR from PayOS return URL
-    const planId = location.state?.planId || new URLSearchParams(location.search).get('planId');
-    const returnStatus = new URLSearchParams(location.search).get('status');
-    const returnOrderCode = new URLSearchParams(location.search).get('orderCode');
+    // Parse query params robustly (handling standard custom and PayOS-specific keys)
+    const searchParams = new URLSearchParams(location.search);
+    const planId = location.state?.planId || searchParams.get('planId');
+    const returnStatus = searchParams.get('status');
+    const returnOrderCode = searchParams.get('orderCode');
+    const payosCode = searchParams.get('code');
+    const payosCancel = searchParams.get('cancel');
+
+    const isSuccess = returnStatus === 'success' || returnStatus === 'PAID' || payosCode === '00';
+    const isCancel = returnStatus === 'cancel' || returnStatus === 'CANCELLED' || payosCancel === 'true';
+
+    // Session restoration effect (runs on mount)
+    useEffect(() => {
+        const sessionToken = sessionStorage.getItem('stugo-token');
+        const sessionAuth = sessionStorage.getItem('stugo-auth');
+
+        if (sessionToken && !localStorage.getItem('stugo-token')) {
+            localStorage.setItem('stugo-token', sessionToken);
+            console.log('✅ Restored stugo-token from sessionStorage');
+        }
+        if (sessionAuth && !localStorage.getItem('stugo-auth')) {
+            localStorage.setItem('stugo-auth', sessionAuth);
+            console.log('✅ Restored stugo-auth from sessionStorage');
+
+            try {
+                const parsed = JSON.parse(sessionAuth);
+                if (parsed.state?.user) {
+                    useAuthStore.setState({
+                        user: parsed.state.user,
+                        token: parsed.state.token || sessionToken,
+                        isAuthenticated: parsed.state.isAuthenticated || true
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to parse sessionAuth:', e);
+            }
+        }
+
+        // Clean up sessionStorage after restoring
+        sessionStorage.removeItem('stugo-token');
+        sessionStorage.removeItem('stugo-auth');
+    }, []);
 
     useEffect(() => {
         if (!planId) {
@@ -51,14 +89,14 @@ const SubscriptionPaymentPage = () => {
         }
     }, [planId, navigate]);
 
-    // Handle PayOS return
+    // Handle PayOS return redirect triggering activation
     useEffect(() => {
-        if (returnStatus === 'success' && returnOrderCode && planId) {
+        if (isSuccess && returnOrderCode && planId) {
             handleActivateAfterPayment();
-        } else if (returnStatus === 'cancel') {
+        } else if (isCancel) {
             toast.error('Thanh toán đã bị hủy');
         }
-    }, [returnStatus]);
+    }, [isSuccess, isCancel]);
 
     const handleActivateAfterPayment = async () => {
         setIsProcessing(true);
@@ -90,6 +128,16 @@ const SubscriptionPaymentPage = () => {
                     setIsComplete(true);
                     toast.success(res.data.message || 'Kích hoạt dùng thử thành công!');
                 } else if (res.data.checkoutUrl) {
+                    // Backup credentials to sessionStorage before external PayOS redirect
+                    const accessToken = localStorage.getItem('stugo-token');
+                    const authData = localStorage.getItem('stugo-auth');
+                    if (accessToken) {
+                        sessionStorage.setItem('stugo-token', accessToken);
+                    }
+                    if (authData) {
+                        sessionStorage.setItem('stugo-auth', authData);
+                    }
+
                     // Redirect to PayOS checkout
                     window.location.href = res.data.checkoutUrl;
                 }

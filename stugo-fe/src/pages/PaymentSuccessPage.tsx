@@ -5,6 +5,7 @@ import { getPaymentByOrderCode, checkPaymentStatus } from '../services/payment.s
 import { getBookingById } from '../services/booking.service';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { useAuthStore } from '../store/authStore';
 
 interface PaymentInfo {
     id: string;
@@ -57,21 +58,41 @@ const PaymentSuccessPage = () => {
             }
 
             // ✅ Restore token từ sessionStorage nếu có (sau khi redirect từ PayOS)
-            const sessionToken = sessionStorage.getItem('token');
+            const sessionToken = sessionStorage.getItem('stugo-token') || sessionStorage.getItem('token');
             const sessionUser = sessionStorage.getItem('user');
+            const sessionAuth = sessionStorage.getItem('stugo-auth');
 
-            if (sessionToken && !localStorage.getItem('token')) {
-                localStorage.setItem('token', sessionToken);
+            if (sessionToken) {
+                if (!localStorage.getItem('stugo-token')) localStorage.setItem('stugo-token', sessionToken);
+                if (!localStorage.getItem('token')) localStorage.setItem('token', sessionToken);
                 console.log('✅ Restored token from sessionStorage');
             }
             if (sessionUser && !localStorage.getItem('user')) {
                 localStorage.setItem('user', sessionUser);
                 console.log('✅ Restored user from sessionStorage');
             }
+            if (sessionAuth && !localStorage.getItem('stugo-auth')) {
+                localStorage.setItem('stugo-auth', sessionAuth);
+                console.log('✅ Restored stugo-auth from sessionStorage');
+                try {
+                    const parsed = JSON.parse(sessionAuth);
+                    if (parsed.state?.user) {
+                        useAuthStore.setState({
+                            user: parsed.state.user,
+                            token: parsed.state.token || sessionToken,
+                            isAuthenticated: parsed.state.isAuthenticated || true
+                        });
+                    }
+                } catch (e) {
+                    console.error('Failed to parse sessionAuth:', e);
+                }
+            }
 
             // Clear sessionStorage sau khi restore
+            sessionStorage.removeItem('stugo-token');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
+            sessionStorage.removeItem('stugo-auth');
 
             // Check if already processed
             const processedKey = `payment_processed_${orderCode}`;

@@ -229,11 +229,11 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                     if (payment && payment.checkoutUrl) {
                         // ✅ Lưu token và user vào sessionStorage trước khi redirect đến PayOS
                         // Điều này đảm bảo token không bị mất khi redirect về từ PayOS
-                        const accessToken = localStorage.getItem('token');
+                        const accessToken = localStorage.getItem('stugo-token');
                         const userData = localStorage.getItem('user');
 
                         if (accessToken) {
-                            sessionStorage.setItem('token', accessToken);
+                            sessionStorage.setItem('stugo-token', accessToken);
                         }
                         if (userData) {
                             sessionStorage.setItem('user', userData);

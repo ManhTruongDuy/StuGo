@@ -156,11 +156,11 @@ const RestaurantBookingModal = ({ service, onClose }: RestaurantBookingModalProp
                     const payment = await createRestaurantPayment(booking.id, paymentType);
                     if (payment && payment.checkoutUrl) {
                         // ✅ Lưu token và user vào sessionStorage trước khi redirect
-                        const accessToken = localStorage.getItem('token');
+                        const accessToken = localStorage.getItem('stugo-token');
                         const userData = localStorage.getItem('user');
 
                         if (accessToken) {
-                            sessionStorage.setItem('token', accessToken);
+                            sessionStorage.setItem('stugo-token', accessToken);
                         }
                         if (userData) {
                             sessionStorage.setItem('user', userData);

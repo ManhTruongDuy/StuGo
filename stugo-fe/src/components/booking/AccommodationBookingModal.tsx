@@ -159,11 +159,11 @@ const AccommodationBookingModal = ({ service, onClose }: AccommodationBookingMod
                     const payment = await createAccommodationPayment(booking.id, paymentType);
                     if (payment && payment.checkoutUrl) {
                         // ✅ Lưu token và user vào sessionStorage trước khi redirect
-                        const accessToken = localStorage.getItem('token');
+                        const accessToken = localStorage.getItem('stugo-token');
                         const userData = localStorage.getItem('user');
 
                         if (accessToken) {
-                            sessionStorage.setItem('token', accessToken);
+                            sessionStorage.setItem('stugo-token', accessToken);
                         }
                         if (userData) {
                             sessionStorage.setItem('user', userData);

@@ -5,6 +5,7 @@ import { getPaymentByOrderCode } from '../services/payment.service';
 import { getBookingById } from '../services/booking.service';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { useAuthStore } from '../store/authStore';
 
 interface PaymentInfo {
     id: string;
@@ -56,16 +57,38 @@ const PaymentCancelPage = () => {
             }
 
             // Restore token from sessionStorage (same as PaymentSuccessPage)
-            const sessionToken = sessionStorage.getItem('token');
+            const sessionToken = sessionStorage.getItem('stugo-token') || sessionStorage.getItem('token');
             const sessionUser = sessionStorage.getItem('user');
-            if (sessionToken && !localStorage.getItem('token')) {
-                localStorage.setItem('token', sessionToken);
+            const sessionAuth = sessionStorage.getItem('stugo-auth');
+
+            if (sessionToken) {
+                if (!localStorage.getItem('stugo-token')) localStorage.setItem('stugo-token', sessionToken);
+                if (!localStorage.getItem('token')) localStorage.setItem('token', sessionToken);
             }
             if (sessionUser && !localStorage.getItem('user')) {
                 localStorage.setItem('user', sessionUser);
             }
+            if (sessionAuth && !localStorage.getItem('stugo-auth')) {
+                localStorage.setItem('stugo-auth', sessionAuth);
+                try {
+                    const parsed = JSON.parse(sessionAuth);
+                    if (parsed.state?.user) {
+                        useAuthStore.setState({
+                            user: parsed.state.user,
+                            token: parsed.state.token || sessionToken,
+                            isAuthenticated: parsed.state.isAuthenticated || true
+                        });
+                    }
+                } catch (e) {
+                    console.error('Failed to parse sessionAuth:', e);
+                }
+            }
+
+            // Clear sessionStorage after restore
+            sessionStorage.removeItem('stugo-token');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
+            sessionStorage.removeItem('stugo-auth');
 
             try {
                 setLoading(true);
