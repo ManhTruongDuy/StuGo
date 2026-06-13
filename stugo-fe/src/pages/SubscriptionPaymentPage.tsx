@@ -65,7 +65,8 @@ const SubscriptionPaymentPage = () => {
         try {
             const res = await api.post('/subscriptions/activate', { planId, orderCode: returnOrderCode });
             if (res.data.success) {
-                updateUser({ plan: res.data.subscription?.planId?.name?.toLowerCase() || 'standard' } as any);
+                const planCode = res.data.subscription?.planId?.code || 'premium_user';
+                updateUser({ plan: planCode } as any);
                 setIsComplete(true);
                 toast.success('Kích hoạt gói thành công!');
             }
@@ -84,7 +85,8 @@ const SubscriptionPaymentPage = () => {
             if (res.data.success) {
                 if (res.data.isTrial) {
                     // Free trial — activated immediately by backend
-                    updateUser({ plan: res.data.subscription?.planId?.name?.toLowerCase() || planId } as any);
+                    const planCode = res.data.subscription?.planId?.code || 'business_basic';
+                    updateUser({ plan: planCode } as any);
                     setIsComplete(true);
                     toast.success(res.data.message || 'Kích hoạt dùng thử thành công!');
                 } else if (res.data.checkoutUrl) {

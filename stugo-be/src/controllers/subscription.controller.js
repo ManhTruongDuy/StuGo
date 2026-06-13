@@ -122,6 +122,7 @@ export const createSubscriptionPayment = async (req, res) => {
 
       const subscription = new Subscription({ userId, planId, startDate, endDate, status: 'active' });
       await subscription.save();
+      await subscription.populate('planId');
       await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.code });
 
       return res.status(201).json({
@@ -179,6 +180,7 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
 
     const subscription = new Subscription({ userId, planId, startDate, endDate, status: 'active', orderCode });
     await subscription.save();
+    await subscription.populate('planId');
     await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.code });
 
     res.json({ success: true, subscription, message: 'Kích hoạt gói thành công!' });
