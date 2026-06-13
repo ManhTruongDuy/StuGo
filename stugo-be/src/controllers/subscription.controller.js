@@ -31,7 +31,7 @@ export const createSubscription = async (req, res) => {
     // Determine end date
     const startDate = new Date();
     const endDate = new Date(startDate);
-    
+
     let finalDurationDays = plan.durationDays;
     let finalStatus = 'pending';
     let messageStr = 'Đăng ký tạm thời được tạo. Vui lòng thanh toán.';
@@ -116,7 +116,7 @@ export const createSubscriptionPayment = async (req, res) => {
       // Activate directly without PayOS
       const startDate = new Date();
       const endDate = new Date(startDate);
-      // If it's a partner trial, duration is 28 days, else use plan duration
+      // If it's a partner trial, duration is 28 days, else use plan duration 
       const durationDays = plan.code === 'business_basic' ? 28 : (plan.durationDays || 30);
       endDate.setDate(startDate.getDate() + durationDays);
 
@@ -136,6 +136,8 @@ export const createSubscriptionPayment = async (req, res) => {
     const orderCode = Number(String(Date.now()).slice(-6)); // Ensure it fits safely in common int types
     const amount = plan.price;
     const description = `StuGo ${plan.name}`.substring(0, 25);
+
+    console.log(`[SubscriptionPayment] User ${userId} is buying plan ${plan.code} (${plan.name}) for ${amount}đ. OrderCode: ${orderCode}`);
 
     const paymentData = {
       orderCode,
