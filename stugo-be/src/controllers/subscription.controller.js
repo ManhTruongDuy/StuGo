@@ -132,7 +132,7 @@ export const createSubscriptionPayment = async (req, res) => {
     }
 
     // Paid plan — create PayOS payment link
-    const orderCode = Date.now();
+    const orderCode = Number(String(Date.now()).slice(-6)); // Ensure it fits safely in common int types
     const amount = plan.price;
     const description = `StuGo ${plan.name}`.substring(0, 25);
 
@@ -147,11 +147,10 @@ export const createSubscriptionPayment = async (req, res) => {
 
     let checkoutUrl = null;
     try {
-      // @payos/node v2: payos.createPaymentLink(data)
-      const payosResponse = await payos.createPaymentLink(paymentData);
+      const payosResponse = await payos.paymentRequests.create(paymentData);
       checkoutUrl = payosResponse?.checkoutUrl;
     } catch (payosErr) {
-      console.error('PayOS error:', payosErr.message);
+      console.error('PayOS error:', payosErr.message || payosErr);
       return res.status(502).json({ success: false, message: 'Không thể tạo link thanh toán. Vui lòng thử lại sau.' });
     }
 
