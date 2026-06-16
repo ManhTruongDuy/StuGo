@@ -1,5 +1,5 @@
 import { Search, MapPin, Filter, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ServiceFilter, ServiceType } from '../../types';
 
 interface SearchFilterProps {
@@ -10,6 +10,65 @@ interface SearchFilterProps {
 
 const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [localSearch, setLocalSearch] = useState(filters.search || '');
+    const [localCity, setLocalCity] = useState(filters.city || '');
+    const [localPriceMin, setLocalPriceMin] = useState<number | ''>(filters.priceMin ?? '');
+    const [localPriceMax, setLocalPriceMax] = useState<number | ''>(filters.priceMax ?? '');
+
+    const [prevFilters, setPrevFilters] = useState(filters);
+
+    // Sync with parent filter state during render (e.g. on clear filters or URL query change)
+    if (
+        filters.search !== prevFilters.search ||
+        filters.city !== prevFilters.city ||
+        filters.priceMin !== prevFilters.priceMin ||
+        filters.priceMax !== prevFilters.priceMax
+    ) {
+        setPrevFilters(filters);
+        setLocalSearch(filters.search || '');
+        setLocalCity(filters.city || '');
+        setLocalPriceMin(filters.priceMin ?? '');
+        setLocalPriceMax(filters.priceMax ?? '');
+    }
+
+    // Apply filters immediately
+    const handleSearch = () => {
+        onFilterChange({
+            ...filters,
+            search: localSearch.trim() || undefined,
+            city: localCity.trim() || undefined,
+            priceMin: localPriceMin === '' ? undefined : localPriceMin,
+            priceMax: localPriceMax === '' ? undefined : localPriceMax,
+        });
+        onSearch();
+    };
+
+    // Debounce typing inputs to not overload server
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            const currentSearch = localSearch.trim() || undefined;
+            const currentCity = localCity.trim() || undefined;
+            const currentPriceMin = localPriceMin === '' ? undefined : localPriceMin;
+            const currentPriceMax = localPriceMax === '' ? undefined : localPriceMax;
+
+            if (
+                currentSearch !== filters.search ||
+                currentCity !== filters.city ||
+                currentPriceMin !== filters.priceMin ||
+                currentPriceMax !== filters.priceMax
+            ) {
+                onFilterChange({
+                    ...filters,
+                    search: currentSearch,
+                    city: currentCity,
+                    priceMin: currentPriceMin,
+                    priceMax: currentPriceMax,
+                });
+            }
+        }, 600);
+
+        return () => clearTimeout(handler);
+    }, [localSearch, localCity, localPriceMin, localPriceMax, filters, onFilterChange]);
 
     const serviceTypes: { value: ServiceType | ''; label: string }[] = [
         { value: '', label: 'Tất cả' },
@@ -44,11 +103,9 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                     <input
                         type="text"
                         placeholder="Tìm kiếm dịch vụ..."
-                        value={filters.search || ''}
-                        onChange={(e) =>
-                            onFilterChange({ ...filters, search: e.target.value })
-                        }
-                        onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         className="input pl-12"
                     />
                 </div>
@@ -59,11 +116,9 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                     <input
                         type="text"
                         placeholder="Địa điểm (VD: Hà Nội, Đống Đa...)"
-                        value={filters.city || ''}
-                        onChange={(e) =>
-                            onFilterChange({ ...filters, city: e.target.value || undefined })
-                        }
-                        onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+                        value={localCity}
+                        onChange={(e) => setLocalCity(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         className="input pl-12"
                     />
                 </div>
@@ -75,6 +130,10 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                         onChange={(e) =>
                             onFilterChange({
                                 ...filters,
+                                search: localSearch.trim() || undefined,
+                                city: localCity.trim() || undefined,
+                                priceMin: localPriceMin === '' ? undefined : localPriceMin,
+                                priceMax: localPriceMax === '' ? undefined : localPriceMax,
                                 type: (e.target.value as ServiceType) || undefined,
                             })
                         }
@@ -89,7 +148,7 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                 </div>
 
                 {/* Search Button */}
-                <button onClick={onSearch} className="btn-primary">
+                <button onClick={handleSearch} className="btn-primary">
                     <Search className="w-5 h-5" />
                     Tìm kiếm
                 </button>
@@ -115,30 +174,22 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                                 <input
                                     type="number"
                                     placeholder="Từ"
-                                    value={filters.priceMin || ''}
+                                    value={localPriceMin}
                                     onChange={(e) =>
-                                        onFilterChange({
-                                            ...filters,
-                                            priceMin: e.target.value
-                                                ? Number(e.target.value)
-                                                : undefined,
-                                        })
+                                        setLocalPriceMin(e.target.value ? Number(e.target.value) : '')
                                     }
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     className="input w-28 py-2"
                                 />
                                 <span className="text-gray-400">-</span>
                                 <input
                                     type="number"
                                     placeholder="Đến"
-                                    value={filters.priceMax || ''}
+                                    value={localPriceMax}
                                     onChange={(e) =>
-                                        onFilterChange({
-                                            ...filters,
-                                            priceMax: e.target.value
-                                                ? Number(e.target.value)
-                                                : undefined,
-                                        })
+                                        setLocalPriceMax(e.target.value ? Number(e.target.value) : '')
                                     }
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     className="input w-28 py-2"
                                 />
                             </div>
@@ -154,6 +205,10 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                                 onChange={(e) =>
                                     onFilterChange({
                                         ...filters,
+                                        search: localSearch.trim() || undefined,
+                                        city: localCity.trim() || undefined,
+                                        priceMin: localPriceMin === '' ? undefined : localPriceMin,
+                                        priceMax: localPriceMax === '' ? undefined : localPriceMax,
                                         rating: e.target.value ? Number(e.target.value) : undefined,
                                     })
                                 }
@@ -174,6 +229,10 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                                 onChange={(e) =>
                                     onFilterChange({
                                         ...filters,
+                                        search: localSearch.trim() || undefined,
+                                        city: localCity.trim() || undefined,
+                                        priceMin: localPriceMin === '' ? undefined : localPriceMin,
+                                        priceMax: localPriceMax === '' ? undefined : localPriceMax,
                                         isAvailable: e.target.checked || undefined,
                                     })
                                 }
@@ -192,6 +251,10 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                                 onChange={(e) =>
                                     onFilterChange({
                                         ...filters,
+                                        search: localSearch.trim() || undefined,
+                                        city: localCity.trim() || undefined,
+                                        priceMin: localPriceMin === '' ? undefined : localPriceMin,
+                                        priceMax: localPriceMax === '' ? undefined : localPriceMax,
                                         sortBy: e.target.value as ServiceFilter['sortBy'],
                                     })
                                 }

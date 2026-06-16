@@ -9,17 +9,29 @@ const UsersListPage = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'banned'>('all');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState<any | null>(null);
     const [stats, setStats] = useState<{ total: number; active: number; banned: number } | null>(null);
+
+    // Debounce searchQuery
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchQuery]);
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 setLoading(true);
                 const params: any = { page, limit: 10 };
-                if (searchQuery) params.search = searchQuery;
+                if (debouncedSearchQuery) params.search = debouncedSearchQuery;
                 if (statusFilter !== 'all') params.status = statusFilter;
 
                 const [resUsers, resStats] = await Promise.all([
@@ -38,12 +50,12 @@ const UsersListPage = () => {
         };
 
         fetchUsers();
-    }, [page, searchQuery, statusFilter]);
+    }, [page, debouncedSearchQuery, statusFilter]);
 
     // Reset page to 1 when filters change
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, statusFilter]);
+    }, [debouncedSearchQuery, statusFilter]);
 
     const getStatusBadge = (status: string) => {
         return status === 'active' ? (

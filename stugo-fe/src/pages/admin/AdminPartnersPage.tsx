@@ -65,6 +65,7 @@ const AdminPartnersPage = () => {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState<any>(null);
     const [actionMenuId, setActionMenuId] = useState<string | null>(null);
@@ -269,12 +270,20 @@ const AdminPartnersPage = () => {
         }
     };
 
+    // Debounce searchQuery
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
     const fetchPartners = async () => {
         try {
             setLoading(true);
             const params: any = { page: currentPage, limit: 20 };
             if (statusFilter !== 'all') params.status = statusFilter;
-            if (searchQuery) params.search = searchQuery;
+            if (debouncedSearchQuery) params.search = debouncedSearchQuery;
 
             const result = await getPartners(params);
             setPartners(result.data);
@@ -289,18 +298,12 @@ const AdminPartnersPage = () => {
 
     useEffect(() => {
         fetchPartners();
-    }, [statusFilter, currentPage]);
+    }, [statusFilter, currentPage, debouncedSearchQuery]);
 
+    // Reset page to 1 when filters change
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (currentPage === 1) {
-                fetchPartners();
-            } else {
-                setCurrentPage(1);
-            }
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+        setCurrentPage(1);
+    }, [debouncedSearchQuery, statusFilter]);
 
     const handleStatusChange = async (partnerId: string, newStatus: 'active' | 'banned') => {
         try {
