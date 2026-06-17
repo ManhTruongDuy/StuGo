@@ -521,7 +521,8 @@ export const handleWebhook = async (req, res, next) => {
       });
     }
 
-    const { orderCode, code } = webhookData;
+    const { orderCode } = webhookData;
+    const code = req.body.code || webhookData.code;
 
     // Payment successful
     if (code === '00') {

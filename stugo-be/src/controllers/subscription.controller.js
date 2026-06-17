@@ -238,6 +238,7 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
         payment.payosTransactionId = payosTransactionId;
       }
       await payment.save();
+      console.log(`[SubscriptionPayment] Updated payment ${orderCode} to paid.`);
     } else {
       // Fallback: create paid payment if it didn't exist for some reason
       await Payment.create({
@@ -249,6 +250,7 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
         paidAt: new Date(),
         payosTransactionId: payosTransactionId || `payos_${orderCode}_${Date.now()}`
       });
+      console.log(`[SubscriptionPayment] Created fallback paid payment ${orderCode}.`);
     }
 
     const startDate = new Date();
@@ -257,11 +259,15 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
 
     const subscription = new Subscription({ userId, planId, startDate, endDate, status: 'active', orderCode });
     await subscription.save();
+    console.log(`[SubscriptionPayment] Created subscription ${subscription._id} for user ${userId}.`);
+    
     await subscription.populate('planId');
-    await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.code });
+    const updatedUser = await User.findByIdAndUpdate(userId, { activeSubscription: subscription._id, plan: plan.code }, { new: true });
+    console.log(`[SubscriptionPayment] Updated user ${userId} plan to ${updatedUser?.plan}.`);
 
     res.json({ success: true, subscription, message: 'Kích hoạt gói thành công!' });
   } catch (error) {
+    console.error(`[SubscriptionPayment] Error activating subscription:`, error);
     res.status(500).json({ success: false, message: 'Lỗi server', error: error.message });
   }
 };

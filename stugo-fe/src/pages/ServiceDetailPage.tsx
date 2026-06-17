@@ -542,11 +542,11 @@ const ServiceDetailPage = () => {
                                     {service.type === 'transport' ? (
                                         <>
                                             <p className="text-gray-500 text-sm mb-1">
-                                                {service.priceRange.min === service.priceRange.max ? 'Giá vé' : 'Khoảng giá'}
+                                                Giá vé
                                             </p>
                                             <p className="text-2xl lg:text-3xl font-bold text-primary-600">
-                                                {service.priceRange.min === service.priceRange.max
-                                                    ? formatPrice(service.priceRange.min)
+                                                {service.priceRange.min === service.priceRange.max 
+                                                    ? formatPrice(service.priceRange.min) 
                                                     : `${formatPrice(service.priceRange.min)} - ${formatPrice(service.priceRange.max)}`}
                                             </p>
                                         </>

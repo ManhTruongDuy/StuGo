@@ -106,7 +106,7 @@ const SubscriptionPaymentPage = () => {
                 const planCode = res.data.subscription?.planId?.code || 'premium_user';
                 updateUser({ plan: planCode } as any);
                 setIsComplete(true);
-                toast.success('Kích hoạt gói thành công!');
+                toast.success(`Bạn đã nâng cấp ${planDetails?.name || 'gói'} thành công!`);
             }
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Không thể kích hoạt gói');
@@ -179,10 +179,10 @@ const SubscriptionPaymentPage = () => {
                             <Check className="w-10 h-10 text-green-600" />
                         </div>
                         <h1 className="text-2xl font-display font-bold text-gray-900 mb-2">
-                            Kích hoạt thành công!
+                            Nâng cấp thành công!
                         </h1>
                         <p className="text-gray-500 mb-8">
-                            Tài khoản đã được nâng cấp lên gói <span className="font-semibold text-primary-600">{planDetails.name}</span>.
+                            Bạn đã nâng cấp lên gói <span className="font-semibold text-primary-600">{planDetails.name}</span> thành công.
                         </p>
                         <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left space-y-2">
                             <div className="flex justify-between py-2 border-b border-gray-200">
