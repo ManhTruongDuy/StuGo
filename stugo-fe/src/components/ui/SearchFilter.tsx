@@ -102,7 +102,7 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Tìm kiếm dịch vụ..."
+                        placeholder={filters.type === 'transport' ? "Tìm nhà xe, tuyến đường, điểm đến..." : "Tìm kiếm dịch vụ..."}
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

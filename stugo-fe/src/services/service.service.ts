@@ -27,6 +27,7 @@ const transformService = (service: any): Service => {
     reviewCount: service.reviewCount || service.reviewStats?.totalReviews || 0,
     isAvailable: service.isAvailable !== false && service.status === 'active',
     popularity: service.popularity || 0,
+    bookingCount: service.bookingCount || 0,
     ownerId: service.ownerId || service.ownerId?._id || '',
     createdAt: service.createdAt,
     updatedAt: service.updatedAt,
@@ -36,7 +37,21 @@ const transformService = (service: any): Service => {
   if (service.type === 'transport') {
     baseService.vehicleType = service.vehicleType;
     baseService.seats = service.seats;
-    baseService.routes = service.routes || [];
+    baseService.routes = (service.routes || []).map((route: any, index: number) => {
+      if (typeof route === 'string') {
+        return {
+          id: `route-${index}`,
+          name: route,
+          price: service.priceRange?.min || 0
+        };
+      }
+      return {
+        id: route.id || route._id,
+        _id: route._id,
+        name: route.name,
+        price: route.price
+      };
+    });
     baseService.departureTime = service.departureTime || [];
   } else if (service.type === 'accommodation') {
     baseService.roomTypes = (service.roomTypes || []).map((rt: any, index: number) => ({

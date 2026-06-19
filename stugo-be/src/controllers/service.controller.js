@@ -26,9 +26,29 @@ export const getServices = async (req, res, next) => {
 
     const result = await serviceRepository.findWithFilters(filters, options);
 
+    // Group booking count by serviceId
+    const serviceIds = result.data.map(s => s._id);
+    const bookingCounts = await Booking.aggregate([
+      { $match: { serviceId: { $in: serviceIds }, status: { $nin: ['cancelled'] } } },
+      { $group: { _id: '$serviceId', count: { $sum: 1 } } }
+    ]);
+
+    const bookingCountMap = bookingCounts.reduce((acc, curr) => {
+      acc[curr._id.toString()] = curr.count;
+      return acc;
+    }, {});
+
+    const enrichedData = result.data.map(service => {
+      const serviceObj = service.toObject ? service.toObject() : service;
+      return {
+        ...serviceObj,
+        bookingCount: bookingCountMap[service._id.toString()] || 0
+      };
+    });
+
     res.json({
       success: true,
-      data: result.data,
+      data: enrichedData,
       pagination: result.pagination
     });
   } catch (error) {
@@ -51,17 +71,21 @@ export const getServiceById = async (req, res, next) => {
       });
     }
 
-    // Increment popularity view count
-    await serviceRepository.incrementPopularity(service._id);
-
     // Get reviews stats
     const reviewStats = await reviewRepository.getServiceRatingStats(service._id);
+
+    // Get booking count
+    const bookingCount = await Booking.countDocuments({
+      serviceId: service._id,
+      status: { $nin: ['cancelled'] }
+    });
 
     res.json({
       success: true,
       data: {
         ...service.toObject(),
-        reviewStats
+        reviewStats,
+        bookingCount
       }
     });
   } catch (error) {

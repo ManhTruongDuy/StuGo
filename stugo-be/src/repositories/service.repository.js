@@ -47,7 +47,8 @@ class ServiceRepository extends BaseRepository {
       query.$or = [
         { name: { $regex: filters.search, $options: 'i' } },
         { description: { $regex: filters.search, $options: 'i' } },
-        { address: { $regex: filters.search, $options: 'i' } }
+        { address: { $regex: filters.search, $options: 'i' } },
+        { 'routes.name': { $regex: filters.search, $options: 'i' } }
       ];
     }
 

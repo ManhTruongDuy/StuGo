@@ -43,6 +43,7 @@ export interface Service {
   reviewCount: number;
   isAvailable: boolean;
   popularity: number;
+  bookingCount?: number;
   ownerId: string;
   createdAt: string;
   updatedAt: string;
@@ -51,6 +52,7 @@ export interface Service {
 // Transport specific
 export interface Route {
   id?: string;
+  _id?: string;
   name: string;
   price: number;
 }

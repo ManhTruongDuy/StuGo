@@ -13,8 +13,9 @@ import {
     Users,
     Check,
     Navigation,
+    Route as RouteIcon,
 } from 'lucide-react';
-import type { Service } from '../types';
+import type { Service, Transport } from '../types';
 import { getServiceById } from '../services';
 import type { Review } from '../services/review.service';
 import { getServiceReviews } from '../services/review.service';
@@ -307,7 +308,7 @@ const ServiceDetailPage = () => {
                                         <span className="text-gray-300">|</span>
                                         <div className="flex items-center gap-1">
                                             <Users className="w-5 h-5 text-gray-400" />
-                                            <span>{service.popularity} lượt đặt</span>
+                                            <span>{service.bookingCount || 0} lượt đặt</span>
                                         </div>
                                     </div>
                                 </div>
@@ -348,6 +349,27 @@ const ServiceDetailPage = () => {
                                     {service.description}
                                 </div>
                             </div>
+
+                            {service.type === 'transport' && (
+                                <div className="mt-8 pt-8 border-t border-gray-100">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <RouteIcon className="w-5 h-5 text-primary-600" />
+                                        Tuyến đường
+                                    </h2>
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        {(service as Transport).routes?.map((route, idx) => {
+                                            const name = typeof route === 'string' ? route : route.name;
+                                            const price = typeof route === 'string' ? service.priceRange?.min || 0 : route.price;
+                                            return (
+                                                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <span className="font-medium text-gray-900 line-clamp-1 flex-1 mr-2">{name}</span>
+                                                    <span className="text-primary-600 font-semibold shrink-0">{formatPrice(price)}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="card p-8">

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon } from 'lucide-react';
+import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon, Route as RouteIcon } from 'lucide-react';
 import type { Service, Transport, Accommodation } from '../../types';
 
 interface ServiceCardProps {
@@ -112,6 +112,36 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
 
     const availableSlots = getAvailableSlots();
 
+    const renderRoutes = () => {
+        if (service.type !== 'transport') return null;
+        const transport = service as Transport;
+        const routes = transport.routes || [];
+        if (routes.length === 0) return null;
+
+        const maxDisplay = 2;
+        const displayRoutes = routes.slice(0, maxDisplay);
+        const remaining = routes.length - maxDisplay;
+
+        return (
+            <div className="flex flex-wrap gap-1 mt-2 mb-4">
+                {displayRoutes.map((route, idx) => {
+                    const name = typeof route === 'string' ? route : route.name;
+                    return (
+                        <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                            <RouteIcon className="w-3 h-3" />
+                            <span className="line-clamp-1 max-w-[100px]">{name}</span>
+                        </span>
+                    );
+                })}
+                {remaining > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 bg-gray-50 text-gray-500 rounded text-xs">
+                        +{remaining} tuyến
+                    </span>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="card group overflow-hidden">
             {/* Image */}
@@ -161,7 +191,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                     </span>
                     <span className="badge bg-white/90 text-gray-700">
                         <Eye className="w-3 h-3 mr-1" />
-                        {service.popularity} lượt xem
+                        {service.bookingCount || 0} lượt đặt
                     </span>
                 </div>
             </div>
@@ -201,6 +231,8 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                         </span>
                     </div>
                 )}
+
+                {renderRoutes()}
 
                 {/* Price & Action */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
