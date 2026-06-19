@@ -123,20 +123,20 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
         const remaining = routes.length - maxDisplay;
 
         return (
-            <div className="flex flex-wrap gap-1 mt-2 mb-4">
+            <div className="flex flex-col gap-1.5 mb-3">
                 {displayRoutes.map((route, idx) => {
                     const name = typeof route === 'string' ? route : route.name;
                     return (
-                        <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                            <RouteIcon className="w-3 h-3" />
-                            <span className="line-clamp-1 max-w-[100px]">{name}</span>
-                        </span>
+                        <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 text-gray-700 rounded-md text-[13px] border border-gray-100">
+                            <RouteIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <span className="truncate">{name}</span>
+                        </div>
                     );
                 })}
                 {remaining > 0 && (
-                    <span className="inline-flex items-center px-2 py-1 bg-gray-50 text-gray-500 rounded text-xs">
-                        +{remaining} tuyến
-                    </span>
+                    <div className="flex items-center px-2.5 py-1 bg-gray-50 text-gray-500 rounded-md text-xs border border-gray-100 w-fit">
+                        +{remaining} tuyến khác
+                    </div>
                 )}
             </div>
         );
@@ -222,6 +222,8 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                     <span>{service.openTime} - {service.closeTime}</span>
                 </div>
 
+                {renderRoutes()}
+
                 {/* Available Slots - Only for transport and accommodation */}
                 {availableSlots && (
                     <div className={`flex items-center gap-2 text-sm mb-4 px-3 py-2 rounded-lg ${availableSlots.bgColor}`}>
@@ -231,8 +233,6 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                         </span>
                     </div>
                 )}
-
-                {renderRoutes()}
 
                 {/* Price & Action */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
