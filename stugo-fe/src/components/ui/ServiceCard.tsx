@@ -143,9 +143,9 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
     };
 
     return (
-        <div className="card group overflow-hidden">
+        <div className="card group overflow-hidden flex flex-col h-full">
             {/* Image */}
-            <div className="relative h-48 overflow-hidden">
+            <div className="relative h-48 overflow-hidden shrink-0">
                 <img
                     src={service.images?.[0] || getFallbackImage(service.type)}
                     alt={service.name}
@@ -197,7 +197,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
             </div>
 
             {/* Content */}
-            <div className="p-5">
+            <div className="p-5 flex flex-col flex-1">
                 {/* Title & Rating */}
                 <div className="flex items-start justify-between gap-2 mb-3">
                     <h3 className="font-semibold text-gray-900 text-lg line-clamp-1 group-hover:text-primary-600 transition-colors">
@@ -235,7 +235,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 )}
 
                 {/* Price & Action */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
                     {renderPrice()}
                     <Link
                         to={`/service/${service.id}`}
