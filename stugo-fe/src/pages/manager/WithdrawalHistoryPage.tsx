@@ -10,14 +10,17 @@ import {
     Building2,
     CreditCard,
     ArrowDownRight,
+    AlertCircle,
 } from 'lucide-react';
 import { getBalance, getTransactions, requestWithdrawal, type Transaction, type BalanceData } from '../../services/transaction.service';
+import { useAuthStore } from '../../store/authStore';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 type StatusFilter = 'all' | 'pending' | 'completed' | 'failed';
 
 const WithdrawalHistoryPage = () => {
+    const { user } = useAuthStore();
     const [balance, setBalance] = useState<BalanceData | null>(null);
     const [withdrawals, setWithdrawals] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,13 +74,18 @@ const WithdrawalHistoryPage = () => {
             return;
         }
 
+        if (!user?.bankName || !user?.bankAccount || !user?.bankAccountName) {
+            toast.error('Vui lòng cập nhật đầy đủ thông tin ngân hàng trong Cài đặt tài khoản');
+            return;
+        }
+
         try {
             setSubmitting(true);
             const response = await requestWithdrawal({
                 amount,
-                bankName: 'Vietcombank',
-                accountNumber: '1234567890',
-                accountHolder: 'NGUYEN VAN A',
+                bankName: user.bankName,
+                accountNumber: user.bankAccount,
+                accountHolder: user.bankAccountName,
             });
 
             if (response.success) {
@@ -372,16 +380,31 @@ const WithdrawalHistoryPage = () => {
                             </div>
 
                             {/* Bank Info */}
-                            <div className="p-4 bg-blue-50 rounded-xl space-y-2">
-                                <div className="flex items-center gap-2 text-blue-700">
-                                    <CreditCard className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Tài khoản nhận</span>
+                            {user?.bankName && user?.bankAccount && user?.bankAccountName ? (
+                                <div className="p-4 bg-blue-50 rounded-xl space-y-2">
+                                    <div className="flex items-center gap-2 text-blue-700">
+                                        <CreditCard className="w-4 h-4" />
+                                        <span className="text-sm font-medium">Tài khoản nhận</span>
+                                    </div>
+                                    <p className="text-sm text-blue-900 font-medium">
+                                        {user.bankName.toUpperCase()} - {user.bankAccount}
+                                    </p>
+                                    <p className="text-sm text-blue-600">{user.bankAccountName}</p>
                                 </div>
-                                <p className="text-sm text-blue-900">
-                                    Vietcombank - 1234567890
-                                </p>
-                                <p className="text-sm text-blue-600">NGUYEN VAN A</p>
-                            </div>
+                            ) : (
+                                <div className="p-4 bg-yellow-50 rounded-xl space-y-2">
+                                    <div className="flex items-center gap-2 text-yellow-700">
+                                        <AlertCircle className="w-4 h-4" />
+                                        <span className="text-sm font-medium">Chưa liên kết ngân hàng</span>
+                                    </div>
+                                    <p className="text-sm text-yellow-900">
+                                        Bạn cần cập nhật thông tin tài khoản ngân hàng trước khi rút tiền.
+                                    </p>
+                                    <a href="/account" className="text-sm text-primary-600 hover:text-primary-700 font-medium inline-block mt-1">
+                                        Đến trang Cài đặt tài khoản &rarr;
+                                    </a>
+                                </div>
+                            )}
 
                             {/* Preview */}
                             {withdrawAmount && (

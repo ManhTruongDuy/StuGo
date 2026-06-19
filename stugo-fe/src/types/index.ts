@@ -11,6 +11,7 @@ export interface User {
   ward?: string;
   bankName?: string;
   bankAccount?: string;
+  bankAccountName?: string;
   role: 'user' | 'partner' | 'admin';
   plan?: 'free' | 'premium_user' | 'business_basic' | 'business_premium';
   contracts?: string[] | null;

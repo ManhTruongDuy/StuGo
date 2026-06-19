@@ -106,6 +106,7 @@ const AccountPage = () => {
         ward: user?.ward || '',
         bankName: user?.bankName || '',
         bankAccount: user?.bankAccount || '',
+        bankAccountName: user?.bankAccountName || '',
     });
     const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
 
@@ -152,6 +153,7 @@ const AccountPage = () => {
                 ward: formData.ward,
                 bankName: formData.bankName,
                 bankAccount: formData.bankAccount,
+                bankAccountName: formData.bankAccountName,
                 avatar: avatarPreview,
             };
 
@@ -449,6 +451,27 @@ const AccountPage = () => {
                                         onChange={handleChange}
                                         className="input pl-12"
                                         placeholder="Nhập số tài khoản"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Tên tài khoản (viết hoa không dấu)
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        name="bankAccountName"
+                                        value={formData.bankAccountName}
+                                        onChange={(e) => {
+                                            // Auto uppercase and remove accents
+                                            const val = e.target.value.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                            setFormData(prev => ({ ...prev, bankAccountName: val }));
+                                        }}
+                                        className="input pl-12"
+                                        placeholder="VD: NGUYEN VAN A"
                                     />
                                 </div>
                             </div>

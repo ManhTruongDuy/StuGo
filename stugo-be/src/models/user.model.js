@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  bankAccountName: {
+    type: String,
+    trim: true
+  },
   googleId: {
     type: String,
     sparse: true

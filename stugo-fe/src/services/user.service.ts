@@ -9,6 +9,7 @@ export interface UpdateUserData {
     ward?: string;
     bankName?: string;
     bankAccount?: string;
+    bankAccountName?: string;
     avatar?: string;
     contracts?: string[] | null;
 }

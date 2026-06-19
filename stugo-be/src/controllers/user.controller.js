@@ -72,7 +72,10 @@ export const getUserById = async (req, res, next) => {
         ward: user.ward,
         role: user.role,
         status: user.status,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        bankName: user.bankName,
+        bankAccount: user.bankAccount,
+        bankAccountName: user.bankAccountName
       }
     });
   } catch (error) {

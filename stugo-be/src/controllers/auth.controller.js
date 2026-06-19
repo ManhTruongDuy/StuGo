@@ -54,7 +54,10 @@ export const register = async (req, res, next) => {
           phone: user.phone,
           role: user.role,
           status: user.status,
-          plan: user.plan
+          plan: user.plan,
+          bankName: user.bankName,
+          bankAccount: user.bankAccount,
+          bankAccountName: user.bankAccountName
         },
         token
       },
@@ -113,7 +116,10 @@ export const loginWithEmail = async (req, res, next) => {
           phone: user.phone,
           role: user.role,
           status: user.status,
-          plan: user.plan
+          plan: user.plan,
+          bankName: user.bankName,
+          bankAccount: user.bankAccount,
+          bankAccountName: user.bankAccountName
         },
         token
       },
@@ -155,7 +161,10 @@ export const getCurrentUser = async (req, res, next) => {
         ward: user.ward,
         role: user.role,
         status: user.status,
-        plan: user.plan
+        plan: user.plan,
+        bankName: user.bankName,
+        bankAccount: user.bankAccount,
+        bankAccountName: user.bankAccountName
       }
     });
   } catch (error) {
