@@ -62,6 +62,35 @@ export const getTransactions = async (status?: string, page: number = 1, limit: 
 };
 
 /**
+ * Get all transactions for admin
+ */
+export const getAllAdminTransactions = async (status?: string, type?: string, page: number = 1, limit: number = 20) => {
+  try {
+    const params: any = { page, limit };
+    if (status && status !== 'all') params.status = status;
+    if (type) params.type = type;
+    const response = await api.get<ApiResponse<Transaction[]>>('/transactions/admin', { params });
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching admin transactions:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update transaction status (admin)
+ */
+export const updateTransactionStatus = async (id: string, status: 'completed' | 'failed') => {
+  try {
+    const response = await api.patch<ApiResponse<Transaction>>(`/transactions/${id}/status`, { status });
+    return response.data;
+  } catch (error: any) {
+    console.error('Error updating transaction status:', error);
+    throw new Error(error.response?.data?.message || 'Không thể cập nhật trạng thái');
+  }
+};
+
+/**
  * Request a withdrawal
  */
 export const requestWithdrawal = async (data: WithdrawRequest) => {

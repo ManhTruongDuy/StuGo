@@ -53,11 +53,11 @@ const AdminLayout = () => {
             label: 'Lịch sử giao dịch',
             path: '/admin/transactions',
         },
-        // {
-        //     icon: Wallet,
-        //     label: 'Lịch sử rút tiền',
-        //     path: '/admin/withdrawals',
-        // },
+        {
+            icon: CreditCard,
+            label: 'Quản lý rút tiền',
+            path: '/admin/withdrawals',
+        },
         {
             icon: Handshake,
             label: 'Quản lý dịch vụ',

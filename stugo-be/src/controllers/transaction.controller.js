@@ -163,9 +163,10 @@ export const updateTransactionStatus = async (req, res, next) => {
  */
 export const getAllTransactions = async (req, res, next) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, type, page = 1, limit = 20 } = req.query;
     const query = {};
     if (status && status !== 'all') query.status = status;
+    if (type) query.type = type;
 
     const [transactions, total] = await Promise.all([
       Transaction.find(query)

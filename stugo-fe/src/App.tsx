@@ -37,6 +37,7 @@ import UsersListPage from './pages/admin/UsersListPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminTransactionsPage from './pages/admin/AdminTransactionsPage';
+import AdminWithdrawalsPage from './pages/admin/AdminWithdrawalsPage';
 import AdminPartnersPage from './pages/admin/AdminPartnersPage';
 import AdminComplaintsPage from './pages/admin/AdminComplaintsPage';
 
@@ -114,7 +115,7 @@ function App() {
             <Route path="revenue" element={<RevenueDetailsPage />} />
             <Route path="bookings" element={<AdminBookingsPage />} />
             <Route path="transactions" element={<AdminTransactionsPage />} />
-            <Route path="withdrawals" element={<WithdrawalHistoryPage />} />
+            <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
             <Route path="services" element={<AdminServicesPage />} />
             <Route path="users" element={<UsersListPage />} />
             <Route path="partners" element={<AdminPartnersPage />} />
