@@ -4,8 +4,9 @@ import type { ApiResponse, User, Complaint } from '../types';
 // ===================== USERS =====================
 
 export const getAdminUsers = async (params?: {
-  role?: 'user' | 'partner' | 'admin';
+  role?: 'user' | 'partner' | 'admin' | string;
   status?: 'active' | 'banned' | 'pending';
+  plan?: string;
   search?: string;
   page?: number;
   limit?: number;

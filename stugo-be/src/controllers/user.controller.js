@@ -6,7 +6,7 @@ import { userRepository, bookingRepository, paymentRepository } from '../reposit
  */
 export const getUsers = async (req, res, next) => {
   try {
-    const { role, search, status } = req.query;
+    const { role, search, status, plan } = req.query;
     const options = {
       page: req.query.page || 1,
       limit: req.query.limit || 20,
@@ -16,6 +16,7 @@ export const getUsers = async (req, res, next) => {
     const filter = {};
     if (role) filter.role = role;
     if (status) filter.status = status;
+    if (plan) filter.plan = plan;
 
     let result;
     

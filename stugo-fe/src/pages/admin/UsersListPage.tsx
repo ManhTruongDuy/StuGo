@@ -11,6 +11,8 @@ const UsersListPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'banned'>('all');
+    const [roleFilter, setRoleFilter] = useState<string>('all');
+    const [planFilter, setPlanFilter] = useState<string>('all');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState<any | null>(null);
     const [stats, setStats] = useState<{ total: number; active: number; banned: number } | null>(null);
@@ -33,6 +35,8 @@ const UsersListPage = () => {
                 const params: any = { page, limit: 10 };
                 if (debouncedSearchQuery) params.search = debouncedSearchQuery;
                 if (statusFilter !== 'all') params.status = statusFilter;
+                if (roleFilter !== 'all') params.role = roleFilter;
+                if (planFilter !== 'all') params.plan = planFilter;
 
                 const [resUsers, resStats] = await Promise.all([
                     getAdminUsers(params),
@@ -50,12 +54,12 @@ const UsersListPage = () => {
         };
 
         fetchUsers();
-    }, [page, debouncedSearchQuery, statusFilter]);
+    }, [page, debouncedSearchQuery, statusFilter, roleFilter, planFilter]);
 
     // Reset page to 1 when filters change
     useEffect(() => {
         setPage(1);
-    }, [debouncedSearchQuery, statusFilter]);
+    }, [debouncedSearchQuery, statusFilter, roleFilter, planFilter]);
 
     const getStatusBadge = (status: string) => {
         return status === 'active' ? (
@@ -128,47 +132,51 @@ const UsersListPage = () => {
 
             {/* Filters */}
             <div className="card p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1 relative">
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex-1 min-w-[200px] relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Tìm kiếm theo tên hoặc email..."
-                            className="input pl-12"
+                            className="input pl-12 w-full"
                         />
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'all'
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Tất cả
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('active')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'active'
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Hoạt động
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('banned')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === 'banned'
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Bị khóa
-                        </button>
-                    </div>
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="input w-40"
+                    >
+                        <option value="all">Tất cả vai trò</option>
+                        <option value="user">Sinh viên</option>
+                        <option value="partner">Đối tác</option>
+                        <option value="admin">Admin</option>
+                    </select>
+
+                    <select
+                        value={planFilter}
+                        onChange={(e) => setPlanFilter(e.target.value)}
+                        className="input w-40"
+                    >
+                        <option value="all">Tất cả gói</option>
+                        <option value="free">Freemium</option>
+                        <option value="premium">Student Premium</option>
+                        <option value="business_basic">Business Basic</option>
+                        <option value="business_premium">Business Premium</option>
+                        <option value="standard">Standard</option>
+                    </select>
+
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        className="input w-44"
+                    >
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="active">Hoạt động</option>
+                        <option value="banned">Bị khóa</option>
+                    </select>
                 </div>
             </div>
 
