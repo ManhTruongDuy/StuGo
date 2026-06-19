@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { getAllAdminTransactions, updateTransactionStatus, type Transaction } from '../../services/transaction.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { formatPrice } from '../../utils/format';
 import toast from 'react-hot-toast';
 
 type StatusFilter = 'all' | 'pending' | 'completed' | 'failed';
@@ -22,6 +21,13 @@ const AdminWithdrawalsPage = () => {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        }).format(price);
+    };
 
     useEffect(() => {
         fetchWithdrawals();
