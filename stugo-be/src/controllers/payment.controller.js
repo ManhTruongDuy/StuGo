@@ -447,13 +447,15 @@ export const checkPaymentStatus = async (req, res, next) => {
     try {
       const payos = getPayOS();
       let info;
-      if (payos.paymentRequests?.getPaymentLinkInformation) {
+      if (typeof payos.paymentRequests?.get === 'function') {
+        info = await payos.paymentRequests.get(parseInt(orderCode));
+      } else if (payos.paymentRequests?.getPaymentLinkInformation) {
         info = await payos.paymentRequests.getPaymentLinkInformation(parseInt(orderCode));
-      } else if (payos.getPaymentLinkInformation) {
+      } else if (typeof payos.getPaymentLinkInformation === 'function') {
         info = await payos.getPaymentLinkInformation(parseInt(orderCode));
       }
-      if (info?.data) payosStatus = info.data.status;
-      else if (info?.status) payosStatus = info.status;
+      if (info?.status) payosStatus = info.status;
+      else if (info?.data) payosStatus = info.data.status;
     } catch (payosErr) {
       console.warn('PayOS verification failed, falling back to returnUrl trust:', payosErr.message);
       // If PayOS is not configured yet (dev mode), trust the returnUrl
@@ -506,7 +508,9 @@ export const handleWebhook = async (req, res, next) => {
     const payos = getPayOS();
     // Use PayOS webhook verification - try paymentRequests first, fallback to direct method
     let webhookData;
-    if (payos.paymentRequests && typeof payos.paymentRequests.verifyPaymentWebhookData === 'function') {
+    if (typeof payos.webhooks?.verify === 'function') {
+      webhookData = payos.webhooks.verify(req.body);
+    } else if (payos.paymentRequests && typeof payos.paymentRequests.verifyPaymentWebhookData === 'function') {
       webhookData = payos.paymentRequests.verifyPaymentWebhookData(req.body);
     } else if (typeof payos.verifyPaymentWebhookData === 'function') {
       webhookData = payos.verifyPaymentWebhookData(req.body);

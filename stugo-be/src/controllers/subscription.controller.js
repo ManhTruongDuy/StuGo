@@ -202,20 +202,26 @@ export const activateSubscriptionAfterPayment = async (req, res) => {
     // Verify payment status with PayOS API
     let isPaid = false;
     let payosTransactionId = '';
+    let payosStatus = '';
     try {
       let info;
-      if (payos.paymentRequests?.getPaymentLinkInformation) {
+      if (typeof payos.paymentRequests?.get === 'function') {
+        info = await payos.paymentRequests.get(parseInt(orderCode));
+      } else if (payos.paymentRequests?.getPaymentLinkInformation) {
         info = await payos.paymentRequests.getPaymentLinkInformation(parseInt(orderCode));
-      } else if (payos.getPaymentLinkInformation) {
+      } else if (typeof payos.getPaymentLinkInformation === 'function') {
         info = await payos.getPaymentLinkInformation(parseInt(orderCode));
       }
-      if (info?.status === 'PAID' || info?.data?.status === 'PAID') {
-        isPaid = true;
+      if (info?.status) payosStatus = info.status;
+      else if (info?.data) payosStatus = info.data.status;
         // Try to get transaction ID/reference from PayOS info
         const transactions = info?.data?.transactions || info?.transactions || [];
         if (transactions.length > 0) {
           payosTransactionId = transactions[0].reference || transactions[0].transactionId;
         }
+
+      if (payosStatus === 'PAID') {
+        isPaid = true;
       }
     } catch (payosErr) {
       console.warn('PayOS verification failed during subscription activation:', payosErr.message);
