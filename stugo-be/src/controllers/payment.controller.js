@@ -604,13 +604,16 @@ export const getPaymentHistory = async (req, res, next) => {
     };
 
     const userId = req.userRole === 'admin' ? null : req.userId;
-
-    let result;
-    if (userId) {
-      result = await paymentRepository.findByUser(userId, options);
-    } else {
-      result = await paymentRepository.find({}, options);
+    
+    const filter = {};
+    if (req.query.status && req.query.status !== 'all') {
+      filter.status = req.query.status;
     }
+    if (userId) {
+      filter.userId = userId;
+    }
+
+    const result = await paymentRepository.find(filter, options);
 
     res.json({
       success: true,

@@ -15,7 +15,7 @@ import { getAdminTransactions, getPaymentStats } from '../../services/admin.serv
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
-type StatusFilter = 'all' | 'pending' | 'completed' | 'failed';
+type StatusFilter = 'all' | 'pending' | 'paid' | 'cancelled' | 'expired';
 
 const AdminTransactionsPage = () => {
     const [transactions, setTransactions] = useState<any[]>([]);
@@ -70,15 +70,20 @@ const AdminTransactionsPage = () => {
                 class: 'bg-yellow-100 text-yellow-700',
                 label: 'Đang xử lý',
             },
-            completed: {
+            paid: {
                 icon: CheckCircle,
                 class: 'bg-green-100 text-green-700',
                 label: 'Thành công',
             },
-            failed: {
+            cancelled: {
                 icon: XCircle,
                 class: 'bg-red-100 text-red-700',
-                label: 'Thất bại',
+                label: 'Đã hủy',
+            },
+            expired: {
+                icon: Clock,
+                class: 'bg-gray-100 text-gray-700',
+                label: 'Hết hạn',
             },
         };
         const cfg = config[status] || config.pending;
@@ -120,8 +125,9 @@ const AdminTransactionsPage = () => {
             filteredTransactions.forEach(trans => {
                 const statusMap: Record<string, string> = {
                     'pending': 'Đang xử lý',
-                    'completed': 'Thành công',
-                    'failed': 'Thất bại'
+                    'paid': 'Thành công',
+                    'cancelled': 'Đã hủy',
+                    'expired': 'Hết hạn'
                 };
 
                 const methodMap: Record<string, string> = {
@@ -201,7 +207,7 @@ const AdminTransactionsPage = () => {
                         <div>
                             <p className="text-sm text-gray-500">Tổng giao dịch</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(stats?.totalAmount || 0)}
+                                {formatPrice(stats?.totalRevenue || 0)}
                             </p>
                         </div>
                     </div>
@@ -215,7 +221,7 @@ const AdminTransactionsPage = () => {
                         <div>
                             <p className="text-sm text-gray-500">Số giao dịch</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {stats?.totalCount || transactions.length}
+                                {pagination?.total || transactions.length}
                             </p>
                         </div>
                     </div>
@@ -229,7 +235,7 @@ const AdminTransactionsPage = () => {
                         <div>
                             <p className="text-sm text-gray-500">Thành công</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {stats?.successCount || 0}
+                                {stats?.totalTransactions || 0}
                             </p>
                         </div>
                     </div>
@@ -257,8 +263,9 @@ const AdminTransactionsPage = () => {
                     >
                         <option value="all">Tất cả</option>
                         <option value="pending">Đang xử lý</option>
-                        <option value="completed">Thành công</option>
-                        <option value="failed">Thất bại</option>
+                        <option value="paid">Thành công</option>
+                        <option value="cancelled">Đã hủy</option>
+                        <option value="expired">Hết hạn</option>
                     </select>
                 </div>
             </div>
