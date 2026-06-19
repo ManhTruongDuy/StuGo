@@ -143,7 +143,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
     };
 
     return (
-        <div className="card group overflow-hidden flex flex-col h-full">
+        <Link to={`/service/${service.id}`} className="card group overflow-hidden flex flex-col h-full block">
             {/* Image */}
             <div className="relative h-48 overflow-hidden shrink-0">
                 <img
@@ -170,6 +170,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                     <button
                         onClick={(e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             onFavorite(service.id);
                         }}
                         className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${isFavorite
@@ -237,15 +238,14 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 {/* Price & Action */}
                 <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
                     {renderPrice()}
-                    <Link
-                        to={`/service/${service.id}`}
-                        className="btn-primary py-2 px-4 text-sm flex-shrink-0"
+                    <span
+                        className="btn-primary py-2 px-4 text-sm flex-shrink-0 text-center cursor-pointer"
                     >
                         Xem chi tiết
-                    </Link>
+                    </span>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 
