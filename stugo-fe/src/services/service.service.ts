@@ -378,3 +378,19 @@ export const getNearbyServices = async (params: {
     return { services: [], flashDeals: [], liveVehicles: [] };
   }
 };
+
+/**
+ * Update service status (Admin only)
+ */
+export const updateServiceStatus = async (
+  id: string,
+  status: 'active' | 'pending' | 'rejected' | 'suspended'
+): Promise<boolean> => {
+  try {
+    const response = await api.patch<ApiResponse<any>>(`/services/${id}/status`, { status });
+    return response.data.success || false;
+  } catch (error: any) {
+    console.error('Error updating service status:', error);
+    throw new Error(error.response?.data?.message || 'Không thể cập nhật trạng thái dịch vụ');
+  }
+};

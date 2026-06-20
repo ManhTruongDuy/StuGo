@@ -2,9 +2,9 @@ import { useEffect, useState, useMemo } from 'react';
 import {
     Search, Filter, MapPin, Star, ToggleLeft, ToggleRight,
     Bus, Building2, Utensils, Pencil, Plus, X,
-    Loader2, Upload, Link as LinkIcon, Save,
+    Loader2, Upload, Link as LinkIcon, Save, Eye, EyeOff
 } from 'lucide-react';
-import { getServices } from '../../services/service.service';
+import { getServices, updateServiceStatus } from '../../services/service.service';
 import { getPartners } from '../../services/admin.service';
 import api from '../../services/api';
 import type { Service, ServiceType } from '../../types';
@@ -967,6 +967,19 @@ const AdminServicesPage = () => {
         });
     };
 
+    const handleStatusChange = async (serviceId: string, isAvailable: boolean) => {
+        try {
+            const newStatus = isAvailable ? 'suspended' : 'active';
+            const success = await updateServiceStatus(serviceId, newStatus);
+            if (success) {
+                toast.success('Đã ẩn dịch vụ khỏi danh sách');
+                setServices(prev => prev.filter(s => s.id !== serviceId));
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Không thể cập nhật trạng thái dịch vụ');
+        }
+    };
+
     const handleAddClick = () => {
         setEditingService({
             isNew: true,
@@ -1119,10 +1132,19 @@ const AdminServicesPage = () => {
                                             : <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"><ToggleLeft className="w-3 h-3" />Tạm dừng</span>}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <button onClick={() => setEditingService(service)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
-                                            <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => setEditingService(service)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
+                                                <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa
+                                            </button>
+                                            <button 
+                                                onClick={() => handleStatusChange(service.id, true)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-red-600 bg-red-50 hover:bg-red-100"
+                                                title="Ẩn dịch vụ khỏi danh sách"
+                                            >
+                                                <EyeOff className="w-3.5 h-3.5" /> Ẩn
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )) : (
