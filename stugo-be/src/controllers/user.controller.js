@@ -16,7 +16,13 @@ export const getUsers = async (req, res, next) => {
     const filter = {};
     if (role) filter.role = role;
     if (status) filter.status = status;
-    if (plan) filter.plan = plan;
+    if (plan) {
+      if (plan === 'premium') {
+        filter.plan = { $in: ['premium', 'premium_user'] };
+      } else {
+        filter.plan = plan;
+      }
+    }
 
     let result;
     
