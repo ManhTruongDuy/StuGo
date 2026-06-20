@@ -238,6 +238,11 @@ export const checkPaymentStatus = async (orderCode: number): Promise<any> => {
   return null;
 };
 
+export const deleteTransaction = async (orderCode: number): Promise<boolean> => {
+  const response = await api.delete<ApiResponse<any>>(`/payments/${orderCode}`);
+  return response.data.success;
+};
+
 // ===================== COMPLAINTS =====================
 
 export const getComplaints = async (params?: {

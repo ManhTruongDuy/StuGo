@@ -82,4 +82,11 @@ router.post('/:orderCode/cancel', authenticate, paymentController.cancelPayment)
  */
 router.get('/:orderCode', optionalAuth, paymentController.getPaymentByOrderCode);
 
+/**
+ * @route   DELETE /api/payments/:orderCode
+ * @desc    Delete payment
+ * @access  Private (Admin)
+ */
+router.delete('/:orderCode', authenticate, adminOnly, paymentController.deletePayment);
+
 export default router;

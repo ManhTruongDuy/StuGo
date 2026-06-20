@@ -883,6 +883,35 @@ export const createRemainingPayment = async (req, res, next) => {
   }
 };
 
+/**
+ * Delete payment (Admin)
+ * DELETE /api/payments/:orderCode
+ */
+export const deletePayment = async (req, res, next) => {
+  try {
+    const { orderCode } = req.params;
+
+    const payment = await paymentRepository.findOne({ orderCode: parseInt(orderCode) });
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thanh toán' });
+    }
+
+    if (payment.status === 'paid') {
+      return res.status(400).json({ success: false, message: 'Không thể xóa giao dịch đã thanh toán thành công' });
+    }
+
+    // Attempt to delete
+    await paymentRepository.model.deleteOne({ orderCode: parseInt(orderCode) });
+
+    res.json({
+      success: true,
+      message: 'Đã xóa giao dịch thành công'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   createPayment,
   createAccommodationPayment,
@@ -894,5 +923,6 @@ export default {
   handleWebhook,
   cancelPayment,
   getPaymentHistory,
-  getPaymentStats
+  getPaymentStats,
+  deletePayment
 };

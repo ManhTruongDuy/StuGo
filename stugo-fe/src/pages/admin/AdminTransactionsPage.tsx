@@ -11,7 +11,7 @@ import {
     DollarSign,
     TrendingUp,
 } from 'lucide-react';
-import { getAdminTransactions, getPaymentStats, checkPaymentStatus } from '../../services/admin.service';
+import { getAdminTransactions, getPaymentStats, checkPaymentStatus, deleteTransaction } from '../../services/admin.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -61,6 +61,24 @@ const AdminTransactionsPage = () => {
         } catch (error) {
             console.error(error);
             toast.error('Lỗi khi kiểm tra trạng thái', { id: 'check-status' });
+        }
+    };
+
+    const handleDelete = async (orderCode: number) => {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa giao dịch này không?')) return;
+        
+        try {
+            const toastId = toast.loading('Đang xóa...');
+            const success = await deleteTransaction(orderCode);
+            if (success) {
+                toast.success('Xóa giao dịch thành công', { id: toastId });
+                fetchData();
+            } else {
+                toast.error('Không thể xóa giao dịch', { id: toastId });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Giao dịch này không thể xóa', { id: 'check-status' });
         }
     };
 
@@ -358,12 +376,20 @@ const AdminTransactionsPage = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {trans.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => handleCheckStatus(trans.orderCode)}
-                                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                                                    >
-                                                        Kiểm tra
-                                                    </button>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => handleCheckStatus(trans.orderCode)}
+                                                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                                        >
+                                                            Kiểm tra
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(trans.orderCode)}
+                                                            className="text-xs text-red-600 hover:text-red-800 font-medium"
+                                                        >
+                                                            Xóa
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>
