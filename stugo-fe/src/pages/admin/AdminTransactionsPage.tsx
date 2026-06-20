@@ -14,6 +14,29 @@ import {
 import { getAdminTransactions, getPaymentStats, checkPaymentStatus, deleteTransaction } from '../../services/admin.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+);
 
 type StatusFilter = 'all' | 'pending' | 'paid' | 'cancelled' | 'expired';
 
@@ -136,6 +159,58 @@ const AdminTransactionsPage = () => {
             currency: 'VND',
             maximumFractionDigits: 0,
         }).format(price || 0);
+    };
+
+    const chartData = useMemo(() => {
+        if (!stats?.dailyStats || stats.dailyStats.length === 0) return null;
+        
+        return {
+            labels: stats.dailyStats.map((d: any) => d._id.date),
+            datasets: [
+                {
+                    fill: true,
+                    label: 'Doanh thu',
+                    data: stats.dailyStats.map((d: any) => d.totalAmount),
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                }
+            ]
+        };
+    }, [stats]);
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                        }
+                        return label;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value: any) {
+                        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(value);
+                    }
+                }
+            }
+        }
     };
 
     const handleExportExcel = () => {
@@ -276,9 +351,20 @@ const AdminTransactionsPage = () => {
                 </div>
             </div>
 
+            {/* Chart Section */}
+            {chartData && (
+                <div className="card p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Biểu đồ doanh thu (30 ngày gần nhất)</h3>
+                    <div className="h-72 w-full">
+                        <Line data={chartData} options={chartOptions} />
+                    </div>
+                </div>
+            )}
+
             {/* Filters */}
             <div className="card p-4">
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-wrap items-center gap-4 w-full">
                     <div className="relative flex-1 min-w-[200px]">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
@@ -301,6 +387,7 @@ const AdminTransactionsPage = () => {
                         <option value="cancelled">Đã hủy</option>
                         <option value="expired">Hết hạn</option>
                     </select>
+                </div>
                 </div>
             </div>
 
