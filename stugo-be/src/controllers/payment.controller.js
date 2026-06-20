@@ -487,6 +487,41 @@ export const checkPaymentStatus = async (req, res, next) => {
 
       await bookingRepository.updatePaymentStatus(updatedPayment.bookingId, bookingPaymentStatus);
       await bookingRepository.confirmBooking(updatedPayment.bookingId);
+    } else if (updatedPayment && updatedPayment.description && updatedPayment.description.startsWith('StuGo ')) {
+      // Subscription payment
+      try {
+        const SubscriptionPlan = (await import('../models/subscription-plan.model.js')).default;
+        const Subscription = (await import('../models/subscription.model.js')).default;
+        const User = (await import('../models/user.model.js')).default;
+
+        const plan = await SubscriptionPlan.findOne({ price: updatedPayment.amount });
+        if (plan) {
+          const existingSub = await Subscription.findOne({ orderCode: updatedPayment.orderCode });
+          if (!existingSub) {
+            const startDate = new Date();
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + (plan.durationDays || 30));
+
+            const subscription = new Subscription({
+              userId: updatedPayment.userId,
+              planId: plan._id,
+              startDate,
+              endDate,
+              status: 'active',
+              orderCode: updatedPayment.orderCode
+            });
+            await subscription.save();
+
+            await User.findByIdAndUpdate(updatedPayment.userId, {
+              activeSubscription: subscription._id,
+              plan: plan.code
+            });
+            console.log(`[CheckStatus] Activated subscription for user ${updatedPayment.userId} with plan ${plan.code}`);
+          }
+        }
+      } catch (subErr) {
+        console.error('[CheckStatus] Error activating subscription:', subErr);
+      }
     }
 
     res.json({
@@ -541,6 +576,42 @@ export const handleWebhook = async (req, res, next) => {
         const bookingPaymentStatus = payment.paymentType === 'full' ? 'fully_paid' : 'deposit_paid';
         await bookingRepository.updatePaymentStatus(payment.bookingId, bookingPaymentStatus);
         await bookingRepository.confirmBooking(payment.bookingId);
+      } else if (payment && payment.description && payment.description.startsWith('StuGo ')) {
+        // Subscription payment webhook handling
+        try {
+          const SubscriptionPlan = (await import('../models/subscription-plan.model.js')).default;
+          const Subscription = (await import('../models/subscription.model.js')).default;
+          const User = (await import('../models/user.model.js')).default;
+
+          const plan = await SubscriptionPlan.findOne({ price: payment.amount });
+          if (plan) {
+            // Check if subscription already exists for this orderCode
+            const existingSub = await Subscription.findOne({ orderCode });
+            if (!existingSub) {
+              const startDate = new Date();
+              const endDate = new Date(startDate);
+              endDate.setDate(startDate.getDate() + (plan.durationDays || 30));
+
+              const subscription = new Subscription({
+                userId: payment.userId,
+                planId: plan._id,
+                startDate,
+                endDate,
+                status: 'active',
+                orderCode
+              });
+              await subscription.save();
+
+              await User.findByIdAndUpdate(payment.userId, {
+                activeSubscription: subscription._id,
+                plan: plan.code
+              });
+              console.log(`[Webhook] Activated subscription for user ${payment.userId} with plan ${plan.code}`);
+            }
+          }
+        } catch (subErr) {
+          console.error('[Webhook] Error activating subscription:', subErr);
+        }
       }
     }
 

@@ -11,7 +11,7 @@ import {
     DollarSign,
     TrendingUp,
 } from 'lucide-react';
-import { getAdminTransactions, getPaymentStats } from '../../services/admin.service';
+import { getAdminTransactions, getPaymentStats, checkPaymentStatus } from '../../services/admin.service';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -45,6 +45,22 @@ const AdminTransactionsPage = () => {
             toast.error('Không thể tải lịch sử giao dịch');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCheckStatus = async (orderCode: number) => {
+        try {
+            toast.loading('Đang kiểm tra...', { id: 'check-status' });
+            const res = await checkPaymentStatus(orderCode);
+            if (res && res.status === 'PAID') {
+                toast.success('Giao dịch đã được thanh toán', { id: 'check-status' });
+                fetchData();
+            } else {
+                toast.error('Giao dịch chưa được thanh toán hoặc không hợp lệ', { id: 'check-status' });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Lỗi khi kiểm tra trạng thái', { id: 'check-status' });
         }
     };
 
@@ -299,6 +315,9 @@ const AdminTransactionsPage = () => {
                                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
                                         Ngày tạo
                                     </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Thao tác
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -336,6 +355,16 @@ const AdminTransactionsPage = () => {
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600">
                                                 {new Date(trans.createdAt).toLocaleString('vi-VN')}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {trans.status === 'pending' && (
+                                                    <button
+                                                        onClick={() => handleCheckStatus(trans.orderCode)}
+                                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                                    >
+                                                        Kiểm tra
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))

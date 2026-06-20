@@ -230,6 +230,14 @@ export const getPaymentStats = async (): Promise<any> => {
   return null;
 };
 
+export const checkPaymentStatus = async (orderCode: number): Promise<any> => {
+  const response = await api.get<ApiResponse<any>>(`/payments/${orderCode}/status`);
+  if (response.data.success) {
+    return response.data.data;
+  }
+  return null;
+};
+
 // ===================== COMPLAINTS =====================
 
 export const getComplaints = async (params?: {
