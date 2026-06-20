@@ -25,7 +25,6 @@ import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ManagerBookingsPage from './pages/manager/ManagerBookingsPage';
 import MyServicesPage from './pages/manager/MyServicesPage';
 import EditServicePage from './pages/manager/EditServicePage';
-import RevenueDetailsPage from './pages/manager/RevenueDetailsPage';
 import CreateServicePage from './pages/manager/CreateServicePage';
 import WithdrawalHistoryPage from './pages/manager/WithdrawalHistoryPage';
 import ManagerContractPage from './pages/manager/ManagerContractPage';
@@ -102,7 +101,6 @@ function App() {
             <Route path="bookings" element={<ManagerBookingsPage />} />
             <Route path="services" element={<MyServicesPage />} />
             <Route path="services/:id/edit" element={<EditServicePage />} />
-            <Route path="revenue" element={<RevenueDetailsPage />} />
             <Route path="create" element={<CreateServicePage />} />
             <Route path="withdrawals" element={<WithdrawalHistoryPage />} />
             <Route path="contract" element={<ManagerContractPage />} />
@@ -112,7 +110,6 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="revenue" element={<RevenueDetailsPage />} />
             <Route path="bookings" element={<AdminBookingsPage />} />
             <Route path="transactions" element={<AdminTransactionsPage />} />
             <Route path="withdrawals" element={<AdminWithdrawalsPage />} />

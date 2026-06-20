@@ -25,14 +25,13 @@ import {
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
     getDashboardOverview,
-    getRevenueStats,
     getBookingsByType,
     getRecentBookings,
     type DashboardOverview,
-    type RevenueData,
     type BookingByType,
     type RecentBooking,
 } from '../../services/dashboard.service';
+import RevenueDetailsSection from '../../components/dashboard/RevenueDetailsSection';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -48,7 +47,6 @@ ChartJS.register(
 
 const AdminDashboard = () => {
     const [overview, setOverview] = useState<DashboardOverview | null>(null);
-    const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
     const [bookingsByType, setBookingsByType] = useState<BookingByType[]>([]);
     const [recentBookings, setRecentBookingsState] = useState<RecentBooking[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,15 +60,13 @@ const AdminDashboard = () => {
                 const startDate = new Date(selectedYear, 0, 1).toISOString();
                 const endDate = new Date(selectedYear, 11, 31, 23, 59, 59).toISOString();
 
-                const [overviewRes, revenueRes, byTypeRes, recentRes] = await Promise.all([
+                const [overviewRes, byTypeRes, recentRes] = await Promise.all([
                     getDashboardOverview(),
-                    getRevenueStats(startDate, endDate),
                     getBookingsByType(),
                     getRecentBookings(10),
                 ]);
 
                 setOverview(overviewRes);
-                setRevenueData(revenueRes);
                 setBookingsByType(byTypeRes);
                 setRecentBookingsState(recentRes);
             } catch (error) {
@@ -143,28 +139,7 @@ const AdminDashboard = () => {
         ];
     }, [overview]);
 
-    const barChartData = useMemo(() => {
-        return {
-            labels:
-                revenueData.length > 0
-                    ? revenueData.map((d) => `T${d._id.month}`)
-                    : ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
-            datasets: [
-                {
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueData.length > 0 ? revenueData.map((d) => d.totalRevenue) : [],
-                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                    borderRadius: 8,
-                },
-                {
-                    label: 'Số đặt chỗ',
-                    data: revenueData.length > 0 ? revenueData.map((d) => d.bookingCount) : [],
-                    backgroundColor: 'rgba(249, 115, 22, 0.8)',
-                    borderRadius: 8,
-                },
-            ],
-        };
-    }, [revenueData]);
+    }, [overview]);
 
     const doughnutChartData = useMemo(() => {
         const labels = bookingsByType.map((b) =>
@@ -254,37 +229,15 @@ const AdminDashboard = () => {
                 ))}
             </div>
 
-            {/* Charts */}
-            <div className="grid lg:grid-cols-3 gap-6">
-                {/* Revenue Chart */}
-                <div className="lg:col-span-2 card p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Doanh thu & đặt chỗ theo tháng
-                        </h2>
-                        <select
-                            className="input py-2 w-32 text-sm"
-                            value={selectedYear}
-                            onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        >
-                            <option value={2026}>Năm 2026</option>
-                            <option value={2025}>Năm 2025</option>
-                            <option value={2024}>Năm 2024</option>
-                        </select>
-                    </div>
-                    <div className="h-80">
-                        {revenueData.length > 0 ? (
-                            <Bar data={barChartData} options={chartOptions} />
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-gray-500 text-sm">
-                                Chưa có dữ liệu doanh thu năm {selectedYear}
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {/* Chi tiết doanh thu */}
+            <div className="pt-4 border-t border-gray-100">
+                <RevenueDetailsSection />
+            </div>
 
+            {/* Charts and Lists */}
+            <div className="grid lg:grid-cols-3 gap-6">
                 {/* Service Distribution */}
-                <div className="card p-6">
+                <div className="card p-6 h-full">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">
                         Phân bố dịch vụ
                     </h2>
@@ -298,28 +251,87 @@ const AdminDashboard = () => {
                         )}
                     </div>
                     <div className="mt-4 space-y-2">
-                        {bookingsByType.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className={`w-3 h-3 rounded ${index === 0
-                                                ? 'bg-blue-500'
-                                                : index === 1
-                                                    ? 'bg-purple-500'
-                                                    : 'bg-orange-500'
-                                            }`}
-                                    ></div>
-                                    <span className="text-gray-600">
-                                        {item._id === 'transport'
-                                            ? 'Nhà xe'
-                                            : item._id === 'accommodation'
-                                                ? 'Nhà trọ'
-                                                : 'Quán ăn'}
-                                    </span>
-                                </div>
-                                <span className="font-medium text-gray-900">{item.count} đặt chỗ</span>
+                        {bookingsByType.map((b) => (
+                            <div key={b._id} className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">
+                                    {b._id === 'transport'
+                                        ? 'Nhà xe'
+                                        : b._id === 'accommodation'
+                                            ? 'Nhà trọ'
+                                            : 'Quán ăn'}
+                                </span>
+                                <span className="font-medium text-gray-900">{b.count} đơn</span>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Recent Bookings */}
+                <div className="lg:col-span-2 card overflow-hidden h-full">
+                    <div className="p-6 border-b border-gray-100">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Đặt chỗ gần đây
+                            </h2>
+                            <Link to="/admin/bookings" className="text-primary-600 text-sm font-medium hover:underline">
+                                Xem tất cả
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Mã đặt
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Khách hàng
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Dịch vụ
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Trạng thái
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Số tiền
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {recentBookings.length > 0 ? (
+                                    recentBookings.map((booking) => (
+                                        <tr key={booking._id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 text-sm font-medium text-primary-600">
+                                                #{booking._id.slice(-8).toUpperCase()}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-900">
+                                                {booking.userId?.fullName || 'N/A'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">
+                                                {booking.serviceName}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {getStatusBadge(booking.status)}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                                {new Intl.NumberFormat('vi-VN', {
+                                                    style: 'currency',
+                                                    currency: 'VND',
+                                                }).format(booking.totalAmount)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                            Chưa có đặt chỗ nào
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -367,58 +379,6 @@ const AdminDashboard = () => {
                 </Link>
             </div>
 
-            {/* Recent Activity */}
-            <div className="card overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        Đặt chỗ gần đây
-                    </h2>
-                </div>
-                <div className="divide-y divide-gray-100">
-                    {recentBookings.length > 0 ? (
-                        recentBookings.map((booking) => (
-                            <div
-                                key={booking._id}
-                                className="flex items-center gap-4 p-4 hover:bg-gray-50"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                                    <CalendarDays className="w-5 h-5" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900">
-                                        {booking.serviceName}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {booking.userId?.fullName} •{' '}
-                                        {new Date(booking.createdAt).toLocaleString('vi-VN')}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-medium text-gray-900">
-                                        {new Intl.NumberFormat('vi-VN', {
-                                            style: 'currency',
-                                            currency: 'VND',
-                                            maximumFractionDigits: 0,
-                                        }).format(booking.totalAmount)}
-                                    </p>
-                                    <p className="text-xs text-gray-500 capitalize">
-                                        {booking.status}
-                                    </p>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="p-6 text-center text-gray-500 text-sm">
-                            Chưa có đặt chỗ nào
-                        </div>
-                    )}
-                </div>
-                <div className="p-4 bg-gray-50 text-center">
-                    <button className="text-primary-600 text-sm font-medium hover:underline">
-                        Xem tất cả hoạt động
-                    </button>
-                </div>
-            </div>
         </div>
     );
 };

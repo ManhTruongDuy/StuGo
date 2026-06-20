@@ -39,11 +39,6 @@ const AdminLayout = () => {
             path: '/admin',
         },
         {
-            icon: DollarSign,
-            label: 'Chi tiết doanh thu',
-            path: '/admin/revenue',
-        },
-        {
             icon: CalendarDays,
             label: 'Lịch sử đặt chỗ',
             path: '/admin/bookings',

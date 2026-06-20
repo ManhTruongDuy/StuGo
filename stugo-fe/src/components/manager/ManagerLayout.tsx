@@ -47,11 +47,6 @@ const ManagerLayout = () => {
             path: '/manager/create',
         },
         {
-            icon: DollarSign,
-            label: 'Doanh thu',
-            path: '/manager/revenue',
-        },
-        {
             icon: Wallet,
             label: 'Lịch sử rút tiền',
             path: '/manager/withdrawals',

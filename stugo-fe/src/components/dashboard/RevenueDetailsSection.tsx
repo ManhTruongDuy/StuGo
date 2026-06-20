@@ -35,7 +35,7 @@ ChartJS.register(
     Filler
 );
 
-const RevenueDetailsPage = () => {
+const RevenueDetailsSection = () => {
     const { user } = useAuthStore();
     const [adminStats, setAdminStats] = useState<any>(null);
     const [dateRange, setDateRange] = useState<'week' | 'month' | 'year'>('year');
@@ -276,17 +276,9 @@ const RevenueDetailsPage = () => {
     }, [dateRange]);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-display font-bold text-gray-900">
-                        Chi tiết doanh thu
-                    </h1>
-                    <p className="text-gray-500">
-                        Theo dõi doanh thu và phân tích hiệu suất kinh doanh
-                    </p>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
                 <button onClick={handleExportExcel} className="btn-primary">
                     <Download className="w-5 h-5" />
                     Xuất báo cáo
@@ -541,4 +533,4 @@ const RevenueDetailsPage = () => {
     );
 };
 
-export default RevenueDetailsPage;
+export default RevenueDetailsSection;

@@ -12,37 +12,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    PointElement,
-    LineElement,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import {
-    getDashboardOverview,
-    getRevenueStats,
-    getTopServices,
-    getRecentBookings
-} from '../../services/dashboard.service';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import toast from 'react-hot-toast';
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    PointElement,
-    LineElement
-);
+import RevenueDetailsSection from '../../components/dashboard/RevenueDetailsSection';
 
 // Helper function
 const formatPrice = (price: number) => {
@@ -55,33 +25,25 @@ const formatPrice = (price: number) => {
 const ManagerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState<any>(null);
-    const [revenueData, setRevenueData] = useState<any[]>([]);
     const [topServices, setTopServices] = useState<any[]>([]);
     const [recentBookingsList, setRecentBookingsList] = useState<any[]>([]);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const { user } = useAuthStore();
 
     useEffect(() => {
         fetchDashboardData();
-    }, [selectedYear]);
+    }, []);
 
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
 
-            // Calculate date range for selected year
-            const startDate = new Date(selectedYear, 0, 1).toISOString();
-            const endDate = new Date(selectedYear, 11, 31, 23, 59, 59).toISOString();
-
-            const [overviewData, revenue, services, bookings] = await Promise.all([
+            const [overviewData, services, bookings] = await Promise.all([
                 getDashboardOverview(),
-                getRevenueStats(startDate, endDate),
                 getTopServices(5),
                 getRecentBookings(10)
             ]);
 
             setOverview(overviewData);
-            setRevenueData(revenue);
             setTopServices(services);
             setRecentBookingsList(bookings);
         } catch (error: any) {
@@ -127,77 +89,7 @@ const ManagerDashboard = () => {
         },
     ] : [];
 
-    const chartData = {
-        labels: revenueData.length > 0 ? revenueData.map(d => `T${d._id.month}`) : ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
-        datasets: [
-            {
-                label: 'Doanh thu (VNĐ)',
-                data: revenueData.length > 0 ? revenueData.map(d => d.totalRevenue) : [],
-                backgroundColor: 'rgba(20, 184, 166, 0.8)',
-                borderRadius: 8,
-            },
-            {
-                label: 'Số đặt chỗ',
-                data: revenueData.length > 0 ? revenueData.map(d => d.bookingCount) : [],
-                backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                borderRadius: 8,
-            },
-        ],
-    };
 
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom' as const,
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context: any) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                            if (context.datasetIndex === 0) {
-                                // Revenue - format as currency
-                                label += formatPrice(context.parsed.y);
-                            } else {
-                                // Booking count - just number
-                                label += context.parsed.y;
-                            }
-                        }
-                        return label;
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)',
-                },
-                ticks: {
-                    callback: function (value: any) {
-                        // Format large numbers
-                        if (value >= 1000000) {
-                            return (value / 1000000).toFixed(1) + 'M';
-                        } else if (value >= 1000) {
-                            return (value / 1000).toFixed(0) + 'K';
-                        }
-                        return value;
-                    }
-                }
-            },
-            x: {
-                grid: {
-                    display: false,
-                },
-            },
-        },
-    };
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -332,140 +224,118 @@ const ManagerDashboard = () => {
                 ))}
             </div>
 
-            {/* Charts */}
-            <div className="grid lg:grid-cols-3 gap-6">
-                {/* Revenue Chart */}
-                <div className="lg:col-span-2 card p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Thống kê doanh thu & đặt chỗ
-                        </h2>
-                        <select
-                            className="input py-2 w-32 text-sm"
-                            value={selectedYear}
-                            onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        >
-                            <option value={2026}>Năm 2026</option>
-                            <option value={2025}>Năm 2025</option>
-                            <option value={2024}>Năm 2024</option>
-                        </select>
-                    </div>
-                    {revenueData.length > 0 ? (
-                        <div className="h-80">
-                            <Bar data={chartData} options={chartOptions} />
-                        </div>
-                    ) : (
-                        <div className="h-80 flex items-center justify-center">
-                            <div className="text-center">
-                                <p className="text-gray-500 mb-2">Chưa có dữ liệu doanh thu năm {selectedYear}</p>
-                                <p className="text-sm text-gray-400">Hãy tạo booking đầu tiên để xem thống kê</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Popular Services */}
-                <div className="card p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                        Dịch vụ phổ biến
-                    </h2>
-                    <div className="space-y-4">
-                        {topServices.length > 0 ? (
-                            topServices.map((service, index) => (
-                                <div
-                                    key={service._id}
-                                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold">
-                                        {index + 1}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-gray-900 truncate">
-                                            {service.serviceName}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            {service.bookingCount} đặt chỗ
-                                        </p>
-                                    </div>
-                                    <p className="text-sm font-medium text-green-600">
-                                        {formatPrice(service.totalRevenue)}
-                                    </p>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-gray-500 py-8">Chưa có dữ liệu</p>
-                        )}
-                    </div>
-                </div>
+            {/* Chi tiết doanh thu */}
+            <div className="pt-4 border-t border-gray-100">
+                <RevenueDetailsSection />
             </div>
 
-            {/* Recent Bookings */}
-            <div className="card overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Đặt chỗ gần đây
-                        </h2>
-                        <button className="text-primary-600 text-sm font-medium hover:underline">
-                            Xem tất cả
-                        </button>
+            <div className="grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    {/* Recent Bookings */}
+                    <div className="card overflow-hidden h-full">
+                        <div className="p-6 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Đặt chỗ gần đây
+                                </h2>
+                                <Link to="/manager/bookings" className="text-primary-600 text-sm font-medium hover:underline">
+                                    Xem tất cả
+                                </Link>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                            Mã đặt
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                            Khách hàng
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                            Dịch vụ
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                            Ngày
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                            Số tiền
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                            Trạng thái
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {recentBookingsList.length > 0 ? (
+                                        recentBookingsList.map((booking) => (
+                                            <tr key={booking._id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 text-sm font-medium text-primary-600">
+                                                    #{booking._id.slice(-8).toUpperCase()}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-900">
+                                                    {booking.userId?.fullName || 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-600">
+                                                    {booking.serviceName}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-600">
+                                                    {new Date(booking.date).toLocaleDateString('vi-VN')}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                                    {formatPrice(booking.totalAmount)}
+                                                </td>
+                                                <td className="px-6 py-4">{getStatusBadge(booking.status)}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                                Chưa có đặt chỗ nào
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Mã đặt
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Khách hàng
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Dịch vụ
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Ngày
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Số tiền
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                                    Trạng thái
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {recentBookingsList.length > 0 ? (
-                                recentBookingsList.map((booking) => (
-                                    <tr key={booking._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 text-sm font-medium text-primary-600">
-                                            #{booking._id.slice(-8).toUpperCase()}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
-                                            {booking.userId?.fullName || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {booking.serviceName}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {new Date(booking.date).toLocaleDateString('vi-VN')}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                                            {formatPrice(booking.totalAmount)}
-                                        </td>
-                                        <td className="px-6 py-4">{getStatusBadge(booking.status)}</td>
-                                    </tr>
+
+                <div>
+                    {/* Popular Services */}
+                    <div className="card p-6 h-full">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                            Dịch vụ phổ biến
+                        </h2>
+                        <div className="space-y-4">
+                            {topServices.length > 0 ? (
+                                topServices.map((service, index) => (
+                                    <div
+                                        key={service._id}
+                                        className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold">
+                                            {index + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-900 truncate">
+                                                {service.serviceName}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                {service.bookingCount} đặt chỗ
+                                            </p>
+                                        </div>
+                                        <p className="text-sm font-medium text-green-600">
+                                            {formatPrice(service.totalRevenue)}
+                                        </p>
+                                    </div>
                                 ))
                             ) : (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                                        Chưa có đặt chỗ nào
-                                    </td>
-                                </tr>
+                                <p className="text-center text-gray-500 py-8">Chưa có dữ liệu</p>
                             )}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
