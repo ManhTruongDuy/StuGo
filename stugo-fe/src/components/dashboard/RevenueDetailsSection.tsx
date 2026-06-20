@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
-    Download,
     Calendar,
     ChevronLeft,
     ChevronRight,
@@ -145,45 +144,6 @@ const RevenueDetailsSection = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-    };
-
-    const handleExportExcel = () => {
-        try {
-            // Create CSV content with semicolon separator for Vietnamese Excel
-            const headers = ['Kỳ', 'Doanh thu (VND)', 'Số đơn hàng'];
-            let csv = headers.join(';') + '\n';
-
-            filteredData.forEach(item => {
-                const row = [
-                    `"Tháng ${item._id.month}/${item._id.year}"`,
-                    `"${item.totalRevenue}"`,
-                    `"${item.bookingCount}"`
-                ];
-                csv += row.join(';') + '\n';
-            });
-
-            // Add total row
-            csv += ['"Tổng cộng"', `"${totalDeposits}"`, `"${totalOrders}"`].join(';') + '\n';
-
-            // Create blob with UTF-8 BOM for Excel compatibility
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-
-            link.setAttribute('href', url);
-            link.setAttribute('download', `bao-cao-doanh-thu-${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            toast.success('Xuất báo cáo thành công!');
-        } catch (error) {
-            console.error('Error exporting:', error);
-            toast.error('Không thể xuất báo cáo');
-        }
     };
 
     const chartData = useMemo(() => {
