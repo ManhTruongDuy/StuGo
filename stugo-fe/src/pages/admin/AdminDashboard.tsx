@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-    DollarSign,
-    CalendarDays,
     Users,
     Handshake,
     MessageSquare,
@@ -75,27 +73,7 @@ const AdminDashboard = () => {
 
         return [
             {
-                label: 'Tổng doanh thu',
-                value: new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                    maximumFractionDigits: 0,
-                }).format(overview.revenue.total),
-                change: '',
-                trend: 'up',
-                icon: DollarSign,
-                color: 'from-orange-500 to-red-600',
-            },
-            {
-                label: 'Tổng đặt chỗ',
-                value: overview.bookings.total.toString(),
-                change: `${overview.bookings.today} hôm nay`,
-                trend: 'up',
-                icon: CalendarDays,
-                color: 'from-red-500 to-rose-600',
-            },
-            {
-                label: 'Dịch vụ',
+                label: 'Tổng dịch vụ',
                 value: overview.services.total.toString(),
                 change: `${overview.services.active} hoạt động`,
                 trend: 'up',
@@ -103,24 +81,24 @@ const AdminDashboard = () => {
                 color: 'from-amber-500 to-orange-600',
             },
             {
-                label: 'Chờ xử lý',
-                value: overview.bookings.pending.toString(),
+                label: 'Dịch vụ chờ duyệt',
+                value: overview.services.pending.toString(),
                 change: '',
                 trend: 'up',
                 icon: Clock,
                 color: 'from-yellow-500 to-amber-600',
             },
             {
-                label: 'Hoàn thành',
-                value: overview.bookings.completed.toString(),
+                label: 'Dịch vụ hoạt động',
+                value: overview.services.active.toString(),
                 change: '',
                 trend: 'up',
                 icon: CheckCircle,
                 color: 'from-emerald-500 to-green-600',
             },
             {
-                label: 'Tạm dừng',
-                value: overview.services.inactive.toString(),
+                label: 'Dịch vụ vi phạm',
+                value: overview.services.suspended.toString(),
                 change: '',
                 trend: 'down',
                 icon: AlertCircle,

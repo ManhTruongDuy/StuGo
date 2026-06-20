@@ -278,7 +278,8 @@ const RevenueDetailsSection = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <h2 className="text-xl font-bold text-gray-900">Thống kê chi tiết</h2>
                 <button onClick={handleExportExcel} className="btn-primary">
                     <Download className="w-5 h-5" />
                     Xuất báo cáo
@@ -293,7 +294,7 @@ const RevenueDetailsSection = () => {
                             <DollarSign className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Tổng tiền nạp</p>
+                            <p className="text-sm text-gray-500">Tổng doanh thu</p>
                             <p className="text-2xl font-bold text-gray-900">
                                 {formatPrice(totalDeposits)}
                             </p>
@@ -321,7 +322,7 @@ const RevenueDetailsSection = () => {
                             <Calendar className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Tổng đơn hàng</p>
+                            <p className="text-sm text-gray-500">Tổng đặt chỗ</p>
                             <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
                         </div>
                     </div>

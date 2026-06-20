@@ -5,7 +5,8 @@ export interface DashboardOverview {
   services: {
     total: number;
     active: number;
-    inactive: number;
+    pending: number;
+    suspended: number;
   };
   bookings: {
     total: number;

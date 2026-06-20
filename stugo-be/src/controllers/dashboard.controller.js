@@ -236,7 +236,8 @@ export const getDashboardOverview = async (req, res, next) => {
                 services: {
                     total: services.length,
                     active: services.filter(s => s.status === 'active').length,
-                    inactive: services.filter(s => s.status === 'inactive').length
+                    pending: services.filter(s => s.status === 'pending').length,
+                    suspended: services.filter(s => ['suspended', 'rejected'].includes(s.status)).length
                 },
                 bookings: {
                     total: totalBookings,
