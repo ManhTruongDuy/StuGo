@@ -286,6 +286,39 @@ export const getRevenueStats = async (req, res, next) => {
 
         const matchQuery = ownerId ? { serviceId: { $in: serviceIds } } : {};
 
+        if (!ownerId) {
+            // ADMIN: Query Payment collection to match Transaction History perfectly
+            const Payment = (await import('../models/payment.model.js')).default;
+            const revenueData = await Payment.aggregate([
+                {
+                    $match: {
+                        status: 'paid',
+                        $or: [
+                            { paidAt: { $gte: start, $lte: end } },
+                            { createdAt: { $gte: start, $lte: end } }
+                        ]
+                    }
+                },
+                {
+                    $group: {
+                        _id: {
+                            year: { $year: { $ifNull: ['$paidAt', '$createdAt'] } },
+                            month: { $month: { $ifNull: ['$paidAt', '$createdAt'] } }
+                        },
+                        totalRevenue: { $sum: '$amount' },
+                        bookingCount: { $sum: 1 } // Transactions count
+                    }
+                },
+                { $sort: { '_id.year': 1, '_id.month': 1 } }
+            ]);
+
+            return res.json({
+                success: true,
+                data: revenueData
+            });
+        }
+
+        // PARTNER: Query Booking collection
         const Booking = (await import('../models/booking.model.js')).default;
         const bookingRevenue = await Booking.aggregate([
             {
@@ -313,67 +346,13 @@ export const getRevenueStats = async (req, res, next) => {
                     },
                     bookingCount: { $sum: 1 }
                 }
-            }
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
         ]);
-
-        let subRevenue = [];
-        if (!ownerId) {
-            const Subscription = (await import('../models/subscription.model.js')).default;
-            subRevenue = await Subscription.aggregate([
-                {
-                    $match: {
-                        status: { $in: ['active', 'cancelled', 'expired'] },
-                        startDate: { $gte: start, $lte: end }
-                    }
-                },
-                { $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' } },
-                { $unwind: { path: '$plan', preserveNullAndEmptyArrays: true } },
-                {
-                    $group: {
-                        _id: {
-                            year: { $year: '$startDate' },
-                            month: { $month: '$startDate' }
-                        },
-                        totalRevenue: { $sum: { $ifNull: ['$plan.price', 0] } },
-                        bookingCount: { $sum: 1 }
-                    }
-                }
-            ]);
-        }
-
-        const mergedData = {};
-        
-        bookingRevenue.forEach(b => {
-            const key = `${b._id.year}-${b._id.month}`;
-            mergedData[key] = {
-                _id: b._id,
-                totalRevenue: b.totalRevenue,
-                bookingCount: b.bookingCount
-            };
-        });
-
-        subRevenue.forEach(s => {
-            const key = `${s._id.year}-${s._id.month}`;
-            if (mergedData[key]) {
-                mergedData[key].totalRevenue += s.totalRevenue;
-                mergedData[key].bookingCount += s.bookingCount; // Count subscriptions as orders for admin overview
-            } else {
-                mergedData[key] = {
-                    _id: s._id,
-                    totalRevenue: s.totalRevenue,
-                    bookingCount: s.bookingCount
-                };
-            }
-        });
-
-        const revenueData = Object.values(mergedData).sort((a, b) => {
-            if (a._id.year !== b._id.year) return a._id.year - b._id.year;
-            return a._id.month - b._id.month;
-        });
 
         res.json({
             success: true,
-            data: revenueData
+            data: bookingRevenue
         });
     } catch (error) {
         next(error);
