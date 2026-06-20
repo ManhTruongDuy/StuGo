@@ -83,10 +83,10 @@ class PaymentRepository extends BaseRepository {
           total: { $sum: '$amount' },
           count: { $sum: 1 },
           bookingRevenue: {
-            $sum: { $cond: [{ $ne: ['$bookingId', null] }, '$amount', 0] }
+            $sum: { $cond: [{ $ne: [{ $ifNull: ['$bookingId', 'MISSING'] }, 'MISSING'] }, '$amount', 0] }
           },
           subscriptionRevenue: {
-            $sum: { $cond: [{ $eq: ['$bookingId', null] }, '$amount', 0] }
+            $sum: { $cond: [{ $eq: [{ $ifNull: ['$bookingId', 'MISSING'] }, 'MISSING'] }, '$amount', 0] }
           }
         }
       }

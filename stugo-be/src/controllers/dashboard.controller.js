@@ -125,7 +125,7 @@ export const getDashboardOverview = async (req, res, next) => {
                         {
                             $match: {
                                 ...bookingsQuery,
-                                status: 'confirmed',
+                                status: { $in: ['confirmed', 'completed'] },
                                 paymentStatus: { $in: ['deposit_paid', 'fully_paid'] }
                             }
                         },
@@ -161,7 +161,7 @@ export const getDashboardOverview = async (req, res, next) => {
                 {
                     $match: {
                         ...bookingsQuery,
-                        status: 'confirmed',
+                        status: { $in: ['confirmed', 'completed'] },
                         paymentStatus: { $in: ['deposit_paid', 'fully_paid'] },
                         date: {
                             $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -287,12 +287,12 @@ export const getRevenueStats = async (req, res, next) => {
         const matchQuery = ownerId ? { serviceId: { $in: serviceIds } } : {};
 
         const Booking = (await import('../models/booking.model.js')).default;
-        const revenueData = await Booking.aggregate([
+        const bookingRevenue = await Booking.aggregate([
             {
                 $match: {
                     ...matchQuery,
-                    status: 'confirmed',
-                    paymentStatus: 'fully_paid',
+                    status: { $in: ['confirmed', 'completed'] },
+                    paymentStatus: { $in: ['deposit_paid', 'fully_paid'] },
                     date: { $gte: start, $lte: end }
                 }
             },
@@ -302,12 +302,74 @@ export const getRevenueStats = async (req, res, next) => {
                         year: { $year: '$date' },
                         month: { $month: '$date' }
                     },
-                    totalRevenue: { $sum: '$totalAmount' },
+                    totalRevenue: { 
+                        $sum: {
+                            $cond: [
+                                { $eq: ['$paymentStatus', 'fully_paid'] },
+                                '$totalAmount',
+                                '$depositAmount'
+                            ]
+                        }
+                    },
                     bookingCount: { $sum: 1 }
                 }
-            },
-            { $sort: { '_id.year': 1, '_id.month': 1 } }
+            }
         ]);
+
+        let subRevenue = [];
+        if (!ownerId) {
+            const Subscription = (await import('../models/subscription.model.js')).default;
+            subRevenue = await Subscription.aggregate([
+                {
+                    $match: {
+                        status: { $in: ['active', 'cancelled', 'expired'] },
+                        startDate: { $gte: start, $lte: end }
+                    }
+                },
+                { $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' } },
+                { $unwind: { path: '$plan', preserveNullAndEmptyArrays: true } },
+                {
+                    $group: {
+                        _id: {
+                            year: { $year: '$startDate' },
+                            month: { $month: '$startDate' }
+                        },
+                        totalRevenue: { $sum: { $ifNull: ['$plan.price', 0] } },
+                        bookingCount: { $sum: 1 }
+                    }
+                }
+            ]);
+        }
+
+        const mergedData = {};
+        
+        bookingRevenue.forEach(b => {
+            const key = `${b._id.year}-${b._id.month}`;
+            mergedData[key] = {
+                _id: b._id,
+                totalRevenue: b.totalRevenue,
+                bookingCount: b.bookingCount
+            };
+        });
+
+        subRevenue.forEach(s => {
+            const key = `${s._id.year}-${s._id.month}`;
+            if (mergedData[key]) {
+                mergedData[key].totalRevenue += s.totalRevenue;
+                mergedData[key].bookingCount += s.bookingCount; // Count subscriptions as orders for admin overview
+            } else {
+                mergedData[key] = {
+                    _id: s._id,
+                    totalRevenue: s.totalRevenue,
+                    bookingCount: s.bookingCount
+                };
+            }
+        });
+
+        const revenueData = Object.values(mergedData).sort((a, b) => {
+            if (a._id.year !== b._id.year) return a._id.year - b._id.year;
+            return a._id.month - b._id.month;
+        });
 
         res.json({
             success: true,
