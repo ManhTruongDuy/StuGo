@@ -20,13 +20,16 @@ const UsersListPage = () => {
     // Debounce searchQuery
     useEffect(() => {
         const handler = setTimeout(() => {
-            setDebouncedSearchQuery(searchQuery);
+            if (debouncedSearchQuery !== searchQuery) {
+                setDebouncedSearchQuery(searchQuery);
+                setPage(1);
+            }
         }, 500);
 
         return () => {
             clearTimeout(handler);
         };
-    }, [searchQuery]);
+    }, [searchQuery, debouncedSearchQuery]);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -56,10 +59,6 @@ const UsersListPage = () => {
         fetchUsers();
     }, [page, debouncedSearchQuery, statusFilter, roleFilter, planFilter]);
 
-    // Reset page to 1 when filters change
-    useEffect(() => {
-        setPage(1);
-    }, [debouncedSearchQuery, statusFilter, roleFilter, planFilter]);
 
     const getStatusBadge = (status: string) => {
         return status === 'active' ? (
@@ -146,7 +145,10 @@ const UsersListPage = () => {
 
                     <select
                         value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
+                        onChange={(e) => {
+                            setRoleFilter(e.target.value);
+                            setPage(1);
+                        }}
                         className="input w-40"
                     >
                         <option value="all">Tất cả vai trò</option>
@@ -157,7 +159,10 @@ const UsersListPage = () => {
 
                     <select
                         value={planFilter}
-                        onChange={(e) => setPlanFilter(e.target.value)}
+                        onChange={(e) => {
+                            setPlanFilter(e.target.value);
+                            setPage(1);
+                        }}
                         className="input w-40"
                     >
                         <option value="all">Tất cả gói</option>
@@ -170,7 +175,10 @@ const UsersListPage = () => {
 
                     <select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        onChange={(e) => {
+                            setStatusFilter(e.target.value as any);
+                            setPage(1);
+                        }}
                         className="input w-44"
                     >
                         <option value="all">Tất cả trạng thái</option>
