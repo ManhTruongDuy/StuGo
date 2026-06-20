@@ -721,7 +721,9 @@ export const getPaymentStats = async (req, res, next) => {
       data: {
         dailyStats,
         totalRevenue: totalRevenue.total,
-        totalTransactions: totalRevenue.count
+        totalTransactions: totalRevenue.count,
+        bookingRevenue: totalRevenue.bookingRevenue,
+        subscriptionRevenue: totalRevenue.subscriptionRevenue
       }
     });
   } catch (error) {

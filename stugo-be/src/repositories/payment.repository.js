@@ -81,13 +81,19 @@ class PaymentRepository extends BaseRepository {
         $group: {
           _id: null,
           total: { $sum: '$amount' },
-          count: { $sum: 1 }
+          count: { $sum: 1 },
+          bookingRevenue: {
+            $sum: { $cond: [{ $ne: ['$bookingId', null] }, '$amount', 0] }
+          },
+          subscriptionRevenue: {
+            $sum: { $cond: [{ $eq: ['$bookingId', null] }, '$amount', 0] }
+          }
         }
       }
     ];
 
     const result = await this.aggregate(pipeline);
-    return result[0] || { total: 0, count: 0 };
+    return result[0] || { total: 0, count: 0, bookingRevenue: 0, subscriptionRevenue: 0 };
   }
 }
 

@@ -7,10 +7,37 @@ import {
     DollarSign,
 } from 'lucide-react';
 import { getRevenueStats, type RevenueData } from '../../services/dashboard.service';
+import { getPaymentStats } from '../../services/admin.service';
+import { useAuthStore } from '../../store/authStore';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+);
 
 const RevenueDetailsPage = () => {
+    const { user } = useAuthStore();
+    const [adminStats, setAdminStats] = useState<any>(null);
     const [dateRange, setDateRange] = useState<'week' | 'month' | 'year'>('year');
     const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -28,8 +55,17 @@ const RevenueDetailsPage = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await getRevenueStats();
-            setRevenueData(data);
+            if (user?.role === 'admin') {
+                const [data, stats] = await Promise.all([
+                    getRevenueStats(),
+                    getPaymentStats()
+                ]);
+                setRevenueData(data);
+                setAdminStats(stats);
+            } else {
+                const data = await getRevenueStats();
+                setRevenueData(data);
+            }
         } catch (error) {
             console.error('Error fetching revenue details:', error);
             toast.error('Không thể tải dữ liệu doanh thu');
@@ -146,6 +182,58 @@ const RevenueDetailsPage = () => {
         }
     };
 
+    const chartData = useMemo(() => {
+        if (!adminStats?.dailyStats || adminStats.dailyStats.length === 0) return null;
+        
+        return {
+            labels: adminStats.dailyStats.map((d: any) => d._id.date),
+            datasets: [
+                {
+                    fill: true,
+                    label: 'Doanh thu',
+                    data: adminStats.dailyStats.map((d: any) => d.totalAmount),
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                }
+            ]
+        };
+    }, [adminStats]);
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                        }
+                        return label;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value: any) {
+                        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(value);
+                    }
+                }
+            }
+        }
+    };
+
     useEffect(() => {
         setCurrentPage(1);
     }, [dateRange]);
@@ -169,7 +257,7 @@ const RevenueDetailsPage = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid sm:grid-cols-3 gap-6">
+            <div className={`grid gap-6 ${user?.role === 'admin' ? 'sm:grid-cols-5' : 'sm:grid-cols-3'}`}>
                 <div className="card p-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
@@ -209,7 +297,48 @@ const RevenueDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {user?.role === 'admin' && (
+                    <>
+                        <div className="card p-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                                    <DollarSign className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Từ Đặt chỗ</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {formatPrice(adminStats?.bookingRevenue || 0)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="card p-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                    <DollarSign className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Từ Premium</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {formatPrice(adminStats?.subscriptionRevenue || 0)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
+
+            {/* Admin Line Chart */}
+            {user?.role === 'admin' && chartData && (
+                <div className="card p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Biểu đồ doanh thu (30 ngày gần nhất)</h3>
+                    <div className="h-72 w-full">
+                        <Line data={chartData} options={chartOptions} />
+                    </div>
+                </div>
+            )}
 
             {/* Filters */}
             <div className="card p-4">
