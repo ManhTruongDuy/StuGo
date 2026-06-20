@@ -59,7 +59,7 @@ const RevenueDetailsSection = () => {
                 const now = new Date();
                 const oneYearAgo = new Date();
                 oneYearAgo.setFullYear(now.getFullYear() - 1);
-                
+
                 const [data, stats] = await Promise.all([
                     getRevenueStats(),
                     getPaymentStats(oneYearAgo.toISOString(), now.toISOString())
@@ -188,17 +188,17 @@ const RevenueDetailsSection = () => {
 
     const chartData = useMemo(() => {
         if (!adminStats?.dailyStats) return null;
-        
+
         const now = new Date();
         let days = 30;
         let titleRange = '30 ngày';
         if (dateRange === 'week') { days = 7; titleRange = '7 ngày'; }
         else if (dateRange === 'year') { days = 365; titleRange = 'Năm nay'; }
-        
+
         const labels: string[] = [];
         const data: number[] = [];
         const dataMap = new Map();
-        
+
         adminStats.dailyStats.forEach((d: any) => {
             dataMap.set(d._id.date, d.totalAmount);
         });
@@ -209,12 +209,12 @@ const RevenueDetailsSection = () => {
         for (let i = 0; i < days; i++) {
             const current = new Date(start);
             current.setDate(start.getDate() + i);
-            
+
             const year = current.getFullYear();
             const month = String(current.getMonth() + 1).padStart(2, '0');
             const day = String(current.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
-            
+
             labels.push(`${day}/${month}`);
             data.push(dataMap.get(dateStr) || 0);
         }
@@ -246,7 +246,7 @@ const RevenueDetailsSection = () => {
             },
             tooltip: {
                 callbacks: {
-                    label: function(context: any) {
+                    label: function (context: any) {
                         let label = context.dataset.label || '';
                         if (label) {
                             label += ': ';
@@ -263,7 +263,7 @@ const RevenueDetailsSection = () => {
             y: {
                 beginAtZero: true,
                 ticks: {
-                    callback: function(value: any) {
+                    callback: function (value: any) {
                         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(value);
                     }
                 }
@@ -280,10 +280,7 @@ const RevenueDetailsSection = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h2 className="text-xl font-bold text-gray-900">Thống kê chi tiết</h2>
-                <button onClick={handleExportExcel} className="btn-primary">
-                    <Download className="w-5 h-5" />
-                    Xuất báo cáo
-                </button>
+
             </div>
 
             {/* Summary Cards */}
