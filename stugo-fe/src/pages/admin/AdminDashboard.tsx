@@ -14,15 +14,12 @@ import {
 import { Link } from 'react-router-dom';
 import {
     Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
     Title,
     Tooltip,
     Legend,
     ArcElement,
 } from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Doughnut } from 'react-chartjs-2';
 import {
     getDashboardOverview,
     getBookingsByType,
@@ -36,9 +33,6 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
     Title,
     Tooltip,
     Legend,
@@ -50,15 +44,11 @@ const AdminDashboard = () => {
     const [bookingsByType, setBookingsByType] = useState<BookingByType[]>([]);
     const [recentBookings, setRecentBookingsState] = useState<RecentBooking[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-
-                const startDate = new Date(selectedYear, 0, 1).toISOString();
-                const endDate = new Date(selectedYear, 11, 31, 23, 59, 59).toISOString();
 
                 const [overviewRes, byTypeRes, recentRes] = await Promise.all([
                     getDashboardOverview(),
@@ -78,7 +68,7 @@ const AdminDashboard = () => {
         };
 
         fetchData();
-    }, [selectedYear]);
+    }, []);
 
     const stats = useMemo(() => {
         if (!overview) return [];
@@ -139,8 +129,6 @@ const AdminDashboard = () => {
         ];
     }, [overview]);
 
-    }, [overview]);
-
     const doughnutChartData = useMemo(() => {
         const labels = bookingsByType.map((b) =>
             b._id === 'transport' ? 'Nhà xe' : b._id === 'accommodation' ? 'Nhà trọ' : 'Quán ăn'
@@ -180,6 +168,21 @@ const AdminDashboard = () => {
             </div>
         );
     }
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'confirmed':
+                return <span className="badge badge-info">Đã xác nhận</span>;
+            case 'pending':
+                return <span className="badge badge-warning">Chờ xác nhận</span>;
+            case 'completed':
+                return <span className="badge badge-success">Hoàn thành</span>;
+            case 'cancelled':
+                return <span className="badge badge-error">Đã hủy</span>;
+            default:
+                return <span className="badge">{status}</span>;
+        }
+    };
 
     return (
         <div className="space-y-8">

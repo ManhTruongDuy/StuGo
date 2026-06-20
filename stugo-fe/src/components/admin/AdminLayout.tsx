@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
-    DollarSign,
     Users,
     Handshake,
     LogOut,
