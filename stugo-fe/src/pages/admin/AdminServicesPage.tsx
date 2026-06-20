@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import {
     Search, Filter, MapPin, Star, ToggleLeft, ToggleRight,
     Bus, Building2, Utensils, Pencil, Plus, X,
-    Loader2, Upload, Link as LinkIcon, Save, Eye, EyeOff
+    Loader2, Upload, Link as LinkIcon, Save, EyeOff
 } from 'lucide-react';
 import { getServices, updateServiceStatus } from '../../services/service.service';
 import { getPartners } from '../../services/admin.service';
