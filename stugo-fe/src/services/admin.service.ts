@@ -222,8 +222,11 @@ export const getAdminTransactions = async (params?: {
   return { data: [] };
 };
 
-export const getPaymentStats = async (): Promise<any> => {
-  const response = await api.get<ApiResponse<any>>('/payments/stats');
+export const getPaymentStats = async (startDate?: string, endDate?: string): Promise<any> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const response = await api.get<ApiResponse<any>>(`/payments/stats?${params.toString()}`);
   if (response.data.success) {
     return response.data.data;
   }

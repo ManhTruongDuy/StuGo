@@ -56,9 +56,13 @@ const RevenueDetailsPage = () => {
         try {
             setLoading(true);
             if (user?.role === 'admin') {
+                const now = new Date();
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(now.getFullYear() - 1);
+                
                 const [data, stats] = await Promise.all([
                     getRevenueStats(),
-                    getPaymentStats()
+                    getPaymentStats(oneYearAgo.toISOString(), now.toISOString())
                 ]);
                 setRevenueData(data);
                 setAdminStats(stats);
@@ -183,22 +187,55 @@ const RevenueDetailsPage = () => {
     };
 
     const chartData = useMemo(() => {
-        if (!adminStats?.dailyStats || adminStats.dailyStats.length === 0) return null;
+        if (!adminStats?.dailyStats) return null;
         
+        const now = new Date();
+        let days = 30;
+        let titleRange = '30 ngày';
+        if (dateRange === 'week') { days = 7; titleRange = '7 ngày'; }
+        else if (dateRange === 'year') { days = 365; titleRange = 'Năm nay'; }
+        
+        const labels: string[] = [];
+        const data: number[] = [];
+        const dataMap = new Map();
+        
+        adminStats.dailyStats.forEach((d: any) => {
+            dataMap.set(d._id.date, d.totalAmount);
+        });
+
+        const start = new Date(now);
+        start.setDate(now.getDate() - days + 1);
+
+        for (let i = 0; i < days; i++) {
+            const current = new Date(start);
+            current.setDate(start.getDate() + i);
+            
+            const year = current.getFullYear();
+            const month = String(current.getMonth() + 1).padStart(2, '0');
+            const day = String(current.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            labels.push(`${day}/${month}`);
+            data.push(dataMap.get(dateStr) || 0);
+        }
+
         return {
-            labels: adminStats.dailyStats.map((d: any) => d._id.date),
-            datasets: [
-                {
-                    fill: true,
-                    label: 'Doanh thu',
-                    data: adminStats.dailyStats.map((d: any) => d.totalAmount),
-                    borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                }
-            ]
+            titleRange,
+            data: {
+                labels,
+                datasets: [
+                    {
+                        fill: true,
+                        label: 'Doanh thu',
+                        data,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                    }
+                ]
+            }
         };
-    }, [adminStats]);
+    }, [adminStats, dateRange]);
 
     const chartOptions = {
         responsive: true,
@@ -333,9 +370,9 @@ const RevenueDetailsPage = () => {
             {/* Admin Line Chart */}
             {user?.role === 'admin' && chartData && (
                 <div className="card p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Biểu đồ doanh thu (30 ngày gần nhất)</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Biểu đồ doanh thu ({chartData.titleRange} gần nhất)</h3>
                     <div className="h-72 w-full">
-                        <Line data={chartData} options={chartOptions} />
+                        <Line data={chartData.data} options={chartOptions} />
                     </div>
                 </div>
             )}
