@@ -75,6 +75,7 @@ const SearchFilter = ({ filters, onFilterChange, onSearch }: SearchFilterProps) 
         { value: 'transport', label: 'Nhà xe' },
         { value: 'accommodation', label: 'Nhà trọ' },
         { value: 'restaurant', label: 'Quán ăn' },
+        { value: 'carpool', label: 'Xe ghép' },
     ];
 
     const sortOptions = [

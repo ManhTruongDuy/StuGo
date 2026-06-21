@@ -76,6 +76,8 @@ const transformService = (service: any): Service => {
     }));
     baseService.hasDelivery = service.hasDelivery || false;
     baseService.hasReservation = service.hasReservation || false;
+  } else if (service.type === 'carpool') {
+    baseService.carpoolOptions = service.carpoolOptions;
   }
 
   return baseService as Service;
