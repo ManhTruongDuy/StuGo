@@ -17,7 +17,7 @@ const bookingSchema = new mongoose.Schema({
   },
   serviceType: {
     type: String,
-    enum: ['transport', 'accommodation', 'restaurant'],
+    enum: ['transport', 'accommodation', 'restaurant', 'carpool'],
     required: true
   },
   date: {
@@ -27,8 +27,9 @@ const bookingSchema = new mongoose.Schema({
   timeSlot: {
     type: String,
     required: function() {
-      // Only required for transport and restaurant reservation
+      // Only required for transport, carpool, and restaurant reservation
       return this.serviceType === 'transport' || 
+             this.serviceType === 'carpool' ||
              (this.serviceType === 'restaurant' && this.bookingType === 'reservation');
     }
   },
@@ -91,6 +92,15 @@ const bookingSchema = new mongoose.Schema({
   orderType: {
     type: String,
     enum: ['delivery', 'pickup', 'dine_in']
+  },
+  // Carpool specific details
+  carpoolDetails: {
+    bookingType: { type: String, enum: ['shared', 'private'] },
+    passengers: Number,
+    isRoundTrip: Boolean,
+    useHighway: Boolean,
+    pickupPoints: Number,
+    isAirport: Boolean
   },
   cancelledBy: {
     type: mongoose.Schema.Types.ObjectId,

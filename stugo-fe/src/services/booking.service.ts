@@ -26,6 +26,14 @@ export const createBooking = async (bookingData: {
     email?: string;
     note?: string;
   };
+  carpoolDetails?: {
+    bookingType: 'shared' | 'private';
+    passengers: number;
+    isRoundTrip: boolean;
+    useHighway: boolean;
+    pickupPoints: number;
+    isAirport: boolean;
+  };
 }): Promise<Booking | null> => {
   try {
     const response = await api.post<ApiResponse<Booking>>('/bookings', bookingData);
@@ -47,6 +55,7 @@ export const createBooking = async (bookingData: {
         paymentStatus: booking.paymentStatus || 'pending',
         route: booking.route,
         seats: booking.seats,
+        carpoolDetails: booking.carpoolDetails,
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
       };
@@ -147,6 +156,7 @@ export const getBookings = async (filters?: {
         orderType: booking.orderType,
         orderItems: booking.orderItems,
         customerInfo: booking.customerInfo,
+        carpoolDetails: booking.carpoolDetails,
         cancelReason: booking.cancelReason,
         refundAmount: booking.refundAmount,
         createdAt: booking.createdAt,
@@ -193,6 +203,7 @@ export const getBookingById = async (bookingId: string): Promise<Booking | null>
         status: booking.status || 'pending',
         paymentStatus: booking.paymentStatus || 'pending',
         ...(booking.customerInfo && { customerInfo: booking.customerInfo }),
+        ...(booking.carpoolDetails && { carpoolDetails: booking.carpoolDetails }),
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
       };

@@ -20,7 +20,7 @@ export interface User {
 }
 
 // Service Types
-export type ServiceType = 'transport' | 'accommodation' | 'restaurant';
+export type ServiceType = 'transport' | 'accommodation' | 'restaurant' | 'carpool';
 
 export interface Service {
   id: string;
@@ -101,6 +101,44 @@ export interface MenuItem {
   category: string;
 }
 
+// Carpool specific
+export interface CarpoolRoute {
+  id?: string;
+  _id?: string;
+  name: string;
+  isHighwayDefault: boolean;
+  sharedPricing: {
+    pricePerGuest: number;
+    airportSurcharge: number;
+    extraPointSurcharge: number;
+    twoGuestsDiscountedPrice: number;
+  };
+  privatePricing: {
+    seats5: {
+      oneWayPrice: number;
+      twoWayPrice: number;
+    };
+    seats7: {
+      oneWayPrice: number;
+      twoWayPrice: number;
+    };
+  };
+}
+
+export interface Carpool extends Service {
+  type: 'carpool';
+  carpoolOptions: {
+    vehicleInfo: {
+      engineType: 'electric' | 'gasoline';
+      brand: string;
+      vehicleName: string;
+      seats: 5 | 7;
+    };
+    routes: CarpoolRoute[];
+  };
+  departureTime: string[];
+}
+
 // Booking Types
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
@@ -128,6 +166,14 @@ export interface Booking {
     phone?: string;
     email?: string;
     note?: string;
+  };
+  carpoolDetails?: {
+    bookingType: 'shared' | 'private';
+    passengers: number;
+    isRoundTrip: boolean;
+    useHighway: boolean;
+    pickupPoints: number;
+    isAirport: boolean;
   };
   createdAt: string;
   updatedAt: string;

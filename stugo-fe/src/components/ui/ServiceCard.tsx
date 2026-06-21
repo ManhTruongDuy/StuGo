@@ -17,6 +17,8 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 return 'Nhà trọ';
             case 'restaurant':
                 return 'Quán ăn';
+            case 'carpool':
+                return 'Xe ghép';
             default:
                 return type;
         }
@@ -30,6 +32,8 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 return 'bg-purple-100 text-purple-700';
             case 'restaurant':
                 return 'bg-orange-100 text-orange-700';
+            case 'carpool':
+                return 'bg-green-100 text-green-700';
             default:
                 return 'bg-gray-100 text-gray-700';
         }
@@ -74,6 +78,8 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 return 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&auto=format&fit=crop';
             case 'restaurant':
                 return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop';
+            case 'carpool':
+                return 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop';
             default:
                 return 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&auto=format&fit=crop';
         }
@@ -130,6 +136,35 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                         <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 text-gray-700 rounded-md text-[13px] border border-gray-100">
                             <RouteIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                             <span className="truncate">{name}</span>
+                        </div>
+                    );
+                })}
+                {remaining > 0 && (
+                    <div className="flex items-center px-2.5 py-1 bg-gray-50 text-gray-500 rounded-md text-xs border border-gray-100 w-fit">
+                        +{remaining} tuyến khác
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const renderCarpoolRoutes = () => {
+        if (service.type !== 'carpool') return null;
+        const carpoolOpts = (service as any).carpoolOptions;
+        const routes = carpoolOpts?.routes || [];
+        if (routes.length === 0) return null;
+
+        const maxDisplay = 2;
+        const displayRoutes = routes.slice(0, maxDisplay);
+        const remaining = routes.length - maxDisplay;
+
+        return (
+            <div className="flex flex-col gap-1.5 mb-3">
+                {displayRoutes.map((route: any, idx: number) => {
+                    return (
+                        <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 text-gray-700 rounded-md text-[13px] border border-gray-100">
+                            <RouteIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <span className="truncate">{route.name}</span>
                         </div>
                     );
                 })}
@@ -224,6 +259,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 </div>
 
                 {renderRoutes()}
+                {renderCarpoolRoutes()}
 
                 {/* Available Slots - Only for transport and accommodation */}
                 {availableSlots && (

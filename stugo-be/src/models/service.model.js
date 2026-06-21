@@ -8,7 +8,7 @@ const serviceSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['transport', 'accommodation', 'restaurant'],
+    enum: ['transport', 'accommodation', 'restaurant', 'carpool'],
     required: true
   },
   description: {
@@ -140,6 +140,35 @@ const serviceSchema = new mongoose.Schema({
   }],
   hasDelivery: Boolean,
   hasReservation: Boolean,
+  // Carpool specific
+  carpoolOptions: {
+    vehicleInfo: {
+      engineType: { type: String, enum: ['electric', 'gasoline'] },
+      brand: String,
+      vehicleName: String,
+      seats: { type: Number, enum: [5, 7] }
+    },
+    routes: [{
+      name: String,
+      isHighwayDefault: { type: Boolean, default: true },
+      sharedPricing: {
+        pricePerGuest: Number,
+        airportSurcharge: Number,
+        extraPointSurcharge: Number,
+        twoGuestsDiscountedPrice: Number
+      },
+      privatePricing: {
+        seats5: {
+          oneWayPrice: Number,
+          twoWayPrice: Number
+        },
+        seats7: {
+          oneWayPrice: Number,
+          twoWayPrice: Number
+        }
+      }
+    }]
+  },
   // Snap Map flash deal
   flashDeal: {
     dealPrice: {

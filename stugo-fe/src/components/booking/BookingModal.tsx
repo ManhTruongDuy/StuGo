@@ -2,6 +2,7 @@ import type { Service } from '../../types';
 import TransportBookingModal from './TransportBookingModal';
 import AccommodationBookingModal from './AccommodationBookingModal';
 import RestaurantBookingModal from './RestaurantBookingModal';
+import CarpoolBookingModal from './CarpoolBookingModal';
 
 interface BookingModalProps {
     service: Service;
@@ -17,6 +18,8 @@ const BookingModal = ({ service, onClose }: BookingModalProps) => {
             return <AccommodationBookingModal service={service as any} onClose={onClose} />;
         case 'restaurant':
             return <RestaurantBookingModal service={service as any} onClose={onClose} />;
+        case 'carpool':
+            return <CarpoolBookingModal service={service as any} onClose={onClose} />;
         default:
             return null;
     }
