@@ -279,10 +279,10 @@ export const createTransportPayment = async (req, res, next) => {
       });
     }
 
-    if (booking.serviceType !== 'transport') {
+    if (booking.serviceType !== 'transport' && booking.serviceType !== 'carpool') {
       return res.status(400).json({
         success: false,
-        message: 'Đây không phải đặt chỗ vận chuyển'
+        message: 'Đây không phải đặt chỗ vận chuyển hoặc xe ghép'
       });
     }
 
@@ -333,7 +333,7 @@ export const createPayment = async (req, res, next) => {
       return createAccommodationPayment(req, res, next);
     } else if (booking.serviceType === 'restaurant') {
       return createRestaurantPayment(req, res, next);
-    } else if (booking.serviceType === 'transport') {
+    } else if (booking.serviceType === 'transport' || booking.serviceType === 'carpool') {
       return createTransportPayment(req, res, next);
     }
 

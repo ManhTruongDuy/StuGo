@@ -526,6 +526,82 @@ export const createBooking = async (req, res, next) => {
           message: 'Vui lòng chọn loại đặt chỗ (reservation hoặc order)'
         });
       }
+    } else if (service.type === 'carpool') {
+      // CARPOOL: Validate route, timeSlot, and carpoolDetails
+      const { carpoolDetails } = req.body;
+      if (!route || !timeSlot || !carpoolDetails) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng chọn chuyến, giờ khởi hành và thông tin xe ghép'
+        });
+      }
+
+      // Check if departureTime exists
+      if (!service.departureTime || !service.departureTime.includes(timeSlot)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Giờ khởi hành không hợp lệ'
+        });
+      }
+
+      // Check if route exists
+      const selectedRouteObj = service.carpoolOptions?.routes?.find(r => r.name === route);
+      if (!selectedRouteObj) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tuyến đường không hợp lệ'
+        });
+      }
+
+      // Calculate total amount
+      let totalAmount = 0;
+      if (carpoolDetails.bookingType === 'shared') {
+        const pricing = selectedRouteObj.sharedPricing;
+        if (carpoolDetails.passengers === 1) {
+          totalAmount = pricing.pricePerGuest;
+        } else {
+          totalAmount = pricing.twoGuestsDiscountedPrice || (pricing.pricePerGuest * carpoolDetails.passengers);
+        }
+        if (carpoolDetails.isAirport) totalAmount += (pricing.airportSurcharge || 0);
+        if (carpoolDetails.pickupPoints > 1) totalAmount += (pricing.extraPointSurcharge || 0);
+      } else {
+        const pricing = selectedRouteObj.privatePricing;
+        if (carpoolDetails.passengers === 5) {
+          totalAmount = carpoolDetails.isRoundTrip ? pricing.seats5.twoWayPrice : pricing.seats5.oneWayPrice;
+        } else {
+          totalAmount = carpoolDetails.isRoundTrip ? pricing.seats7.twoWayPrice : pricing.seats7.oneWayPrice;
+        }
+      }
+
+      const isPremium = req.user && (req.user.plan === 'premium_user' || req.user.plan === 'premium');
+      const finalAmount = isPremium ? totalAmount : Math.round(totalAmount * 1.05);
+
+      const bookingDate = new Date(date);
+      bookingDate.setHours(0, 0, 0, 0);
+
+      const booking = await bookingRepository.create({
+        userId: req.userId,
+        serviceId,
+        serviceName: service.name,
+        serviceType: service.type,
+        date: bookingDate,
+        timeSlot,
+        route,
+        quantity: carpoolDetails.passengers,
+        carpoolDetails,
+        unitPrice: finalAmount,
+        totalAmount: finalAmount,
+        depositAmount: finalAmount,
+        customerInfo,
+        status: 'pending',
+        paymentStatus: 'pending'
+      });
+
+      res.status(201).json({
+        success: true,
+        data: booking,
+        message: 'Tạo đặt xe ghép thành công. Vui lòng thanh toán để xác nhận.'
+      });
     } else {
       return res.status(400).json({
         success: false,
@@ -729,11 +805,11 @@ export const getAvailableSlots = async (req, res, next) => {
     // Convert to plain object to ensure subdocument _id is properly accessible
     const service = serviceDoc.toObject ? serviceDoc.toObject() : serviceDoc;
 
-    if (service.type === 'transport') {
-      // TRANSPORT: Return routes and departure times with available seats
-      const routes = service.routes || [];
+    if (service.type === 'transport' || service.type === 'carpool') {
+      // TRANSPORT/CARPOOL: Return routes and departure times with available seats
+      const routes = service.type === 'carpool' ? (service.carpoolOptions?.routes || []) : (service.routes || []);
       const departureTimes = service.departureTime || [];
-      const totalSeats = service.seats || 0;
+      const totalSeats = service.type === 'carpool' ? 7 : (service.seats || 0);
 
       const slots = [];
 
