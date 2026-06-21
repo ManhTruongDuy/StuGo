@@ -20,6 +20,7 @@ import {
     Filter,
     Info,
     User,
+    Car,
 } from 'lucide-react';
 import { getBookings, cancelBooking } from '../services/booking.service';
 import { createRemainingPayment } from '../services/payment.service';
@@ -28,7 +29,7 @@ import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import type { Booking, ServiceType } from '../types';
 
-type TabType = 'all' | 'transport' | 'accommodation' | 'restaurant';
+type TabType = 'all' | 'transport' | 'accommodation' | 'restaurant' | 'carpool';
 
 const BookingHistoryPage = () => {
     const navigate = useNavigate();
@@ -320,10 +321,11 @@ const BookingHistoryPage = () => {
     };
 
     const getServiceIcon = (type: ServiceType) => {
-        const icons = {
+        const icons: Record<ServiceType, any> = {
             transport: Bus,
             accommodation: Home,
             restaurant: UtensilsCrossed,
+            carpool: Car,
         };
         return icons[type] || Package;
     };
@@ -333,6 +335,7 @@ const BookingHistoryPage = () => {
         { id: 'transport' as TabType, label: 'Nhà xe', count: allBookings.filter(b => b.serviceType === 'transport').length },
         { id: 'accommodation' as TabType, label: 'Nhà trọ', count: allBookings.filter(b => b.serviceType === 'accommodation').length },
         { id: 'restaurant' as TabType, label: 'Quán ăn', count: allBookings.filter(b => b.serviceType === 'restaurant').length },
+        { id: 'carpool' as TabType, label: 'Xe ghép', count: allBookings.filter(b => b.serviceType === 'carpool').length },
     ];
 
     if (loading) {

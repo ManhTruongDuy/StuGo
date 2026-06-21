@@ -150,7 +150,7 @@ const ServiceListPage = () => {
 
                     {/* Quick filters */}
                     <div className="flex items-center gap-2">
-                        {['transport', 'accommodation', 'restaurant'].map((t) => (
+                        {['transport', 'accommodation', 'restaurant', 'carpool'].map((t) => (
                             <button
                                 key={t}
                                 onClick={() =>
@@ -168,7 +168,9 @@ const ServiceListPage = () => {
                                     ? 'Nhà xe'
                                     : t === 'accommodation'
                                         ? 'Nhà trọ'
-                                        : 'Quán ăn'}
+                                        : t === 'carpool'
+                                            ? 'Xe ghép'
+                                            : 'Quán ăn'}
                             </button>
                         ))}
                     </div>

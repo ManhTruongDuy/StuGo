@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import {
     Search, Filter, MapPin, Star, ToggleLeft, ToggleRight,
     Bus, Building2, Utensils, Pencil, Plus, X,
-    Loader2, Upload, Link as LinkIcon, Save, EyeOff
+    Loader2, Upload, Link as LinkIcon, Save, EyeOff, Car
 } from 'lucide-react';
 import { getServices, updateServiceStatus } from '../../services/service.service';
 import { getPartners } from '../../services/admin.service';
@@ -441,6 +441,7 @@ const ServiceEditModal = ({
                                 <option value="transport">Nhà xe (Transport)</option>
                                 <option value="accommodation">Nhà trọ (Accommodation)</option>
                                 <option value="restaurant">Quán ăn (Restaurant)</option>
+                                <option value="carpool">Xe ghép (Carpool)</option>
                             </select>
                         </div>
                         <div>
@@ -938,6 +939,7 @@ const AdminServicesPage = () => {
             transport: { label: 'Nhà xe', icon: Bus, cls: 'bg-blue-100 text-blue-700' },
             accommodation: { label: 'Nhà trọ', icon: Building2, cls: 'bg-purple-100 text-purple-700' },
             restaurant: { label: 'Quán ăn', icon: Utensils, cls: 'bg-orange-100 text-orange-700' },
+            carpool: { label: 'Xe ghép', icon: Car, cls: 'bg-green-100 text-green-700' },
         };
         const t = map[type];
         if (!t) return null;
@@ -1069,13 +1071,13 @@ const AdminServicesPage = () => {
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    {(['all', 'transport', 'accommodation', 'restaurant'] as const).map(t => (
+                    {(['all', 'transport', 'accommodation', 'restaurant', 'carpool'] as const).map(t => (
                         <button key={t} onClick={() => setTypeFilter(t)}
                             className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-colors ${typeFilter === t ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                             {t === 'transport' && <Bus className="w-4 h-4" />}
                             {t === 'accommodation' && <Building2 className="w-4 h-4" />}
                             {t === 'restaurant' && <Utensils className="w-4 h-4" />}
-                            {t === 'all' ? 'Tất cả' : t === 'transport' ? 'Nhà xe' : t === 'accommodation' ? 'Nhà trọ' : 'Quán ăn'}
+                            {t === 'all' ? 'Tất cả' : t === 'transport' ? 'Nhà xe' : t === 'accommodation' ? 'Nhà trọ' : t === 'carpool' ? 'Xe ghép' : 'Quán ăn'}
                         </button>
                     ))}
                 </div>

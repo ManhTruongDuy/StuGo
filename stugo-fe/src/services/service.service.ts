@@ -88,7 +88,7 @@ const transformService = (service: any): Service => {
  */
 export const getPopularServices = async (
   limit: number = 10,
-  type?: 'transport' | 'accommodation' | 'restaurant'
+  type?: 'transport' | 'accommodation' | 'restaurant' | 'carpool'
 ): Promise<Service[]> => {
   try {
     const params = new URLSearchParams();
@@ -117,7 +117,7 @@ export const getPopularServices = async (
  * Get all services with filters
  */
 export const getServices = async (filters?: {
-  type?: 'transport' | 'accommodation' | 'restaurant';
+  type?: 'transport' | 'accommodation' | 'restaurant' | 'carpool';
   city?: string;
   district?: string;
   priceMin?: number;
@@ -232,7 +232,7 @@ export const getServiceReviews = async (
  * Create new service (Partner/Admin only)
  */
 export const createService = async (data: {
-  type: 'transport' | 'accommodation' | 'restaurant';
+  type: 'transport' | 'accommodation' | 'restaurant' | 'carpool';
   name: string;
   description: string;
   address: string;

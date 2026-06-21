@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
     X,
-    Calendar,
     Clock,
     ChevronLeft,
     ChevronRight,
-    Users,
     CreditCard,
     Loader2,
     Car
@@ -285,9 +283,9 @@ const CarpoolBookingModal = ({ service, onClose }: CarpoolBookingModalProps) => 
                                 />
                                 <div>
                                     <p className="font-medium text-gray-900 text-sm">Đi qua sân bay (Nội Bài)</p>
-                                    {routeObj?.sharedPricing?.airportSurcharge > 0 && (
+                                    {routeObj?.sharedPricing?.airportSurcharge ? (
                                         <p className="text-xs text-gray-500">Phụ phí: {formatPrice(routeObj.sharedPricing.airportSurcharge)}</p>
-                                    )}
+                                    ) : null}
                                 </div>
                             </label>
                             
@@ -307,9 +305,9 @@ const CarpoolBookingModal = ({ service, onClose }: CarpoolBookingModalProps) => 
                                         2 Điểm
                                     </button>
                                 </div>
-                                {pickupPoints > 1 && routeObj?.sharedPricing?.extraPointSurcharge > 0 && (
+                                {pickupPoints > 1 && routeObj?.sharedPricing?.extraPointSurcharge ? (
                                     <p className="text-xs text-gray-500 mt-1">Phụ phí nhiều điểm: {formatPrice(routeObj.sharedPricing.extraPointSurcharge)}</p>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     </div>
