@@ -520,8 +520,8 @@ const HomePage = () => {
                                             </li>
                                         ))}
                                     </ul>
-                                    <Link to="/partner" className={`text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-colors ${plan.popular ? 'bg-primary-500 text-white hover:bg-primary-600' : 'border-2 border-gray-200 text-gray-700 hover:border-primary-300'}`}>
-                                        Đăng ký cộng tác
+                                    <Link to={user ? "/subscription?type=partner" : "/partner"} className={`text-center py-2.5 px-4 rounded-xl font-medium text-sm transition-colors ${plan.popular ? 'bg-primary-500 text-white hover:bg-primary-600' : 'border-2 border-gray-200 text-gray-700 hover:border-primary-300'}`}>
+                                        {user ? 'Nâng cấp gói' : 'Đăng ký cộng tác'}
                                     </Link>
                                 </div>
                             ))}
