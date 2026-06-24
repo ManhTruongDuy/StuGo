@@ -107,18 +107,6 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     };
 
     const totalSeats = service.seats || 24;
-    const isSleeper = service.vehicleType?.toLowerCase().includes('giường') || 
-                      service.vehicleType?.toLowerCase().includes('nằm') || 
-                      totalSeats >= 20;
-
-    // Generate all seat IDs
-    const allSeats = useMemo(() => {
-        const seatsList: string[] = [];
-        for (let i = 1; i <= totalSeats; i++) {
-            seatsList.push(i.toString().padStart(2, '0'));
-        }
-        return seatsList;
-    }, [totalSeats]);
 
     const seatGrid = useMemo(() => {
         const grid = [];
@@ -585,8 +573,8 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                             </div>;
                                                         }
                                                         return (
-                                                            <div key={seatId} className="w-[38px]">
-                                                                {renderSeat(seatId)}
+                                                            <div key={seatId as string} className="w-[38px]">
+                                                                {renderSeat(seatId as string)}
                                                             </div>
                                                         );
                                                     })}
