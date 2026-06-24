@@ -109,7 +109,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     const totalSeats = service.seats || 24;
 
     const seatGrid = useMemo(() => {
-        const grid = [];
+        const grid: (string | null)[][] = [];
         let currentSeat = 1;
         let seatsRemaining = totalSeats;
         
@@ -134,7 +134,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                 currentSeat += 4;
                 seatsRemaining -= 4;
             } else {
-                const row = [];
+                const row: (string | null)[] = [];
                 for (let i = seatsRemaining - 1; i >= 0; i--) {
                     row.push((currentSeat + i).toString().padStart(2, '0'));
                 }
