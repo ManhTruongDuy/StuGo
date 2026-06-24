@@ -125,60 +125,64 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                     const row: (string | null)[] = [];
                     for (let i = seatsRemaining - 1; i >= 0; i--) {
                         row.push((currentSeat + i).toString().padStart(2, '0'));
-                    }
-                    while(row.length < 5) row.splice(Math.floor(row.length/2), 0, null);
-                    grid.push(row);
-                    currentSeat += seatsRemaining;
-                    seatsRemaining = 0;
-                } else if (seatsRemaining >= 3) {
-                    grid.push([
-                        (currentSeat + 2).toString().padStart(2, '0'),
-                        (currentSeat + 1).toString().padStart(2, '0'),
-                        null,
-                        null,
-                        (currentSeat).toString().padStart(2, '0')
-                    ]);
-                    currentSeat += 3;
-                    seatsRemaining -= 3;
-                } else {
-                    const row: (string | null)[] = [];
-                    for (let i = seatsRemaining - 1; i >= 0; i--) {
-                        row.push((currentSeat + i).toString().padStart(2, '0'));
-                    }
-                    while(row.length < 5) row.splice(2, 0, null);
-                    grid.push(row);
-                    currentSeat += seatsRemaining;
-                    seatsRemaining = 0;
+                grid.push([null, null, '01', '02']);
+                currentSeat += 2; seatsRemaining -= 2;
+            }
+            // Middle rows: 05, null, 04, 03
+            while (seatsRemaining > 4) {
+                grid.push([
+                    (currentSeat+2).toString().padStart(2, '0'),
+                    null,
+                    (currentSeat+1).toString().padStart(2, '0'),
+                    currentSeat.toString().padStart(2, '0')
+                ]);
+                currentSeat += 3; seatsRemaining -= 3;
+            }
+            // Last row: 15, 14, 13, 12
+            if (seatsRemaining > 0) {
+                const lastRow: (string | null)[] = [];
+                for (let i = seatsRemaining - 1; i >= 0; i--) {
+                    lastRow.push((currentSeat + i).toString().padStart(2, '0'));
                 }
+                while (lastRow.length < 4) lastRow.unshift(null); // pad left if needed
+                grid.push(lastRow);
             }
         } else {
-            // Standard 2x2 Layout (1 Tầng)
+            // Standard 2x2 Layout (Left to Right numbering)
             while (seatsRemaining > 0) {
-                if (seatsRemaining === 5) {
+                if (seatsRemaining >= 5 && seatsRemaining === 5 && grid.length >= 8) {
+                    // Last row 5 seats: [41, 42, 43, 44, 45]
                     grid.push([
-                        (currentSeat + 4).toString().padStart(2, '0'),
-                        (currentSeat + 3).toString().padStart(2, '0'),
-                        (currentSeat + 2).toString().padStart(2, '0'),
+                        (currentSeat).toString().padStart(2, '0'),
                         (currentSeat + 1).toString().padStart(2, '0'),
-                        (currentSeat).toString().padStart(2, '0')
+                        (currentSeat + 2).toString().padStart(2, '0'),
+                        (currentSeat + 3).toString().padStart(2, '0'),
+                        (currentSeat + 4).toString().padStart(2, '0')
                     ]);
                     seatsRemaining = 0;
                 } else if (seatsRemaining >= 4) {
                     grid.push([
-                        (currentSeat + 3).toString().padStart(2, '0'),
-                        (currentSeat + 2).toString().padStart(2, '0'),
-                        null,
+                        (currentSeat).toString().padStart(2, '0'),
                         (currentSeat + 1).toString().padStart(2, '0'),
-                        (currentSeat).toString().padStart(2, '0')
+                        null,
+                        (currentSeat + 2).toString().padStart(2, '0'),
+                        (currentSeat + 3).toString().padStart(2, '0')
                     ]);
                     currentSeat += 4;
                     seatsRemaining -= 4;
                 } else {
                     const row: (string | null)[] = [];
-                    for (let i = seatsRemaining - 1; i >= 0; i--) {
+                    for (let i = 0; i < seatsRemaining; i++) {
                         row.push((currentSeat + i).toString().padStart(2, '0'));
                     }
-                    while(row.length < 5) row.splice(Math.floor(row.length/2), 0, null);
+                    if (row.length === 3) {
+                        row.splice(2, 0, null);
+                        row.push(null);
+                    } else if (row.length === 2) {
+                        row.push(null, null, null);
+                    } else if (row.length === 1) {
+                        row.push(null, null, null, null);
+                    }
                     grid.push(row);
                     currentSeat += seatsRemaining;
                     seatsRemaining = 0;
