@@ -156,7 +156,10 @@ export const getDashboardOverview = async (req, res, next) => {
                     (async () => {
                         const Transaction = (await import('../models/transaction.model.js')).default;
                         const matchQuery = { type: 'withdrawal', status: { $in: ['pending', 'completed'] } };
-                        if (ownerId) matchQuery.userId = ownerId;
+                        if (ownerId) {
+                            const mongoose = (await import('mongoose')).default;
+                            matchQuery.userId = new mongoose.Types.ObjectId(ownerId);
+                        }
                         return Transaction.aggregate([
                             { $match: matchQuery },
                             { $group: { _id: null, total: { $sum: '$amount' } } }
@@ -208,7 +211,10 @@ export const getDashboardOverview = async (req, res, next) => {
                             status: { $in: ['pending', 'completed'] },
                             createdAt: { $gte: startOfMonth, $lt: endOfMonth }
                         };
-                        if (ownerId) matchQuery.userId = ownerId;
+                        if (ownerId) {
+                            const mongoose = (await import('mongoose')).default;
+                            matchQuery.userId = new mongoose.Types.ObjectId(ownerId);
+                        }
                         return Transaction.aggregate([
                             { $match: matchQuery },
                             { $group: { _id: null, total: { $sum: '$amount' } } }
