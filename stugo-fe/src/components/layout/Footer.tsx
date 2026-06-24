@@ -156,19 +156,19 @@ const Footer = () => {
                             <li className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-primary-400 flex-shrink-0" />
                                 <a
-                                    href="tel:1900xxxx"
+                                    href="tel:0962758608"
                                     className="hover:text-primary-400 transition-colors"
                                 >
-                                    1900 xxxx
+                                    0962758608
                                 </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-primary-400 flex-shrink-0" />
                                 <a
-                                    href="mailto:support@stugo.vn"
+                                    href="mailto:stugo.service@gmail.com"
                                     className="hover:text-primary-400 transition-colors"
                                 >
-                                    support@stugo.vn
+                                    stugo.service@gmail.com
                                 </a>
                             </li>
                         </ul>
