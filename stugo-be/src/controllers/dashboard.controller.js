@@ -118,9 +118,9 @@ export const getDashboardOverview = async (req, res, next) => {
                     }
                 });
             })(),
-            // Total revenue = collected booking revenue + subscription revenue
+            // Total revenue = collected booking revenue + subscription revenue - withdrawals
             (async () => {
-                const [bookingRevenue, subRevenue] = await Promise.all([
+                const [bookingRevenue, subRevenue, withdrawnAgg] = await Promise.all([
                     Booking.aggregate([
                         {
                             $match: {
@@ -152,38 +152,74 @@ export const getDashboardOverview = async (req, res, next) => {
                             { $unwind: { path: '$plan', preserveNullAndEmptyArrays: true } },
                             { $group: { _id: null, total: { $sum: '$plan.price' } } }
                         ]);
+                    })(),
+                    (async () => {
+                        const Transaction = (await import('../models/transaction.model.js')).default;
+                        const matchQuery = { type: 'withdrawal', status: { $in: ['pending', 'completed'] } };
+                        if (ownerId) matchQuery.userId = ownerId;
+                        return Transaction.aggregate([
+                            { $match: matchQuery },
+                            { $group: { _id: null, total: { $sum: '$amount' } } }
+                        ]);
                     })()
                 ]);
-                return [{ total: (bookingRevenue[0]?.total || 0) + (subRevenue[0]?.total || 0) }];
+                const bookingTotal = bookingRevenue[0]?.total || 0;
+                const subTotal = subRevenue[0]?.total || 0;
+                const withdrawnTotal = withdrawnAgg[0]?.total || 0;
+                return [{ total: Math.max(0, bookingTotal + subTotal - withdrawnTotal) }];
             })(),
             // This month revenue
-            Booking.aggregate([
-                {
-                    $match: {
-                        ...bookingsQuery,
-                        status: { $in: ['confirmed', 'completed'] },
-                        paymentStatus: { $in: ['deposit_paid', 'fully_paid'] },
-                        date: {
-                            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-                            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
-                        }
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        total: {
-                            $sum: {
-                                $cond: [
-                                    { $eq: ['$paymentStatus', 'fully_paid'] },
-                                    '$totalAmount',
-                                    '$depositAmount'
-                                ]
+            (async () => {
+                const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+                const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
+                
+                const [bookingMonthRevenue, withdrawnMonthAgg] = await Promise.all([
+                    Booking.aggregate([
+                        {
+                            $match: {
+                                ...bookingsQuery,
+                                status: { $in: ['confirmed', 'completed'] },
+                                paymentStatus: { $in: ['deposit_paid', 'fully_paid'] },
+                                date: {
+                                    $gte: startOfMonth,
+                                    $lt: endOfMonth
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                total: {
+                                    $sum: {
+                                        $cond: [
+                                            { $eq: ['$paymentStatus', 'fully_paid'] },
+                                            '$totalAmount',
+                                            '$depositAmount'
+                                        ]
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            ])
+                    ]),
+                    (async () => {
+                        const Transaction = (await import('../models/transaction.model.js')).default;
+                        const matchQuery = { 
+                            type: 'withdrawal', 
+                            status: { $in: ['pending', 'completed'] },
+                            createdAt: { $gte: startOfMonth, $lt: endOfMonth }
+                        };
+                        if (ownerId) matchQuery.userId = ownerId;
+                        return Transaction.aggregate([
+                            { $match: matchQuery },
+                            { $group: { _id: null, total: { $sum: '$amount' } } }
+                        ]);
+                    })()
+                ]);
+                
+                const bookingMonthTotal = bookingMonthRevenue[0]?.total || 0;
+                const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
+                return [{ total: Math.max(0, bookingMonthTotal - withdrawnMonthTotal) }];
+            })()
         ]);
 
         // Debug: Check all bookings
