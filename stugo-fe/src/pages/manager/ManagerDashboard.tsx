@@ -20,6 +20,8 @@ import {
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import RevenueDetailsSection from '../../components/dashboard/RevenueDetailsSection';
+import CustomerInsightsSection from '../../components/dashboard/CustomerInsightsSection';
+import AIInsightsSection from '../../components/dashboard/AIInsightsSection';
 
 // Helper function
 const formatPrice = (price: number) => {
@@ -234,6 +236,12 @@ const ManagerDashboard = () => {
             {/* Chi tiết doanh thu */}
             <div className="pt-4 border-t border-gray-100">
                 <RevenueDetailsSection />
+            </div>
+
+            {/* Premium Sections */}
+            <div className="grid lg:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                <CustomerInsightsSection />
+                <AIInsightsSection />
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">

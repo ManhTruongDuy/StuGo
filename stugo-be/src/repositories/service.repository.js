@@ -69,7 +69,38 @@ class ServiceRepository extends BaseRepository {
         break;
     }
 
-    return this.find(query, { ...options, sort });
+    const limit = parseInt(options.limit || 20);
+    const page = parseInt(options.page || 1);
+    const skip = (page - 1) * limit;
+
+    const pipeline = [
+      { $match: query },
+      { $lookup: { from: 'users', localField: 'ownerId', foreignField: '_id', as: 'owner' } },
+      { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+      { $addFields: { 
+          isPremiumPartner: { $eq: ['$owner.plan', 'business_premium'] },
+          ownerPlan: '$owner.plan'
+        } 
+      },
+      { $sort: { isPremiumPartner: -1, ...sort } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit }
+    ];
+
+    const [data, total] = await Promise.all([
+      this.model.aggregate(pipeline),
+      this.model.countDocuments(query)
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
   }
 
   async findByOwner(ownerId, options = {}) {
@@ -113,10 +144,18 @@ class ServiceRepository extends BaseRepository {
     const query = { status: 'active', isAvailable: true };
     if (type) query.type = type;
 
-    return this.model
-      .find(query)
-      .sort({ popularity: -1, rating: -1 })
-      .limit(limit);
+    return this.model.aggregate([
+      { $match: query },
+      { $lookup: { from: 'users', localField: 'ownerId', foreignField: '_id', as: 'owner' } },
+      { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+      { $addFields: { 
+          isPremiumPartner: { $eq: ['$owner.plan', 'business_premium'] },
+          ownerPlan: '$owner.plan'
+        } 
+      },
+      { $sort: { isPremiumPartner: -1, popularity: -1, rating: -1 } },
+      { $limit: limit }
+    ]);
   }
 
   async getServicesByType(type) {

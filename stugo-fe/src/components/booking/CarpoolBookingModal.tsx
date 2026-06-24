@@ -556,6 +556,15 @@ const CarpoolBookingModal = ({ service, onClose }: CarpoolBookingModalProps) => 
                                 </div>
                             </div>
 
+                            <div className="mb-6">
+                                {!isPremium && (
+                                    <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between font-medium">
+                                        <span>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ)</span>
+                                        <span className="font-semibold text-right"> {formatPrice(basePrice)} khi Premium</span>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600">Tạm tính</span>

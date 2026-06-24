@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon, Route as RouteIcon } from 'lucide-react';
+import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon, Route as RouteIcon, CheckCircle } from 'lucide-react';
 import type { Service, Transport, Accommodation } from '../../types';
 
 interface ServiceCardProps {
@@ -193,11 +193,17 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                {/* Type Badge */}
-                <div className="absolute top-3 left-3">
+                {/* Type Badge & Premium Badge */}
+                <div className="absolute top-3 left-3 flex flex-col gap-2">
                     <span className={`badge ${getTypeColor(service.type)}`}>
                         {getTypeLabel(service.type)}
                     </span>
+                    {service.isPremiumPartner && (
+                        <span className="badge bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-none shadow-md flex items-center gap-1">
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Đối tác xác minh
+                        </span>
+                    )}
                 </div>
 
                 {/* Favorite Button */}

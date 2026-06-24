@@ -39,4 +39,18 @@ router.get('/recent-bookings', authenticate, partnerOrAdmin, dashboardController
  */
 router.get('/top-services', authenticate, partnerOrAdmin, dashboardController.getTopServices);
 
+/**
+ * @route   GET /api/dashboard/premium/customer-insights
+ * @desc    Get customer insights for premium partners
+ * @access  Private (Partner Premium/Admin)
+ */
+router.get('/premium/customer-insights', authenticate, partnerOrAdmin, dashboardController.getPremiumCustomerInsights);
+
+/**
+ * @route   GET /api/dashboard/premium/route-analytics
+ * @desc    Get AI route analytics for premium partners
+ * @access  Private (Partner Premium/Admin)
+ */
+router.get('/premium/route-analytics', authenticate, partnerOrAdmin, dashboardController.getPremiumRouteAnalytics);
+
 export default router;

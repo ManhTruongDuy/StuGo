@@ -502,10 +502,73 @@ export const getTopServices = async (req, res, next) => {
     }
 };
 
+export const getPremiumCustomerInsights = async (req, res, next) => {
+    try {
+        // In a real app, we would query the database to get insights
+        // For MVP, returning robust mock data for Premium feature
+        
+        res.json({
+            success: true,
+            data: {
+                demographics: {
+                    labels: ['18-20', '21-23', '24-26', 'Khác'],
+                    series: [45, 35, 15, 5]
+                },
+                retention: {
+                    newCustomers: 65,
+                    returningCustomers: 35
+                },
+                bookingHours: {
+                    labels: ['0h-6h', '6h-12h', '12h-18h', '18h-24h'],
+                    series: [5, 25, 45, 25]
+                },
+                topLocations: [
+                    { name: 'Hà Nội', percentage: 40 },
+                    { name: 'Hồ Chí Minh', percentage: 30 },
+                    { name: 'Đà Nẵng', percentage: 15 },
+                    { name: 'Cần Thơ', percentage: 10 },
+                    { name: 'Khác', percentage: 5 }
+                ]
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getPremiumRouteAnalytics = async (req, res, next) => {
+    try {
+        // Mock data for AI route suggestions
+        res.json({
+            success: true,
+            data: {
+                hotRoutes: [
+                    { route: 'Hà Nội - Sapa', searchVolume: 1250, supplyDemandGap: 'high', suggestion: 'Tăng 2 chuyến/ngày vào cuối tuần' },
+                    { route: 'Hà Nội - Hạ Long', searchVolume: 980, supplyDemandGap: 'medium', suggestion: 'Giữ nguyên lịch, cân nhắc flash sale' },
+                    { route: 'HCM - Đà Lạt', searchVolume: 2100, supplyDemandGap: 'high', suggestion: 'Mở thêm tuyến tối thứ 6' }
+                ],
+                aiInsights: [
+                    "Sinh viên đang có xu hướng tìm kiếm xe giường nằm đi Sapa tăng 45% so với tháng trước.",
+                    "Giờ cao điểm khách hàng hay đặt vé là 19:00 - 21:00, bạn nên chạy Flash Sale trong khung giờ này.",
+                    "Tỉ lệ khách hàng quay lại của bạn đang ở mức 35%, cao hơn 15% so với trung bình hệ thống."
+                ],
+                marketingCampaigns: [
+                    { name: 'Back to School 2026', type: 'Flash Sale', status: 'Gợi ý', expectedROI: '+25%' },
+                    { name: 'Sinh viên xả hơi', type: 'Voucher 50k', status: 'Gợi ý', expectedROI: '+15%' }
+                ]
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export default {
     getDashboardOverview,
     getRevenueStats,
     getBookingsByType,
     getRecentBookings,
-    getTopServices
+    getTopServices,
+    getPremiumCustomerInsights,
+    getPremiumRouteAnalytics
 };
