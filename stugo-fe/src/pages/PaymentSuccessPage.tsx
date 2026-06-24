@@ -37,6 +37,8 @@ interface BookingInfo {
         phone?: string;
         email?: string;
     };
+    providerPhone?: string;
+    providerName?: string;
 }
 
 const PaymentSuccessPage = () => {
@@ -170,6 +172,8 @@ const PaymentSuccessPage = () => {
                             paymentStatus: bookingInfo.paymentStatus,
                             status: bookingInfo.status,
                             customerInfo: bookingInfo.customerInfo,
+                            providerPhone: bookingInfo.serviceId?.ownerId?.phone,
+                            providerName: bookingInfo.serviceId?.ownerId?.fullName,
                         });
                     } else {
                         try {
@@ -235,6 +239,8 @@ const PaymentSuccessPage = () => {
                             paymentStatus: bookingInfo.paymentStatus,
                             status: bookingInfo.status,
                             customerInfo: bookingInfo.customerInfo,
+                            providerPhone: bookingInfo.serviceId?.ownerId?.phone,
+                            providerName: bookingInfo.serviceId?.ownerId?.fullName,
                         });
                     }
                 }
@@ -366,6 +372,16 @@ const PaymentSuccessPage = () => {
                                 </p>
                             </div>
                         </div>
+
+                        {booking.providerPhone && (
+                            <div className="flex items-start gap-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-500 mt-0.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-500">SĐT Liên hệ Dịch vụ / Nhà xe</p>
+                                    <p className="font-semibold text-gray-900">{booking.providerPhone} <span className="font-normal text-sm text-gray-500">({booking.providerName})</span></p>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="flex items-start gap-4">
                             <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />

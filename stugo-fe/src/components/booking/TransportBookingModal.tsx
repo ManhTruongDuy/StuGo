@@ -114,17 +114,9 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         let seatsRemaining = totalSeats;
         
         if (totalSeats <= 16) {
-            // Ford Transit / Van Layout
+            // Ford Transit / Van Layout (4 columns)
+            // Row 1: Tx, 01, 02
             if (seatsRemaining >= 2) {
-                grid.push([null, null, null, (currentSeat+1).toString().padStart(2, '0'), currentSeat.toString().padStart(2, '0')]);
-                currentSeat += 2;
-                seatsRemaining -= 2;
-            }
-            while (seatsRemaining > 0) {
-                if (seatsRemaining === 4 || seatsRemaining === 5) {
-                    const row: (string | null)[] = [];
-                    for (let i = seatsRemaining - 1; i >= 0; i--) {
-                        row.push((currentSeat + i).toString().padStart(2, '0'));
                 grid.push([null, null, '01', '02']);
                 currentSeat += 2; seatsRemaining -= 2;
             }

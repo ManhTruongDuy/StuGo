@@ -372,7 +372,15 @@ export const getPaymentByOrderCode = async (req, res, next) => {
       .findOne({ orderCode: parseInt(orderCode) })
       .populate({
         path: 'bookingId',
-        select: 'serviceName serviceType date timeSlot route roomTypeName quantity totalAmount depositAmount paymentStatus status customerInfo'
+        select: 'serviceId serviceName serviceType date timeSlot route roomTypeName quantity totalAmount depositAmount paymentStatus status customerInfo',
+        populate: {
+          path: 'serviceId',
+          select: 'ownerId',
+          populate: {
+            path: 'ownerId',
+            select: 'phone fullName'
+          }
+        }
       });
 
     if (!payment) {
