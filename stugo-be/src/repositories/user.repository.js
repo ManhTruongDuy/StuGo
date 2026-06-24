@@ -18,9 +18,22 @@ class UserRepository extends BaseRepository {
     return this.model.findOne({ googleId });
   }
 
-  async findPartners(options = {}) {
-    const filter = { role: 'partner' };
+  async findPartners(customFilter = {}, options = {}) {
+    const filter = { role: 'partner', ...customFilter };
     return this.find(filter, options);
+  }
+
+  async searchPartners(query, customFilter = {}, options = {}) {
+    const searchFilter = {
+      role: 'partner',
+      ...customFilter,
+      $or: [
+        { fullName: { $regex: query, $options: 'i' } },
+        { email: { $regex: query, $options: 'i' } },
+        { phone: { $regex: query, $options: 'i' } }
+      ]
+    };
+    return this.find(searchFilter, options);
   }
 
   async findAdmins() {

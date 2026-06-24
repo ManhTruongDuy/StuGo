@@ -64,6 +64,7 @@ const AdminPartnersPage = () => {
     const [partners, setPartners] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+    const [planFilter, setPlanFilter] = useState<'all' | 'premium' | 'free'>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -283,6 +284,7 @@ const AdminPartnersPage = () => {
             setLoading(true);
             const params: any = { page: currentPage, limit: 20 };
             if (statusFilter !== 'all') params.status = statusFilter;
+            if (planFilter !== 'all') params.plan = planFilter;
             if (debouncedSearchQuery) params.search = debouncedSearchQuery;
 
             const result = await getPartners(params);
@@ -298,12 +300,12 @@ const AdminPartnersPage = () => {
 
     useEffect(() => {
         fetchPartners();
-    }, [statusFilter, currentPage, debouncedSearchQuery]);
+    }, [statusFilter, planFilter, currentPage, debouncedSearchQuery]);
 
     // Reset page to 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedSearchQuery, statusFilter]);
+    }, [debouncedSearchQuery, statusFilter, planFilter]);
 
     const handleStatusChange = async (partnerId: string, newStatus: 'active' | 'banned') => {
         try {
@@ -441,9 +443,19 @@ const AdminPartnersPage = () => {
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
                     >
-                        <option value="all">Tất cả</option>
+                        <option value="all">Trạng thái: Tất cả</option>
                         <option value="active">Hoạt động</option>
                         <option value="banned">Đã khóa</option>
+                    </select>
+
+                    <select
+                        className="input w-40"
+                        value={planFilter}
+                        onChange={(e) => setPlanFilter(e.target.value as any)}
+                    >
+                        <option value="all">Loại: Tất cả</option>
+                        <option value="premium">Premium</option>
+                        <option value="free">Thường</option>
                     </select>
                 </div>
             </div>
@@ -500,8 +512,17 @@ const AdminPartnersPage = () => {
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium text-gray-900">
+                                                        <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
                                                             {partner.fullName}
+                                                            {(partner.plan === 'premium' || partner.plan === 'premium_user') ? (
+                                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                                                    PREMIUM
+                                                                </span>
+                                                            ) : (
+                                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                                                                    THƯỜNG
+                                                                </span>
+                                                            )}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
                                                             Tham gia {new Date(partner.createdAt).toLocaleDateString('vi-VN')}
@@ -1119,10 +1140,19 @@ const AdminPartnersPage = () => {
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-bold text-gray-900 truncate">
+                                <h3 className="text-lg font-bold text-gray-900 truncate flex items-center gap-2">
                                     {selectedPartner.fullName}
+                                    {(selectedPartner.plan === 'premium' || selectedPartner.plan === 'premium_user') ? (
+                                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                            PREMIUM
+                                        </span>
+                                    ) : (
+                                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                                            THƯỜNG
+                                        </span>
+                                    )}
                                 </h3>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-gray-500 mt-1">
                                     Mã đối tác: #{selectedPartner.id?.slice(-8).toUpperCase()}
                                 </p>
                             </div>

@@ -200,12 +200,29 @@ export const getUserStats = async (req, res, next) => {
  */
 export const getPartners = async (req, res, next) => {
   try {
+    const { status, search, plan } = req.query;
     const options = {
       page: req.query.page || 1,
-      limit: req.query.limit || 20
+      limit: req.query.limit || 20,
+      sort: { createdAt: -1 }
     };
 
-    const result = await userRepository.findPartners(options);
+    const filter = {};
+    if (status) filter.status = status;
+    if (plan) {
+      if (plan === 'premium') {
+        filter.plan = { $in: ['premium', 'premium_user'] };
+      } else {
+        filter.plan = plan; // e.g. 'free'
+      }
+    }
+
+    let result;
+    if (search) {
+      result = await userRepository.searchPartners(search, filter, options);
+    } else {
+      result = await userRepository.findPartners(filter, options);
+    }
 
     res.json({
       success: true,
