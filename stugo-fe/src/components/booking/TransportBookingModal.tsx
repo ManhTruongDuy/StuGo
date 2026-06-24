@@ -113,35 +113,76 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         let currentSeat = 1;
         let seatsRemaining = totalSeats;
         
-        while (seatsRemaining > 0) {
-            if (seatsRemaining === 5) {
-                grid.push([
-                    (currentSeat + 4).toString().padStart(2, '0'),
-                    (currentSeat + 3).toString().padStart(2, '0'),
-                    (currentSeat + 2).toString().padStart(2, '0'),
-                    (currentSeat + 1).toString().padStart(2, '0'),
-                    (currentSeat).toString().padStart(2, '0')
-                ]);
-                seatsRemaining = 0;
-            } else if (seatsRemaining >= 4) {
-                grid.push([
-                    (currentSeat + 3).toString().padStart(2, '0'),
-                    (currentSeat + 2).toString().padStart(2, '0'),
-                    null,
-                    (currentSeat + 1).toString().padStart(2, '0'),
-                    (currentSeat).toString().padStart(2, '0')
-                ]);
-                currentSeat += 4;
-                seatsRemaining -= 4;
-            } else {
-                const row: (string | null)[] = [];
-                for (let i = seatsRemaining - 1; i >= 0; i--) {
-                    row.push((currentSeat + i).toString().padStart(2, '0'));
+        if (totalSeats <= 16) {
+            // Ford Transit / Van Layout
+            if (seatsRemaining >= 2) {
+                grid.push([null, null, null, (currentSeat+1).toString().padStart(2, '0'), currentSeat.toString().padStart(2, '0')]);
+                currentSeat += 2;
+                seatsRemaining -= 2;
+            }
+            while (seatsRemaining > 0) {
+                if (seatsRemaining === 4 || seatsRemaining === 5) {
+                    const row: (string | null)[] = [];
+                    for (let i = seatsRemaining - 1; i >= 0; i--) {
+                        row.push((currentSeat + i).toString().padStart(2, '0'));
+                    }
+                    while(row.length < 5) row.splice(Math.floor(row.length/2), 0, null);
+                    grid.push(row);
+                    currentSeat += seatsRemaining;
+                    seatsRemaining = 0;
+                } else if (seatsRemaining >= 3) {
+                    grid.push([
+                        (currentSeat + 2).toString().padStart(2, '0'),
+                        (currentSeat + 1).toString().padStart(2, '0'),
+                        null,
+                        null,
+                        (currentSeat).toString().padStart(2, '0')
+                    ]);
+                    currentSeat += 3;
+                    seatsRemaining -= 3;
+                } else {
+                    const row: (string | null)[] = [];
+                    for (let i = seatsRemaining - 1; i >= 0; i--) {
+                        row.push((currentSeat + i).toString().padStart(2, '0'));
+                    }
+                    while(row.length < 5) row.splice(2, 0, null);
+                    grid.push(row);
+                    currentSeat += seatsRemaining;
+                    seatsRemaining = 0;
                 }
-                while(row.length < 5) row.splice(Math.floor(row.length/2), 0, null);
-                grid.push(row);
-                currentSeat += seatsRemaining;
-                seatsRemaining = 0;
+            }
+        } else {
+            // Standard 2x2 Layout (1 Tầng)
+            while (seatsRemaining > 0) {
+                if (seatsRemaining === 5) {
+                    grid.push([
+                        (currentSeat + 4).toString().padStart(2, '0'),
+                        (currentSeat + 3).toString().padStart(2, '0'),
+                        (currentSeat + 2).toString().padStart(2, '0'),
+                        (currentSeat + 1).toString().padStart(2, '0'),
+                        (currentSeat).toString().padStart(2, '0')
+                    ]);
+                    seatsRemaining = 0;
+                } else if (seatsRemaining >= 4) {
+                    grid.push([
+                        (currentSeat + 3).toString().padStart(2, '0'),
+                        (currentSeat + 2).toString().padStart(2, '0'),
+                        null,
+                        (currentSeat + 1).toString().padStart(2, '0'),
+                        (currentSeat).toString().padStart(2, '0')
+                    ]);
+                    currentSeat += 4;
+                    seatsRemaining -= 4;
+                } else {
+                    const row: (string | null)[] = [];
+                    for (let i = seatsRemaining - 1; i >= 0; i--) {
+                        row.push((currentSeat + i).toString().padStart(2, '0'));
+                    }
+                    while(row.length < 5) row.splice(Math.floor(row.length/2), 0, null);
+                    grid.push(row);
+                    currentSeat += seatsRemaining;
+                    seatsRemaining = 0;
+                }
             }
         }
         return grid;
@@ -539,8 +580,10 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
 
                             {/* Decks/Grid */}
                             <div className="w-full mb-6">
-                                <div className="flex flex-col items-center max-w-[320px] mx-auto">
-                                    <h4 className="text-sm font-semibold text-gray-600 mb-2">Sơ đồ chỗ ngồi xe {totalSeats} chỗ</h4>
+                                <div className="flex flex-col items-center max-w-[340px] mx-auto">
+                                    <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                                        {totalSeats <= 16 ? 'Sơ đồ ghế xe Van/Limousine' : `Sơ đồ ghế xe ${totalSeats} chỗ`}
+                                    </h4>
                                     <div className="w-full bg-[#f8fafc] rounded-3xl p-5 flex flex-col gap-4 border-2 border-gray-200 shadow-sm relative overflow-hidden">
                                         {/* Bus Front Indicator */}
                                         <div className="absolute top-0 left-0 right-0 h-6 bg-gray-200/50 flex justify-center items-center border-b border-gray-200/50">
@@ -569,7 +612,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                         if (!seatId) {
                                                             // Aisle space
                                                             return <div key={`aisle-${rowIndex}-${colIndex}`} className="w-[38px] flex flex-col items-center justify-center">
-                                                                {rowIndex === 1 && <span className="text-[10px] text-gray-400 font-medium rotate-90 whitespace-nowrap opacity-50">LỐI ĐI</span>}
+                                                                {(totalSeats > 16 && rowIndex === 1) && <span className="text-[10px] text-gray-400 font-medium rotate-90 whitespace-nowrap opacity-50">LỐI ĐI</span>}
                                                             </div>;
                                                         }
                                                         return (
