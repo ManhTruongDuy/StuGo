@@ -90,23 +90,8 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
 
         // Generate all seat IDs
         const allSeatIds: string[] = [];
-        const isSleeper = service.vehicleType?.toLowerCase().includes('giường') || 
-                          service.vehicleType?.toLowerCase().includes('nằm') || 
-                          totalSeats >= 20;
-
-        if (isSleeper) {
-            const half = Math.ceil(totalSeats / 2);
-            for (let i = 1; i <= half; i++) {
-                allSeatIds.push(`A${i.toString().padStart(2, '0')}`);
-            }
-            const otherHalf = totalSeats - half;
-            for (let i = 1; i <= otherHalf; i++) {
-                allSeatIds.push(`B${i.toString().padStart(2, '0')}`);
-            }
-        } else {
-            for (let i = 1; i <= totalSeats; i++) {
-                allSeatIds.push(`A${i.toString().padStart(2, '0')}`);
-            }
+        for (let i = 1; i <= totalSeats; i++) {
+            allSeatIds.push(i.toString().padStart(2, '0'));
         }
 
         const occupiedSet = new Set<string>(bookedSeatsList);
@@ -129,22 +114,50 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     // Generate all seat IDs
     const allSeats = useMemo(() => {
         const seatsList: string[] = [];
-        if (isSleeper) {
-            const half = Math.ceil(totalSeats / 2);
-            for (let i = 1; i <= half; i++) {
-                seatsList.push(`A${i.toString().padStart(2, '0')}`);
-            }
-            const otherHalf = totalSeats - half;
-            for (let i = 1; i <= otherHalf; i++) {
-                seatsList.push(`B${i.toString().padStart(2, '0')}`);
-            }
-        } else {
-            for (let i = 1; i <= totalSeats; i++) {
-                seatsList.push(`A${i.toString().padStart(2, '0')}`);
-            }
+        for (let i = 1; i <= totalSeats; i++) {
+            seatsList.push(i.toString().padStart(2, '0'));
         }
         return seatsList;
-    }, [totalSeats, isSleeper]);
+    }, [totalSeats]);
+
+    const seatGrid = useMemo(() => {
+        const grid = [];
+        let currentSeat = 1;
+        let seatsRemaining = totalSeats;
+        
+        while (seatsRemaining > 0) {
+            if (seatsRemaining === 5) {
+                grid.push([
+                    (currentSeat + 4).toString().padStart(2, '0'),
+                    (currentSeat + 3).toString().padStart(2, '0'),
+                    (currentSeat + 2).toString().padStart(2, '0'),
+                    (currentSeat + 1).toString().padStart(2, '0'),
+                    (currentSeat).toString().padStart(2, '0')
+                ]);
+                seatsRemaining = 0;
+            } else if (seatsRemaining >= 4) {
+                grid.push([
+                    (currentSeat + 3).toString().padStart(2, '0'),
+                    (currentSeat + 2).toString().padStart(2, '0'),
+                    null,
+                    (currentSeat + 1).toString().padStart(2, '0'),
+                    (currentSeat).toString().padStart(2, '0')
+                ]);
+                currentSeat += 4;
+                seatsRemaining -= 4;
+            } else {
+                const row = [];
+                for (let i = seatsRemaining - 1; i >= 0; i--) {
+                    row.push((currentSeat + i).toString().padStart(2, '0'));
+                }
+                while(row.length < 5) row.splice(Math.floor(row.length/2), 0, null);
+                grid.push(row);
+                currentSeat += seatsRemaining;
+                seatsRemaining = 0;
+            }
+        }
+        return grid;
+    }, [totalSeats]);
 
     const occupiedSeats = useMemo(() => {
         if (!selectedDate || !selectedRoute || !selectedSlot) return [];
@@ -156,8 +169,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         return getOccupiedSeats(service.id, dateStr, selectedSlot, selectedRoute, totalSeats, bookedList);
     }, [selectedDate, selectedRoute, selectedSlot, availableSlots, service.id, totalSeats]);
 
-    const lowerDeckSeats = useMemo(() => allSeats.filter(s => s.startsWith('A')), [allSeats]);
-    const upperDeckSeats = useMemo(() => allSeats.filter(s => s.startsWith('B')), [allSeats]);
+
 
     // Fetch available slots when date is selected
     useEffect(() => {
@@ -539,58 +551,55 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
 
                             {/* Decks/Grid */}
                             <div className="w-full mb-6">
-                                {isSleeper ? (
-                                    <div className="flex flex-col items-center max-w-[300px] mx-auto">
-                                        <h4 className="text-sm font-semibold text-gray-600 mb-2">Sơ đồ ghế (1 Tầng - 2 Hàng)</h4>
-                                        <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
-                                            {/* Driver Section */}
-                                            <div className="flex justify-between items-center px-1">
-                                                <div className="p-1.5 rounded-full bg-gray-200 text-gray-500">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                                                        <circle cx="12" cy="12" r="10" />
-                                                        <circle cx="12" cy="12" r="3" />
-                                                        <line x1="12" y1="2" x2="12" y2="9" />
-                                                        <line x1="2" y1="12" x2="9" y2="12" />
-                                                        <line x1="15" y1="12" x2="22" y2="12" />
-                                                    </svg>
-                                                </div>
-                                                <div className="w-6 h-6"></div>
-                                            </div>
-                                            {/* Seats Grid: 2 rows with an aisle */}
-                                            <div className="flex justify-between gap-8">
-                                                <div className="grid grid-cols-1 gap-3">
-                                                    {lowerDeckSeats.map(seat => renderSeat(seat))}
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-3">
-                                                    {upperDeckSeats.map(seat => renderSeat(seat))}
-                                                </div>
+                                <div className="flex flex-col items-center max-w-[320px] mx-auto">
+                                    <h4 className="text-sm font-semibold text-gray-600 mb-2">Sơ đồ chỗ ngồi xe {totalSeats} chỗ</h4>
+                                    <div className="w-full bg-[#f8fafc] rounded-3xl p-5 flex flex-col gap-4 border-2 border-gray-200 shadow-sm relative overflow-hidden">
+                                        {/* Bus Front Indicator */}
+                                        <div className="absolute top-0 left-0 right-0 h-6 bg-gray-200/50 flex justify-center items-center border-b border-gray-200/50">
+                                            <div className="w-16 h-1 bg-gray-300 rounded-full"></div>
+                                        </div>
+                                        
+                                        {/* Driver Section */}
+                                        <div className="flex justify-between items-center mt-5 mb-2 px-2">
+                                            <div className="w-8 h-8"></div>
+                                            <div className="p-2 rounded-full bg-gray-200 text-gray-500 shadow-inner">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                    <line x1="12" y1="2" x2="12" y2="9" />
+                                                    <line x1="2" y1="12" x2="9" y2="12" />
+                                                    <line x1="15" y1="12" x2="22" y2="12" />
+                                                </svg>
                                             </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center max-w-[200px] mx-auto">
-                                        <h4 className="text-sm font-semibold text-gray-600 mb-2">Sơ đồ ghế</h4>
-                                        <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
-                                            {/* Driver Section */}
-                                            <div className="flex justify-between items-center px-1">
-                                                <div className="p-1.5 rounded-full bg-gray-200 text-gray-500">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                                                        <circle cx="12" cy="12" r="10" />
-                                                        <circle cx="12" cy="12" r="3" />
-                                                        <line x1="12" y1="2" x2="12" y2="9" />
-                                                        <line x1="2" y1="12" x2="9" y2="12" />
-                                                        <line x1="15" y1="12" x2="22" y2="12" />
-                                                    </svg>
+                                        
+                                        {/* Seats Grid */}
+                                        <div className="flex flex-col gap-3">
+                                            {seatGrid.map((row, rowIndex) => (
+                                                <div key={rowIndex} className="flex justify-between items-center w-full">
+                                                    {row.map((seatId, colIndex) => {
+                                                        if (!seatId) {
+                                                            // Aisle space
+                                                            return <div key={`aisle-${rowIndex}-${colIndex}`} className="w-[38px] flex flex-col items-center justify-center">
+                                                                {rowIndex === 1 && <span className="text-[10px] text-gray-400 font-medium rotate-90 whitespace-nowrap opacity-50">LỐI ĐI</span>}
+                                                            </div>;
+                                                        }
+                                                        return (
+                                                            <div key={seatId} className="w-[38px]">
+                                                                {renderSeat(seatId)}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                                <div className="w-6 h-6"></div>
-                                            </div>
-                                            {/* Seats Grid */}
-                                            <div className="grid grid-cols-2 gap-3 justify-items-center">
-                                                {allSeats.map(seat => renderSeat(seat))}
-                                            </div>
+                                            ))}
+                                        </div>
+                                        
+                                        {/* Door Indicator */}
+                                        <div className="absolute bottom-6 -right-1 text-[10px] font-medium text-gray-400 rotate-90">
+                                            CỬA LÊN
                                         </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
 
                             {/* Legend */}
