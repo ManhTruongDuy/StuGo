@@ -93,7 +93,22 @@ class PaymentRepository extends BaseRepository {
     ];
 
     const result = await this.aggregate(pipeline);
-    return result[0] || { total: 0, count: 0, bookingRevenue: 0, subscriptionRevenue: 0 };
+    const data = result[0] || { total: 0, count: 0, bookingRevenue: 0, subscriptionRevenue: 0 };
+
+    try {
+      const Transaction = (await import('../models/transaction.model.js')).default;
+      const withdrawnAgg = await Transaction.aggregate([
+        { $match: { type: 'withdrawal', status: { $in: ['pending', 'completed'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]);
+      const totalWithdrawn = withdrawnAgg[0]?.total || 0;
+      data.total = Math.max(0, data.total - totalWithdrawn);
+      data.bookingRevenue = Math.max(0, data.bookingRevenue - totalWithdrawn);
+    } catch (error) {
+      console.error('Error deducting withdrawals from total revenue:', error);
+    }
+
+    return data;
   }
 }
 
