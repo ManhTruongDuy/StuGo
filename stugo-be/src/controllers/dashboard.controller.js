@@ -355,9 +355,41 @@ export const getRevenueStats = async (req, res, next) => {
                 { $sort: { '_id.year': 1, '_id.month': 1 } }
             ]);
 
+            // Fetch withdrawals
+            const Transaction = (await import('../models/transaction.model.js')).default;
+            const matchQueryTx = { type: 'withdrawal', status: { $in: ['pending', 'completed'] }, createdAt: { $gte: start, $lte: end } };
+            const withdrawnData = await Transaction.aggregate([
+                { $match: matchQueryTx },
+                {
+                    $group: {
+                        _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+                        totalWithdrawn: { $sum: '$amount' }
+                    }
+                }
+            ]);
+
+            const revenueMap = new Map();
+            revenueData.forEach(item => {
+                const key = `${item._id.year}-${item._id.month}`;
+                revenueMap.set(key, { ...item });
+            });
+            withdrawnData.forEach(w => {
+                const key = `${w._id.year}-${w._id.month}`;
+                if (revenueMap.has(key)) {
+                    const item = revenueMap.get(key);
+                    item.totalRevenue = Math.max(0, item.totalRevenue - w.totalWithdrawn);
+                } else {
+                    revenueMap.set(key, { _id: w._id, totalRevenue: 0, bookingCount: 0 });
+                }
+            });
+            const mergedRevenueData = Array.from(revenueMap.values()).sort((a, b) => {
+                if (a._id.year !== b._id.year) return a._id.year - b._id.year;
+                return a._id.month - b._id.month;
+            });
+
             return res.json({
                 success: true,
-                data: revenueData
+                data: mergedRevenueData
             });
         }
 
@@ -393,9 +425,46 @@ export const getRevenueStats = async (req, res, next) => {
             { $sort: { '_id.year': 1, '_id.month': 1 } }
         ]);
 
+        const Transaction = (await import('../models/transaction.model.js')).default;
+        const mongoose = (await import('mongoose')).default;
+        const matchQueryTx = { 
+            type: 'withdrawal', 
+            status: { $in: ['pending', 'completed'] }, 
+            createdAt: { $gte: start, $lte: end },
+            userId: new mongoose.Types.ObjectId(ownerId)
+        };
+        const withdrawnData = await Transaction.aggregate([
+            { $match: matchQueryTx },
+            {
+                $group: {
+                    _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+                    totalWithdrawn: { $sum: '$amount' }
+                }
+            }
+        ]);
+
+        const revenueMap = new Map();
+        bookingRevenue.forEach(item => {
+            const key = `${item._id.year}-${item._id.month}`;
+            revenueMap.set(key, { ...item });
+        });
+        withdrawnData.forEach(w => {
+            const key = `${w._id.year}-${w._id.month}`;
+            if (revenueMap.has(key)) {
+                const item = revenueMap.get(key);
+                item.totalRevenue = Math.max(0, item.totalRevenue - w.totalWithdrawn);
+            } else {
+                revenueMap.set(key, { _id: w._id, totalRevenue: 0, bookingCount: 0 });
+            }
+        });
+        const mergedBookingRevenue = Array.from(revenueMap.values()).sort((a, b) => {
+            if (a._id.year !== b._id.year) return a._id.year - b._id.year;
+            return a._id.month - b._id.month;
+        });
+
         res.json({
             success: true,
-            data: bookingRevenue
+            data: mergedBookingRevenue
         });
     } catch (error) {
         next(error);
