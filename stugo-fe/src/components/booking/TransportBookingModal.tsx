@@ -540,38 +540,28 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                             {/* Decks/Grid */}
                             <div className="w-full mb-6">
                                 {isSleeper ? (
-                                    <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
-                                        {/* Tầng dưới */}
-                                        <div className="flex flex-col items-center">
-                                            <h4 className="text-sm font-semibold text-gray-600 mb-2">Tầng dưới</h4>
-                                            <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
-                                                {/* Driver Section */}
-                                                <div className="flex justify-between items-center px-1">
-                                                    <div className="p-1.5 rounded-full bg-gray-200 text-gray-500">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                                                            <circle cx="12" cy="12" r="10" />
-                                                            <circle cx="12" cy="12" r="3" />
-                                                            <line x1="12" y1="2" x2="12" y2="9" />
-                                                            <line x1="2" y1="12" x2="9" y2="12" />
-                                                            <line x1="15" y1="12" x2="22" y2="12" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="w-6 h-6"></div>
+                                    <div className="flex flex-col items-center max-w-[300px] mx-auto">
+                                        <h4 className="text-sm font-semibold text-gray-600 mb-2">Sơ đồ ghế (1 Tầng - 2 Hàng)</h4>
+                                        <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
+                                            {/* Driver Section */}
+                                            <div className="flex justify-between items-center px-1">
+                                                <div className="p-1.5 rounded-full bg-gray-200 text-gray-500">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                                                        <circle cx="12" cy="12" r="10" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                        <line x1="12" y1="2" x2="12" y2="9" />
+                                                        <line x1="2" y1="12" x2="9" y2="12" />
+                                                        <line x1="15" y1="12" x2="22" y2="12" />
+                                                    </svg>
                                                 </div>
-                                                {/* Seats Grid */}
-                                                <div className="grid grid-cols-2 gap-3 justify-items-center">
+                                                <div className="w-6 h-6"></div>
+                                            </div>
+                                            {/* Seats Grid: 2 rows with an aisle */}
+                                            <div className="flex justify-between gap-8">
+                                                <div className="grid grid-cols-1 gap-3">
                                                     {lowerDeckSeats.map(seat => renderSeat(seat))}
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Tầng trên */}
-                                        <div className="flex flex-col items-center">
-                                            <h4 className="text-sm font-semibold text-gray-600 mb-2">Tầng trên</h4>
-                                            <div className="w-full bg-gray-55 rounded-3xl p-4 flex flex-col gap-4 border border-gray-200/80">
-                                                <div className="h-9"></div>
-                                                {/* Seats Grid */}
-                                                <div className="grid grid-cols-2 gap-3 justify-items-center">
+                                                <div className="grid grid-cols-1 gap-3">
                                                     {upperDeckSeats.map(seat => renderSeat(seat))}
                                                 </div>
                                             </div>
