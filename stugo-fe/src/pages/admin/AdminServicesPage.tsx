@@ -607,7 +607,6 @@ const ServiceEditModal = ({
                                     <input value={form.carpoolVehicleName} onChange={e => set('carpoolVehicleName', e.target.value)} className="input w-full" placeholder="VD: Carnival" />
                                 </div>
                             </div>
-                            </div>
 
                             {/* Carpool Routes Management */}
                             <div className="mt-6 pt-4 border-t border-gray-100">
@@ -714,6 +713,7 @@ const ServiceEditModal = ({
                                 </div>
                             </div>
                         </div>
+                        )}
 
                     {/* Routes for Transport */}
                             {form.type === 'transport' && (
