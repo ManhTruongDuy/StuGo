@@ -67,23 +67,26 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         let seatsRemaining = totalSeats;
         
         if (totalSeats <= 16) {
-            // Ford Transit / Van Layout (4 columns)
-            // Row 1: Tx, 01, 02
+            // Target layout based on real van layout:
+            // Driver is at top-left.
+            // Row 1: [null, '02', null, '01']
+            // Row 2: ['05', '04', null, '03']
+            // Row 3: ['08', '07', null, '06']
+            // Row 4: ['11', '10', null, '09']
+            // Row 5: ['15', '14', '13', '12']
             if (seatsRemaining >= 2) {
-                grid.push([null, null, '01', '02']);
+                grid.push([null, '02', null, '01']);
                 currentSeat += 2; seatsRemaining -= 2;
             }
-            // Middle rows: 05, null, 04, 03
             while (seatsRemaining > 4) {
                 grid.push([
                     (currentSeat+2).toString().padStart(2, '0'),
-                    null,
                     (currentSeat+1).toString().padStart(2, '0'),
+                    null,
                     currentSeat.toString().padStart(2, '0')
                 ]);
                 currentSeat += 3; seatsRemaining -= 3;
             }
-            // Last row: 15, 14, 13, 12
             if (seatsRemaining > 0) {
                 const lastRow: (string | null)[] = [];
                 for (let i = seatsRemaining - 1; i >= 0; i--) {
@@ -583,7 +586,6 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                         
                                         {/* Driver Section */}
                                         <div className="flex justify-between items-center mt-5 mb-2 px-2">
-                                            <div className="w-8 h-8"></div>
                                             <div className="p-2 rounded-full bg-gray-200 text-gray-500 shadow-inner">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                                                     <circle cx="12" cy="12" r="10" />
@@ -593,6 +595,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                     <line x1="15" y1="12" x2="22" y2="12" />
                                                 </svg>
                                             </div>
+                                            <div className="w-8 h-8"></div>
                                         </div>
                                         
                                         {/* Seats Grid */}

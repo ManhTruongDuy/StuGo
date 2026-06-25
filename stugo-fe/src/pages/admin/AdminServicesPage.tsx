@@ -611,6 +611,8 @@ const ServiceEditModal = ({
                                     ))}
                                 </div>
                             </div>
+                            </>
+                            )}
                         </>
                     )}
 
