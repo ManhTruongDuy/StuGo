@@ -261,8 +261,12 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     const isPremium = user?.plan === 'premium_user';
     const selectedRouteObj = service.routes?.find(r => (typeof r === 'string' ? r === selectedRoute : r.name === selectedRoute));
     const basePrice = selectedRouteObj && typeof selectedRouteObj !== 'string' ? selectedRouteObj.price : service.priceRange.min;
-    const displayUnitPrice = isPremium ? basePrice : Math.round(basePrice * 1.05);
-    const totalPrice = displayUnitPrice * quantityToUse;
+    
+    const rawTotal = basePrice * quantityToUse;
+    const serviceFee = Math.round(rawTotal * 0.05);
+    const standardTotal = rawTotal + serviceFee;
+    const discountAmount = isPremium ? Math.min(serviceFee, 100000) : 0;
+    const totalPrice = standardTotal - discountAmount;
     const finalPaymentAmount = totalPrice;
 
     const renderSeat = (seatId: string) => {
@@ -706,14 +710,20 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                         Đơn giá × {quantityToUse}
                                     </span>
                                     <span className="font-medium text-gray-900">
-                                        {formatPrice(basePrice * quantityToUse)}
+                                        {formatPrice(rawTotal)}
                                     </span>
                                 </div>
-                                {!isPremium && (
-                                    <div className="flex items-center justify-between text-gray-600">
-                                        <span>Phí dịch vụ (5%)</span>
-                                        <span className="font-medium text-gray-900">
-                                            {formatPrice(totalPrice - (basePrice * quantityToUse))}
+                                <div className="flex items-center justify-between text-gray-600">
+                                    <span>Phí dịch vụ (5%)</span>
+                                    <span className="font-medium text-gray-900">
+                                        {formatPrice(serviceFee)}
+                                    </span>
+                                </div>
+                                {isPremium && discountAmount > 0 && (
+                                    <div className="flex items-center justify-between text-green-600">
+                                        <span>Giảm giá Premium {discountAmount === 100000 ? '(Tối đa)' : ''}</span>
+                                        <span className="font-medium">
+                                            - {formatPrice(discountAmount)}
                                         </span>
                                     </div>
                                 )}

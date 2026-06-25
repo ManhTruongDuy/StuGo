@@ -99,6 +99,7 @@ export const getPartners = async (params?: {
         city: p.city,
         district: p.district,
         role: p.role,
+        plan: p.plan || 'free',
         status: p.status || 'active',
         servicesCount: p.servicesCount || 0,
         totalRevenue: p.totalRevenue || 0,
