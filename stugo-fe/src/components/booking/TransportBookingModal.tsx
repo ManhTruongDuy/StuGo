@@ -525,6 +525,40 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                 <p className="text-sm text-gray-500 mt-1">Vui lòng chọn chỗ ngồi (Chọn tối đa theo số ghế trống)</p>
                             </div>
 
+                            {/* Bao xe Option */}
+                            <div className="w-full max-w-[340px] flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
+                                <div>
+                                    <p className="font-semibold text-gray-900">Bao nguyên xe</p>
+                                    <p className="text-xs text-gray-500">Đặt toàn bộ {totalSeats} chỗ</p>
+                                </div>
+                                {occupiedSeats.length === 0 ? (
+                                    <button
+                                        onClick={() => {
+                                            if (selectedSeats.length === totalSeats) {
+                                                setSelectedSeats([]);
+                                            } else {
+                                                const allIds = [];
+                                                for (let i = 1; i <= totalSeats; i++) {
+                                                    allIds.push(i.toString().padStart(2, '0'));
+                                                }
+                                                setSelectedSeats(allIds);
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                            selectedSeats.length === totalSeats 
+                                                ? 'bg-primary-500 text-white shadow-md shadow-primary-200'
+                                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {selectedSeats.length === totalSeats ? 'Đang bao xe' : 'Chọn bao xe'}
+                                    </button>
+                                ) : (
+                                    <span className="text-[10px] font-medium text-red-500 bg-red-50 px-2 py-1 rounded-md border border-red-100">
+                                        Đã có khách đặt
+                                    </span>
+                                )}
+                            </div>
+
                             {/* Decks/Grid */}
                             <div className="w-full mb-6">
                                 <div className="flex flex-col items-center max-w-[340px] mx-auto">
