@@ -21,7 +21,11 @@ export const getBookings = async (req, res, next) => {
     }
 
     if (serviceType) {
-      query.serviceType = serviceType;
+      if (serviceType === 'transport' || serviceType === 'carpool') {
+        query.serviceType = { $in: ['transport', 'carpool'] };
+      } else {
+        query.serviceType = serviceType;
+      }
     }
 
     // Date range filter

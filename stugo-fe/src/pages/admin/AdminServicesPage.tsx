@@ -346,6 +346,13 @@ const ServiceEditModal = ({
                 } else {
                     payload.priceRange = { min: 0, max: 0 };
                 }
+            } else if (form.type === 'carpool') {
+                payload.vehicleType = form.vehicleType;
+                payload.seats = Number(form.seats) || 0;
+                payload.priceRange = {
+                    min: parseInt(form.priceMin) || 0,
+                    max: parseInt(form.priceMax) || 0,
+                };
             } else if (form.type === 'restaurant') {
                 const cleanMenuItems = form.menuItems
                     .filter((item: any) => item.name && item.name.trim())
@@ -515,11 +522,11 @@ const ServiceEditModal = ({
                         )}
                     </div>
 
-                    {/* Transport Specific fields */}
-                    {form.type === 'transport' && (
+                    {/* Transport & Carpool Specific fields */}
+                    {(form.type === 'transport' || form.type === 'carpool') && (
                         <>
                             <div className="border-t border-gray-100 pt-4 space-y-4">
-                                <label className="block text-sm font-semibold text-gray-700">Thông tin xe & Giờ khởi hành</label>
+                                <label className="block text-sm font-semibold text-gray-700">Thông tin xe</label>
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Loại xe</label>
@@ -532,8 +539,10 @@ const ServiceEditModal = ({
                                 </div>
                             </div>
 
-                            {/* Routes */}
-                            <div className="border-t border-gray-100 pt-4">
+                            {/* Routes for Transport */}
+                            {form.type === 'transport' && (
+                                <>
+                                    <div className="border-t border-gray-100 pt-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <label className="block text-sm font-semibold text-gray-700">Tuyến đường & Giá vé</label>
                                     <button type="button" onClick={addRoute} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">

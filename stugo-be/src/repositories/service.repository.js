@@ -11,7 +11,11 @@ class ServiceRepository extends BaseRepository {
 
     // Type filter
     if (filters.type) {
-      query.type = filters.type;
+      if (filters.type === 'transport' || filters.type === 'carpool') {
+        query.type = { $in: ['transport', 'carpool'] };
+      } else {
+        query.type = filters.type;
+      }
     }
 
     // Location filter - search in address field for flexible location search
@@ -142,7 +146,13 @@ class ServiceRepository extends BaseRepository {
 
   async getPopularServices(type = null, limit = 10) {
     const query = { status: 'active', isAvailable: true };
-    if (type) query.type = type;
+    if (type) {
+      if (type === 'transport' || type === 'carpool') {
+        query.type = { $in: ['transport', 'carpool'] };
+      } else {
+        query.type = type;
+      }
+    }
 
     return this.model.aggregate([
       { $match: query },
