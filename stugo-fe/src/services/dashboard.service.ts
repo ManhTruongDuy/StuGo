@@ -19,6 +19,8 @@ export interface DashboardOverview {
   revenue: {
     total: number;
     thisMonth: number;
+    commissionTotal: number;
+    commissionThisMonth: number;
   };
 }
 

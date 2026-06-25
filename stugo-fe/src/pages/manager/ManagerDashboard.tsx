@@ -81,6 +81,14 @@ const ManagerDashboard = () => {
             color: 'from-green-500 to-teal-600',
         },
         {
+            label: 'Phí hoa hồng (ước tính)',
+            value: formatPrice(overview.revenue.commissionTotal),
+            change: formatPrice(overview.revenue.commissionThisMonth) + ' tháng này',
+            trend: 'down',
+            icon: DollarSign,
+            color: 'from-blue-500 to-indigo-600',
+        },
+        {
             label: 'Đặt chỗ hôm nay',
             value: overview.bookings.today.toString(),
             change: `${overview.bookings.pending} chờ`,

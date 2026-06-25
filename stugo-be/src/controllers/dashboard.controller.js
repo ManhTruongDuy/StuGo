@@ -169,7 +169,10 @@ export const getDashboardOverview = async (req, res, next) => {
                 const bookingTotal = bookingRevenue[0]?.total || 0;
                 const subTotal = subRevenue[0]?.total || 0;
                 const withdrawnTotal = withdrawnAgg[0]?.total || 0;
-                return [{ total: Math.max(0, bookingTotal + subTotal - withdrawnTotal) }];
+                return [{ 
+                    total: Math.max(0, bookingTotal + subTotal - withdrawnTotal),
+                    commission: bookingTotal * 0.3
+                }];
             })(),
             // This month revenue
             (async () => {
@@ -224,7 +227,10 @@ export const getDashboardOverview = async (req, res, next) => {
                 
                 const bookingMonthTotal = bookingMonthRevenue[0]?.total || 0;
                 const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
-                return [{ total: Math.max(0, bookingMonthTotal - withdrawnMonthTotal) }];
+                return [{ 
+                    total: Math.max(0, bookingMonthTotal - withdrawnMonthTotal),
+                    commission: bookingMonthTotal * 0.3
+                }];
             })()
         ]);
 
@@ -269,7 +275,9 @@ export const getDashboardOverview = async (req, res, next) => {
         console.log('📈 Stats:', {
             totalBookings,
             totalRevenue: totalRevenue[0]?.total || 0,
-            monthRevenue: monthRevenue[0]?.total || 0
+            monthRevenue: monthRevenue[0]?.total || 0,
+            commissionTotal: totalRevenue[0]?.commission || 0,
+            commissionThisMonth: monthRevenue[0]?.commission || 0
         });
 
         res.json({
@@ -291,7 +299,9 @@ export const getDashboardOverview = async (req, res, next) => {
                 },
                 revenue: {
                     total: totalRevenue[0]?.total || 0,
-                    thisMonth: monthRevenue[0]?.total || 0
+                    thisMonth: monthRevenue[0]?.total || 0,
+                    commissionTotal: totalRevenue[0]?.commission || 0,
+                    commissionThisMonth: monthRevenue[0]?.commission || 0
                 }
             }
         });
