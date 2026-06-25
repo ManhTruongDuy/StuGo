@@ -234,7 +234,7 @@ export const getPartners = async (req, res, next) => {
     partners = await Promise.all(
       partners.map(async (partner) => {
         const partnerObj = partner.toObject ? partner.toObject() : partner;
-        const servicesCount = await serviceRepository.model.countDocuments({ partnerId: partner._id });
+        const servicesCount = await serviceRepository.model.countDocuments({ ownerId: partner._id });
         
         const bookingStats = await bookingRepository.getBookingStats(partner._id);
         const completedStats = bookingStats.find(stat => stat._id === 'completed');
