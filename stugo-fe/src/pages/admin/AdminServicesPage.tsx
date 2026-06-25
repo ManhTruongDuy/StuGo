@@ -154,6 +154,11 @@ const ServiceEditModal = ({
             : [{ name: '', price: 0 }],
         departureTime: service.departureTime && service.departureTime.length > 0 ? service.departureTime : [''],
 
+        // Carpool specific
+        carpoolBrand: service.carpoolOptions?.vehicleInfo?.brand || '',
+        carpoolVehicleName: service.carpoolOptions?.vehicleInfo?.vehicleName || '',
+        carpoolEngineType: service.carpoolOptions?.vehicleInfo?.engineType || 'gasoline',
+
         // Accommodation specific
         roomTypes: service.roomTypes && service.roomTypes.length > 0
             ? service.roomTypes.map((rt: any) => ({ name: rt.name, price: rt.price, capacity: rt.capacity || 2, available: rt.available || 1 }))
@@ -347,8 +352,15 @@ const ServiceEditModal = ({
                     payload.priceRange = { min: 0, max: 0 };
                 }
             } else if (form.type === 'carpool') {
-                payload.vehicleType = form.vehicleType;
-                payload.seats = Number(form.seats) || 0;
+                payload.carpoolOptions = {
+                    vehicleInfo: {
+                        engineType: form.carpoolEngineType,
+                        brand: form.carpoolBrand,
+                        vehicleName: form.carpoolVehicleName,
+                        seats: Number(form.seats) || 5
+                    }
+                };
+                payload.seats = Number(form.seats) || 5;
                 payload.priceRange = {
                     min: parseInt(form.priceMin) || 0,
                     max: parseInt(form.priceMax) || 0,
@@ -522,24 +534,55 @@ const ServiceEditModal = ({
                         )}
                     </div>
 
-                    {/* Transport & Carpool Specific fields */}
-                    {(form.type === 'transport' || form.type === 'carpool') && (
-                        <>
-                            <div className="border-t border-gray-100 pt-4 space-y-4">
-                                <label className="block text-sm font-semibold text-gray-700">Thông tin xe</label>
-                                <div className="grid sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Loại xe</label>
-                                        <input value={form.vehicleType} onChange={e => set('vehicleType', e.target.value)} className="input w-full" placeholder="VD: Xe giường nằm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Số ghế</label>
-                                        <input type="number" value={form.seats} onChange={e => set('seats', parseInt(e.target.value) || 0)} className="input w-full" min="0" />
-                                    </div>
+                    {/* Transport Specific fields */}
+                    {form.type === 'transport' && (
+                        <div className="border-t border-gray-100 pt-4 space-y-4">
+                            <label className="block text-sm font-semibold text-gray-700">Thông tin xe (Nhà xe)</label>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Loại xe</label>
+                                    <input value={form.vehicleType} onChange={e => set('vehicleType', e.target.value)} className="input w-full" placeholder="VD: Xe giường nằm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Số ghế</label>
+                                    <input type="number" value={form.seats} onChange={e => set('seats', parseInt(e.target.value) || 0)} className="input w-full" min="0" />
                                 </div>
                             </div>
+                        </div>
+                    )}
 
-                            {/* Routes for Transport */}
+                    {/* Carpool Specific fields */}
+                    {form.type === 'carpool' && (
+                        <div className="border-t border-gray-100 pt-4 space-y-4">
+                            <label className="block text-sm font-semibold text-gray-700">Thông tin xe (Xe ghép)</label>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Động cơ</label>
+                                    <select value={form.carpoolEngineType} onChange={e => set('carpoolEngineType', e.target.value)} className="input w-full">
+                                        <option value="gasoline">Xe xăng</option>
+                                        <option value="electric">Xe điện</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Số ghế</label>
+                                    <select value={form.seats} onChange={e => set('seats', parseInt(e.target.value) || 5)} className="input w-full">
+                                        <option value={5}>5 chỗ</option>
+                                        <option value={7}>7 chỗ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Hãng xe</label>
+                                    <input value={form.carpoolBrand} onChange={e => set('carpoolBrand', e.target.value)} className="input w-full" placeholder="VD: Kia" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên xe</label>
+                                    <input value={form.carpoolVehicleName} onChange={e => set('carpoolVehicleName', e.target.value)} className="input w-full" placeholder="VD: Carnival" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Routes for Transport */}
                             {form.type === 'transport' && (
                                 <>
                                     <div className="border-t border-gray-100 pt-4">
@@ -613,8 +656,6 @@ const ServiceEditModal = ({
                             </div>
                             </>
                             )}
-                        </>
-                    )}
 
                     {/* Accommodation Specific fields */}
                     {form.type === 'accommodation' && (
