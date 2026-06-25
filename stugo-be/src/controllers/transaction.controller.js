@@ -40,8 +40,8 @@ const getAvailableBalance = async (userId) => {
   ]);
 
   const totalRevenue = revenueAgg[0]?.total || 0;
-  // Platform takes 30% commission
-  const partnerRevenue = Math.round(totalRevenue * 0.7);
+  // Platform takes 5% commission
+  const partnerRevenue = Math.round(totalRevenue * 0.95);
 
   // Total already withdrawn or pending
   const withdrawnAgg = await Transaction.aggregate([

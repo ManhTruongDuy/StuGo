@@ -171,7 +171,7 @@ export const getDashboardOverview = async (req, res, next) => {
                 const withdrawnTotal = withdrawnAgg[0]?.total || 0;
                 return [{ 
                     total: Math.max(0, bookingTotal + subTotal - withdrawnTotal),
-                    commission: bookingTotal * 0.3
+                    commission: bookingTotal * 0.05
                 }];
             })(),
             // This month revenue
@@ -229,7 +229,7 @@ export const getDashboardOverview = async (req, res, next) => {
                 const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
                 return [{ 
                     total: Math.max(0, bookingMonthTotal - withdrawnMonthTotal),
-                    commission: bookingMonthTotal * 0.3
+                    commission: bookingMonthTotal * 0.05
                 }];
             })()
         ]);
