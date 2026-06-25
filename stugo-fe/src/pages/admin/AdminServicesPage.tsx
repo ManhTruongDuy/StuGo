@@ -158,6 +158,7 @@ const ServiceEditModal = ({
         carpoolBrand: service.carpoolOptions?.vehicleInfo?.brand || '',
         carpoolVehicleName: service.carpoolOptions?.vehicleInfo?.vehicleName || '',
         carpoolEngineType: service.carpoolOptions?.vehicleInfo?.engineType || 'gasoline',
+        carpoolRoutes: service.carpoolOptions?.routes || [],
 
         // Accommodation specific
         roomTypes: service.roomTypes && service.roomTypes.length > 0
@@ -204,6 +205,31 @@ const ServiceEditModal = ({
         const newRoutes = [...form.routes];
         newRoutes[index] = { ...newRoutes[index], [field]: value };
         setForm(f => ({ ...f, routes: newRoutes }));
+    };
+
+    // Carpool Helpers
+    const addCarpoolRoute = () => {
+        setForm(f => ({
+            ...f, carpoolRoutes: [...f.carpoolRoutes, {
+                name: '', isHighwayDefault: true,
+                sharedPricing: { pricePerGuest: 0, airportSurcharge: 0, extraPointSurcharge: 0, twoGuestsDiscountedPrice: 0 },
+                privatePricing: { seats5: { oneWayPrice: 0, twoWayPrice: 0 }, seats7: { oneWayPrice: 0, twoWayPrice: 0 } }
+            }]
+        }));
+    };
+    const removeCarpoolRoute = (index: number) => {
+        const newRoutes = form.carpoolRoutes.filter((_: any, i: number) => i !== index);
+        setForm(f => ({ ...f, carpoolRoutes: newRoutes }));
+    };
+    const updateCarpoolRoute = (index: number, fieldPath: string[], value: any) => {
+        const newRoutes = [...form.carpoolRoutes];
+        let current: any = newRoutes[index];
+        for (let i = 0; i < fieldPath.length - 1; i++) {
+            current[fieldPath[i]] = { ...current[fieldPath[i]] };
+            current = current[fieldPath[i]];
+        }
+        current[fieldPath[fieldPath.length - 1]] = value;
+        setForm(f => ({ ...f, carpoolRoutes: newRoutes }));
     };
 
     const addDepartureTime = () => {
@@ -352,13 +378,15 @@ const ServiceEditModal = ({
                     payload.priceRange = { min: 0, max: 0 };
                 }
             } else if (form.type === 'carpool') {
+                const validRoutes = form.carpoolRoutes.filter((r: any) => r.name && r.name.trim() !== '');
                 payload.carpoolOptions = {
                     vehicleInfo: {
                         engineType: form.carpoolEngineType,
                         brand: form.carpoolBrand,
                         vehicleName: form.carpoolVehicleName,
                         seats: Number(form.seats) || 5
-                    }
+                    },
+                    routes: validRoutes
                 };
                 payload.seats = Number(form.seats) || 5;
                 payload.priceRange = {
@@ -579,8 +607,113 @@ const ServiceEditModal = ({
                                     <input value={form.carpoolVehicleName} onChange={e => set('carpoolVehicleName', e.target.value)} className="input w-full" placeholder="VD: Carnival" />
                                 </div>
                             </div>
+                            </div>
+
+                            {/* Carpool Routes Management */}
+                            <div className="mt-6 pt-4 border-t border-gray-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="block text-sm font-semibold text-gray-700">Tuyến đường & Giá cước (Xe ghép)</label>
+                                    <button type="button" onClick={addCarpoolRoute} className="text-xs text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1">
+                                        <Plus className="w-3.5 h-3.5" /> Thêm tuyến
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-6">
+                                    {form.carpoolRoutes.map((route: any, index: number) => (
+                                        <div key={index} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => removeCarpoolRoute(index)}
+                                                className="absolute top-2 right-2 p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                            
+                                            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Tên tuyến (VD: HÀ NỘI - CẨM PHẢ)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={route.name} 
+                                                        onChange={(e) => updateCarpoolRoute(index, ['name'], e.target.value)}
+                                                        className="input w-full text-sm py-1.5" 
+                                                        placeholder="Tên tuyến" 
+                                                    />
+                                                </div>
+                                                <div className="flex items-center mt-6">
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={route.isHighwayDefault !== false}
+                                                            onChange={(e) => updateCarpoolRoute(index, ['isHighwayDefault'], e.target.checked)}
+                                                            className="rounded text-primary-600 focus:ring-primary-500 w-4 h-4"
+                                                        />
+                                                        <span className="text-sm font-medium text-gray-700">Mặc định đi cao tốc</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {/* Shared Pricing */}
+                                            <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+                                                <h5 className="text-xs font-bold text-gray-800 mb-2 uppercase">Giá Ghép khách (Shared)</h5>
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                    <div>
+                                                        <label className="block text-xs text-gray-600 mb-1">Giá/1 Khách</label>
+                                                        <input type="number" value={route.sharedPricing?.pricePerGuest || 0} onChange={(e) => updateCarpoolRoute(index, ['sharedPricing', 'pricePerGuest'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs text-gray-600 mb-1">Giá/2 Khách</label>
+                                                        <input type="number" value={route.sharedPricing?.twoGuestsDiscountedPrice || 0} onChange={(e) => updateCarpoolRoute(index, ['sharedPricing', 'twoGuestsDiscountedPrice'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs text-gray-600 mb-1">Phụ phí Sân bay</label>
+                                                        <input type="number" value={route.sharedPricing?.airportSurcharge || 0} onChange={(e) => updateCarpoolRoute(index, ['sharedPricing', 'airportSurcharge'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs text-gray-600 mb-1">Phụ phí Thêm điểm</label>
+                                                        <input type="number" value={route.sharedPricing?.extraPointSurcharge || 0} onChange={(e) => updateCarpoolRoute(index, ['sharedPricing', 'extraPointSurcharge'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Private Pricing */}
+                                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                                                <h5 className="text-xs font-bold text-gray-800 mb-2 uppercase">Giá Bao cả xe (Private)</h5>
+                                                <div className="grid sm:grid-cols-2 gap-4">
+                                                    <div className="border-r border-gray-100 pr-4">
+                                                        <h6 className="text-xs font-semibold text-gray-700 mb-2">Xe 5 chỗ</h6>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <div>
+                                                                <label className="block text-[10px] text-gray-500 mb-1">1 Chiều</label>
+                                                                <input type="number" value={route.privatePricing?.seats5?.oneWayPrice || 0} onChange={(e) => updateCarpoolRoute(index, ['privatePricing', 'seats5', 'oneWayPrice'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] text-gray-500 mb-1">Khứ hồi</label>
+                                                                <input type="number" value={route.privatePricing?.seats5?.twoWayPrice || 0} onChange={(e) => updateCarpoolRoute(index, ['privatePricing', 'seats5', 'twoWayPrice'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h6 className="text-xs font-semibold text-gray-700 mb-2">Xe 7 chỗ</h6>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <div>
+                                                                <label className="block text-[10px] text-gray-500 mb-1">1 Chiều</label>
+                                                                <input type="number" value={route.privatePricing?.seats7?.oneWayPrice || 0} onChange={(e) => updateCarpoolRoute(index, ['privatePricing', 'seats7', 'oneWayPrice'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] text-gray-500 mb-1">Khứ hồi</label>
+                                                                <input type="number" value={route.privatePricing?.seats7?.twoWayPrice || 0} onChange={(e) => updateCarpoolRoute(index, ['privatePricing', 'seats7', 'twoWayPrice'], Number(e.target.value))} className="input w-full text-sm py-1" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                    )}
 
                     {/* Routes for Transport */}
                             {form.type === 'transport' && (
