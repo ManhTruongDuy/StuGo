@@ -58,53 +58,6 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         }).format(price);
     };
 
-    // Seeded random number generator
-    const getSeededRandom = (seed: string) => {
-        let h = 0;
-        for (let i = 0; i < seed.length; i++) {
-            h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
-        }
-        return function () {
-            let t = h += 0x6D2B79F5;
-            t = Math.imul(t ^ (t >>> 15), t | 1);
-            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-    };
-
-    // Seeded random occupied seats generator
-    const getOccupiedSeats = (
-        serviceId: string,
-        dateStr: string,
-        timeSlot: string,
-        route: string,
-        totalSeats: number,
-        bookedSeatsList: string[]
-    ) => {
-        const seed = `${serviceId}-${dateStr}-${timeSlot}-${route}`;
-        const random = getSeededRandom(seed);
-
-        // Occupy between 30% and 60% of the seats randomly
-        const percentage = 0.3 + random() * 0.3;
-        const numRandomOccupied = Math.floor(totalSeats * percentage);
-
-        // Generate all seat IDs
-        const allSeatIds: string[] = [];
-        for (let i = 1; i <= totalSeats; i++) {
-            allSeatIds.push(i.toString().padStart(2, '0'));
-        }
-
-        const occupiedSet = new Set<string>(bookedSeatsList);
-        const candidateSeats = allSeatIds.filter(seat => !occupiedSet.has(seat));
-
-        const shuffledCandidates = [...candidateSeats].sort(() => random() - 0.5);
-        const toOccupyCount = Math.min(numRandomOccupied, shuffledCandidates.length);
-        for (let i = 0; i < toOccupyCount; i++) {
-            occupiedSet.add(shuffledCandidates[i]);
-        }
-
-        return Array.from(occupiedSet);
-    };
 
     const totalSeats = service.seats || 24;
 
@@ -186,13 +139,11 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
 
     const occupiedSeats = useMemo(() => {
         if (!selectedDate || !selectedRoute || !selectedSlot) return [];
-        const dateStr = format(selectedDate, 'yyyy-MM-dd');
         const currentSlot = availableSlots.find(
             (slot: any) => slot.route === selectedRoute && slot.time === selectedSlot
         );
-        const bookedList = currentSlot?.bookedSeatsList || [];
-        return getOccupiedSeats(service.id, dateStr, selectedSlot, selectedRoute, totalSeats, bookedList);
-    }, [selectedDate, selectedRoute, selectedSlot, availableSlots, service.id, totalSeats]);
+        return currentSlot?.bookedSeatsList || [];
+    }, [selectedDate, selectedRoute, selectedSlot, availableSlots]);
 
 
 
