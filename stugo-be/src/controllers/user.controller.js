@@ -1,4 +1,4 @@
-import { userRepository, bookingRepository, paymentRepository } from '../repositories/index.js';
+import { userRepository, bookingRepository, paymentRepository, serviceRepository } from '../repositories/index.js';
 
 /**
  * Get all users (Admin only)
@@ -228,9 +228,29 @@ export const getPartners = async (req, res, next) => {
       result = await userRepository.findPartners(filter, options);
     }
 
+    let partners = result.data;
+
+    // Fetch services count and total revenue for each partner
+    partners = await Promise.all(
+      partners.map(async (partner) => {
+        const partnerObj = partner.toObject ? partner.toObject() : partner;
+        const servicesCount = await serviceRepository.model.countDocuments({ partnerId: partner._id });
+        
+        const bookingStats = await bookingRepository.getBookingStats(partner._id);
+        const completedStats = bookingStats.find(stat => stat._id === 'completed');
+        const totalRevenue = completedStats ? completedStats.totalAmount : 0;
+
+        return {
+          ...partnerObj,
+          servicesCount,
+          totalRevenue
+        };
+      })
+    );
+
     res.json({
       success: true,
-      data: result.data,
+      data: partners,
       pagination: result.pagination
     });
   } catch (error) {
