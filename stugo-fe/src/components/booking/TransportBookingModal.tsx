@@ -440,7 +440,13 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                     {(service.routes || []).map((routeItem) => {
                                         const routeName = typeof routeItem === 'string' ? routeItem : routeItem.name;
                                         const routePrice = typeof routeItem === 'string' ? service.priceRange.min : routeItem.price;
-                                        const routeUnitPrice = isPremium ? routePrice : Math.round(routePrice * 1.05);
+                                        
+                                        const routeFee = Math.round(routePrice * 0.05);
+                                        const routeStandardTotal = routePrice + routeFee;
+                                        const routePremiumDiscount = Math.min(routeFee, 100000);
+                                        const routePremiumPrice = routeStandardTotal - routePremiumDiscount;
+                                        
+                                        const routeUnitPrice = isPremium ? routePremiumPrice : routeStandardTotal;
                                         return (
                                             <button
                                                 key={routeName}
@@ -458,7 +464,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                                     <p className="font-medium text-gray-900">{routeName}</p>
                                                     {!isPremium && (
                                                         <p className="text-xs text-gray-500 mt-1">
-                                                            {formatPrice(routePrice)} khi Premium
+                                                            {formatPrice(routePremiumPrice)} khi Premium
                                                         </p>
                                                     )}
                                                 </div>
@@ -699,7 +705,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                 {!isPremium && (
                                     <div className="mt-4 text-xs text-orange-600 bg-orange-50 p-2.5 rounded-xl border border-orange-100 flex items-center justify-between font-medium">
                                         <span>Bạn đang thanh toán với giá Freemium (gồm 5% phí dịch vụ)</span>
-                                        <span className="font-semibold text-right"> {formatPrice(basePrice * quantityToUse)} khi Premium</span>
+                                        <span className="font-semibold text-right"> {formatPrice(standardTotal - Math.min(serviceFee, 100000))} khi Premium</span>
                                     </div>
                                 )}
                             </div>
