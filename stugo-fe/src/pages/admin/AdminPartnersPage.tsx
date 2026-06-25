@@ -514,9 +514,9 @@ const AdminPartnersPage = () => {
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
                                                             {partner.fullName}
-                                                            {(partner.plan === 'premium' || partner.plan === 'premium_user') ? (
+                                                            {(partner.plan && partner.plan !== 'free') ? (
                                                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                                                                    PREMIUM
+                                                                    {partner.plan === 'business_premium' ? 'PREMIUM' : partner.plan === 'business_basic' ? 'BASIC' : 'PREMIUM'}
                                                                 </span>
                                                             ) : (
                                                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
@@ -1142,12 +1142,12 @@ const AdminPartnersPage = () => {
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-lg font-bold text-gray-900 truncate flex items-center gap-2">
                                     {selectedPartner.fullName}
-                                    {(selectedPartner.plan === 'premium' || selectedPartner.plan === 'premium_user') ? (
-                                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                                            PREMIUM
+                                    {(selectedPartner.plan && selectedPartner.plan !== 'free') ? (
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                            {selectedPartner.plan === 'business_premium' ? 'PREMIUM' : selectedPartner.plan === 'business_basic' ? 'BASIC' : 'PREMIUM'}
                                         </span>
                                     ) : (
-                                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
                                             THƯỜNG
                                         </span>
                                     )}

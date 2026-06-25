@@ -18,7 +18,9 @@ export const getUsers = async (req, res, next) => {
     if (status) filter.status = status;
     if (plan) {
       if (plan === 'premium') {
-        filter.plan = { $in: ['premium', 'premium_user'] };
+        filter.plan = { $nin: ['free', null, ''] };
+      } else if (plan === 'free') {
+        filter.plan = { $in: ['free', null, ''] };
       } else {
         filter.plan = plan;
       }
@@ -211,9 +213,11 @@ export const getPartners = async (req, res, next) => {
     if (status) filter.status = status;
     if (plan) {
       if (plan === 'premium') {
-        filter.plan = { $in: ['premium', 'premium_user'] };
+        filter.plan = { $nin: ['free', null, ''] };
+      } else if (plan === 'free') {
+        filter.plan = { $in: ['free', null, ''] };
       } else {
-        filter.plan = plan; // e.g. 'free'
+        filter.plan = plan;
       }
     }
 
