@@ -73,6 +73,14 @@ const ManagerDashboard = () => {
             color: 'from-teal-500 to-emerald-600',
         },
         {
+            label: 'Số dư khả dụng',
+            value: formatPrice(overview.revenue.available || 0),
+            change: 'Khả dụng để rút',
+            trend: 'up',
+            icon: DollarSign,
+            color: 'from-blue-500 to-indigo-600',
+        },
+        {
             label: 'Doanh thu tháng này',
             value: formatPrice(overview.revenue.thisMonth),
             change: '+8.2%',

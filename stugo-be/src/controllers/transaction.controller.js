@@ -51,7 +51,7 @@ const getAvailableBalance = async (userId) => {
   const withdrawn = withdrawnAgg[0]?.total || 0;
 
   return {
-    totalRevenue: partnerRevenue,
+    totalRevenue: totalRevenue,
     withdrawn,
     available: Math.max(0, partnerRevenue - withdrawn)
   };

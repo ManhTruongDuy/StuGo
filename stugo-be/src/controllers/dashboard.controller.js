@@ -169,8 +169,10 @@ export const getDashboardOverview = async (req, res, next) => {
                 const bookingTotal = bookingRevenue[0]?.total || 0;
                 const subTotal = subRevenue[0]?.total || 0;
                 const withdrawnTotal = withdrawnAgg[0]?.total || 0;
+                const partnerBookingRevenue = bookingTotal * 0.95;
                 return [{ 
-                    total: Math.max(0, bookingTotal + subTotal - withdrawnTotal),
+                    total: bookingTotal + subTotal,
+                    available: Math.max(0, partnerBookingRevenue + subTotal - withdrawnTotal),
                     commission: bookingTotal * 0.05
                 }];
             })(),
@@ -227,8 +229,10 @@ export const getDashboardOverview = async (req, res, next) => {
                 
                 const bookingMonthTotal = bookingMonthRevenue[0]?.total || 0;
                 const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
+                const partnerBookingMonthTotal = bookingMonthTotal * 0.95;
                 return [{ 
-                    total: Math.max(0, bookingMonthTotal - withdrawnMonthTotal),
+                    total: bookingMonthTotal,
+                    available: Math.max(0, partnerBookingMonthTotal - withdrawnMonthTotal),
                     commission: bookingMonthTotal * 0.05
                 }];
             })()
