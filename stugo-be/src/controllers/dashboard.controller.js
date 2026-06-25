@@ -389,10 +389,7 @@ export const getRevenueStats = async (req, res, next) => {
             });
             withdrawnData.forEach(w => {
                 const key = `${w._id.year}-${w._id.month}`;
-                if (revenueMap.has(key)) {
-                    const item = revenueMap.get(key);
-                    item.totalRevenue = Math.max(0, item.totalRevenue - w.totalWithdrawn);
-                } else {
+                if (!revenueMap.has(key)) {
                     revenueMap.set(key, { _id: w._id, totalRevenue: 0, bookingCount: 0 });
                 }
             });
@@ -415,14 +412,14 @@ export const getRevenueStats = async (req, res, next) => {
                     ...matchQuery,
                     status: { $in: ['confirmed', 'completed'] },
                     paymentStatus: { $in: ['deposit_paid', 'fully_paid'] },
-                    date: { $gte: start, $lte: end }
+                    createdAt: { $gte: start, $lte: end }
                 }
             },
             {
                 $group: {
                     _id: {
-                        year: { $year: '$date' },
-                        month: { $month: '$date' }
+                        year: { $year: '$createdAt' },
+                        month: { $month: '$createdAt' }
                     },
                     totalRevenue: { 
                         $sum: {
@@ -464,10 +461,7 @@ export const getRevenueStats = async (req, res, next) => {
         });
         withdrawnData.forEach(w => {
             const key = `${w._id.year}-${w._id.month}`;
-            if (revenueMap.has(key)) {
-                const item = revenueMap.get(key);
-                item.totalRevenue = Math.max(0, item.totalRevenue - w.totalWithdrawn);
-            } else {
+            if (!revenueMap.has(key)) {
                 revenueMap.set(key, { _id: w._id, totalRevenue: 0, bookingCount: 0 });
             }
         });
