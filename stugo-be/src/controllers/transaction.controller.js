@@ -1,6 +1,7 @@
 import Transaction from '../models/transaction.model.js';
 import { bookingRepository, serviceRepository } from '../repositories/index.js';
 import Booking from '../models/booking.model.js';
+import mongoose from 'mongoose';
 
 const FEE_RATE = 0.01; // 1% withdrawal fee
 const MIN_WITHDRAWAL = 0;
@@ -45,7 +46,7 @@ const getAvailableBalance = async (userId) => {
 
   // Total already withdrawn or pending
   const withdrawnAgg = await Transaction.aggregate([
-    { $match: { userId: userId, type: 'withdrawal', status: { $in: ['pending', 'completed'] } } },
+    { $match: { userId: new mongoose.Types.ObjectId(userId), type: 'withdrawal', status: { $in: ['pending', 'completed'] } } },
     { $group: { _id: null, total: { $sum: '$amount' } } }
   ]);
   const withdrawn = withdrawnAgg[0]?.total || 0;
