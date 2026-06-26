@@ -1101,6 +1101,10 @@ const AdminServicesPage = () => {
 
     const filteredServices = useMemo(() => {
         return services.filter((service) => {
+            if (service.type === 'transport' && service.isAvailable === false) {
+                return false;
+            }
+
             const matchesType = typeFilter === 'all' || service.type === typeFilter;
             let matchesStatus = true;
             if (statusFilter === 'active') {
