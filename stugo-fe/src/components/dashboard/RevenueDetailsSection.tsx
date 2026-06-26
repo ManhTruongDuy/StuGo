@@ -4,6 +4,8 @@ import {
     ChevronLeft,
     ChevronRight,
     DollarSign,
+    ArrowUpRight,
+    ArrowDownRight,
 } from 'lucide-react';
 import { getRevenueStats, type RevenueData } from '../../services/dashboard.service';
 import { getPaymentStats } from '../../services/admin.service';
@@ -34,10 +36,23 @@ ChartJS.register(
     Filler
 );
 
-const RevenueDetailsSection = () => {
+interface RevenueDetailsSectionProps {
+    topCards?: Array<{
+        label: string;
+        value: string | number;
+        change?: string;
+        trend?: 'up' | 'down';
+        icon: any;
+        color: string;
+    }>;
+}
+
+const RevenueDetailsSection = ({ topCards }: RevenueDetailsSectionProps = {}) => {
     const { user } = useAuthStore();
     const [adminStats, setAdminStats] = useState<any>(null);
-    const [dateRange, setDateRange] = useState<'week' | 'month' | 'year'>('year');
+    const [dateRange, setDateRange] = useState<'week' | 'month' | 'year' | 'custom'>('year');
+    const [customStartDate, setCustomStartDate] = useState<string>('');
+    const [customEndDate, setCustomEndDate] = useState<string>('');
     const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -51,17 +66,20 @@ const RevenueDetailsSection = () => {
         }).format(price || 0);
     };
 
-    const fetchData = async () => {
+    const fetchData = async (start?: string, end?: string) => {
         try {
             setLoading(true);
             if (user?.role === 'admin') {
                 const now = new Date();
                 const oneYearAgo = new Date();
                 oneYearAgo.setFullYear(now.getFullYear() - 1);
+                
+                const queryStart = start || oneYearAgo.toISOString();
+                const queryEnd = end || now.toISOString();
 
                 const [data, stats] = await Promise.all([
                     getRevenueStats(),
-                    getPaymentStats(oneYearAgo.toISOString(), now.toISOString())
+                    getPaymentStats(queryStart, queryEnd)
                 ]);
                 setRevenueData(data);
                 setAdminStats(stats);
@@ -149,11 +167,23 @@ const RevenueDetailsSection = () => {
     const chartData = useMemo(() => {
         if (!adminStats?.dailyStats) return null;
 
-        const now = new Date();
         let days = 30;
         let titleRange = '30 ngày';
+        
+        const now = new Date();
+        let start = new Date(now);
+
         if (dateRange === 'week') { days = 7; titleRange = '7 ngày'; }
         else if (dateRange === 'year') { days = 365; titleRange = 'Năm nay'; }
+        
+        start.setDate(now.getDate() - days + 1);
+
+        if (dateRange === 'custom' && customStartDate && customEndDate) {
+            start = new Date(customStartDate);
+            const end = new Date(customEndDate);
+            days = Math.floor((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1;
+            titleRange = `Từ ${start.toLocaleDateString('vi-VN')} đến ${end.toLocaleDateString('vi-VN')}`;
+        }
 
         const labels: string[] = [];
         const data: number[] = [];
@@ -162,9 +192,6 @@ const RevenueDetailsSection = () => {
         adminStats.dailyStats.forEach((d: any) => {
             dataMap.set(d._id.date, d.totalAmount);
         });
-
-        const start = new Date(now);
-        start.setDate(now.getDate() - days + 1);
 
         for (let i = 0; i < days; i++) {
             const current = new Date(start);
@@ -244,7 +271,34 @@ const RevenueDetailsSection = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className={`grid gap-6 ${user?.role === 'admin' ? 'sm:grid-cols-3 lg:grid-cols-6' : 'sm:grid-cols-3'}`}>
+            <div className={`grid gap-6 ${user?.role === 'admin' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6' : 'sm:grid-cols-3'}`}>
+                {topCards?.map((stat, index) => (
+                    <div key={`top-${index}`} className="card p-6">
+                        <div className="flex items-center justify-between mb-3">
+                            <div
+                                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}
+                            >
+                                <stat.icon className="w-5 h-5 text-white" />
+                            </div>
+                            {!!stat.change && (
+                                <span
+                                    className={`flex items-center gap-0.5 text-xs font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                                        }`}
+                                >
+                                    {stat.trend === 'up' ? (
+                                        <ArrowUpRight className="w-3 h-3" />
+                                    ) : (
+                                        <ArrowDownRight className="w-3 h-3" />
+                                    )}
+                                    {stat.change}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                        <p className="text-sm text-gray-500">{stat.label}</p>
+                    </div>
+                ))}
+
                 <div className="card p-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
@@ -371,7 +425,44 @@ const RevenueDetailsSection = () => {
                         >
                             Năm nay
                         </button>
+                        <button
+                            onClick={() => setDateRange('custom')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === 'custom'
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Tùy chỉnh
+                        </button>
                     </div>
+
+                    {dateRange === 'custom' && (
+                        <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                            <input 
+                                type="date" 
+                                value={customStartDate}
+                                onChange={e => setCustomStartDate(e.target.value)}
+                                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300" 
+                            />
+                            <span className="text-gray-500">-</span>
+                            <input 
+                                type="date" 
+                                value={customEndDate}
+                                onChange={e => setCustomEndDate(e.target.value)}
+                                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300" 
+                            />
+                            <button 
+                                onClick={() => {
+                                    if (customStartDate && customEndDate) {
+                                        fetchData(new Date(customStartDate).toISOString(), new Date(customEndDate).toISOString());
+                                    }
+                                }}
+                                className="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
+                            >
+                                Áp dụng
+                            </button>
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-2">
                         <button

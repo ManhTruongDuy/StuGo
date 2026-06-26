@@ -7,7 +7,12 @@ class ServiceRepository extends BaseRepository {
   }
 
   async findWithFilters(filters, options = {}) {
-    const query = { status: 'active' };
+    const query = {};
+    if (filters.status && filters.status !== 'all') {
+      query.status = filters.status;
+    } else if (!options.isAdmin) {
+      query.status = 'active';
+    }
 
     // Type filter
     if (filters.type) {

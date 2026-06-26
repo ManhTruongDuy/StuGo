@@ -172,39 +172,9 @@ const AdminDashboard = () => {
                 </span>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {stats.map((stat, index) => (
-                    <div key={index} className="card p-4">
-                        <div className="flex items-center justify-between mb-3">
-                            <div
-                                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}
-                            >
-                                <stat.icon className="w-5 h-5 text-white" />
-                            </div>
-                            {!!stat.change && (
-                                <span
-                                    className={`flex items-center gap-0.5 text-xs font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                                        }`}
-                                >
-                                    {stat.trend === 'up' ? (
-                                        <ArrowUpRight className="w-3 h-3" />
-                                    ) : (
-                                        <ArrowDownRight className="w-3 h-3" />
-                                    )}
-                                    {stat.change}
-                                </span>
-                            )}
-                        </div>
-                        <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-xs text-gray-500">{stat.label}</p>
-                    </div>
-                ))}
-            </div>
-
             {/* Chi tiết doanh thu */}
-            <div className="pt-4 border-t border-gray-100">
-                <RevenueDetailsSection />
+            <div className="pt-4">
+                <RevenueDetailsSection topCards={stats} />
             </div>
 
             {/* Charts and Lists */}

@@ -15,13 +15,15 @@ export const getServices = async (req, res, next) => {
       priceMax: req.query.priceMax,
       rating: req.query.rating,
       isAvailable: req.query.isAvailable,
+      status: req.query.status,
       search: req.query.search,
       sortBy: req.query.sortBy
     };
 
     const options = {
       page: req.query.page || 1,
-      limit: req.query.limit || 20
+      limit: req.query.limit || 20,
+      isAdmin: req.user?.role === 'admin'
     };
 
     const result = await serviceRepository.findWithFilters(filters, options);
