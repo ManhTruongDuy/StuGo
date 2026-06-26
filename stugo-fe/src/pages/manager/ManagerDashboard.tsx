@@ -231,17 +231,7 @@ const ManagerDashboard = () => {
                             >
                                 <stat.icon className="w-6 h-6 text-white" />
                             </div>
-                            <span
-                                className={`flex items-center gap-1 text-sm font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                                    }`}
-                            >
-                                {stat.trend === 'up' ? (
-                                    <ArrowUpRight className="w-4 h-4" />
-                                ) : (
-                                    <ArrowDownRight className="w-4 h-4" />
-                                )}
-                                {stat.change}
-                            </span>
+
                         </div>
                         <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                         <p className="text-sm text-gray-500">{stat.label}</p>

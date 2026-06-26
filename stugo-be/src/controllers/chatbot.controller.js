@@ -14,7 +14,7 @@ export const chatWithAI = async (req, res) => {
     if (!req.user?.isPro) {
       return res.status(403).json({ 
         success: false, 
-        message: 'This premium feature is only available to Pro students. Please upgrade your subscription.' 
+        message: 'This premium feature is only available to Premium users. Please upgrade your subscription.' 
       });
     }
 
@@ -59,8 +59,13 @@ export const chatWithAI = async (req, res) => {
       `;
     }).join('\n');
 
-    const systemInstruction = `Bạn là trợ lý ảo tìm kiếm phương tiện di chuyển thông minh cho nền tảng sinh viên StuGo.
-Bạn đang trò chuyện với một sinh viên cao cấp (Premium).
+    const systemInstruction = req.user.role === 'partner' 
+      ? `Bạn là trợ lý ảo thông minh dành cho các Đối tác kinh doanh trên nền tảng StuGo.
+Bạn đang trò chuyện với một Đối tác cấp cao (Premium Partner).
+Nhiệm vụ của bạn là hỗ trợ đối tác giải đáp thắc mắc, tư vấn chiến lược kinh doanh, cung cấp thông tin quản lý và đưa ra các lời khuyên hữu ích để tăng doanh thu trên nền tảng StuGo.
+Hãy trả lời bằng tiếng Việt một cách chuyên nghiệp, lịch sự, rõ ràng và ngắn gọn.`
+      : `Bạn là trợ lý ảo tìm kiếm phương tiện di chuyển thông minh cho nền tảng sinh viên StuGo.
+Bạn đang trò chuyện với một thành viên cao cấp (Premium).
 Bạn chỉ được phép gợi ý và giới thiệu các phương tiện/nhà xe di chuyển nằm trong danh sách dịch vụ sau đây:
 ${contextStr}
 

@@ -24,8 +24,8 @@ export const AIChatbot: React.FC = () => {
     }
   }, [messages, isOpen]);
 
-  if (!user || user.role !== 'user' || !isProUser) {
-    return null; // Only render for premium users
+  if (!user || !isProUser) {
+    return null; // Only render for premium users (students and partners)
   }
 
   const handleSend = async (e: React.FormEvent) => {
@@ -63,7 +63,9 @@ export const AIChatbot: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-display font-bold text-sm tracking-wide">Trợ lý ảo StuGo</h3>
-                <p className="text-[10px] text-blue-100/90 font-medium">Cố vấn phương tiện Premium</p>
+                <p className="text-[10px] text-blue-100/90 font-medium">
+                  {user.role === 'partner' ? 'Hỗ trợ Đối tác Premium' : 'Cố vấn phương tiện Premium'}
+                </p>
               </div>
             </div>
             <button 
@@ -80,7 +82,9 @@ export const AIChatbot: React.FC = () => {
               <div className="text-center text-gray-500 mt-8 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm mx-4">
                 <p className="text-sm font-semibold text-gray-800">Xin chào bạn! 👋</p>
                 <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-                  Mình là Trợ lý AI của StuGo. Mình có thể giúp bạn tìm kiếm các nhà xe và thông tin di chuyển tối ưu nhất. Bạn đang muốn đi đâu thế?
+                  {user.role === 'partner'
+                    ? 'Mình là Trợ lý AI của StuGo. Mình có thể giúp bạn giải đáp thắc mắc, tư vấn chiến lược và hỗ trợ kinh doanh trên nền tảng. Bạn cần hỗ trợ gì hôm nay?'
+                    : 'Mình là Trợ lý AI của StuGo. Mình có thể giúp bạn tìm kiếm các nhà xe và thông tin di chuyển tối ưu nhất. Bạn đang muốn đi đâu thế?'}
                 </p>
               </div>
             )}
@@ -122,7 +126,7 @@ export const AIChatbot: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Hỏi về phương tiện di chuyển..."
+                placeholder={user.role === 'partner' ? "Hỏi về kinh doanh, hệ thống..." : "Hỏi về phương tiện di chuyển..."}
                 className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-200"
                 disabled={isLoading}
               />

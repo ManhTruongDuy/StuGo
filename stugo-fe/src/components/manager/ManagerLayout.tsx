@@ -17,6 +17,7 @@ import {
     FileText,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { AIChatbot } from '../ui/AIChatbot';
 
 const ManagerLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -226,6 +227,8 @@ const ManagerLayout = () => {
                     <Outlet />
                 </main>
             </div>
+            
+            <AIChatbot />
         </div>
     );
 };

@@ -3,7 +3,7 @@ import { bookingRepository, serviceRepository } from '../repositories/index.js';
 import Booking from '../models/booking.model.js';
 
 const FEE_RATE = 0.01; // 1% withdrawal fee
-const MIN_WITHDRAWAL = 100000;
+const MIN_WITHDRAWAL = 0;
 
 /**
  * Get available balance for a partner

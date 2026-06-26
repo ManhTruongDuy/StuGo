@@ -65,8 +65,8 @@ const WithdrawalHistoryPage = () => {
 
     const handleWithdrawalRequest = async () => {
         const amount = parseInt(withdrawAmount.replace(/\D/g, ''));
-        if (!amount || amount < 100000) {
-            toast.error('Số tiền tối thiểu là 100,000 VNĐ');
+        if (!amount || amount <= 0) {
+            toast.error('Vui lòng nhập số tiền hợp lệ');
             return;
         }
         if (amount > availableBalance) {
@@ -375,7 +375,7 @@ const WithdrawalHistoryPage = () => {
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Tối thiểu 100,000 VNĐ • Phí 1%
+                                    Phí 1%
                                 </p>
                             </div>
 
@@ -405,6 +405,8 @@ const WithdrawalHistoryPage = () => {
                                     </a>
                                 </div>
                             )}
+
+
 
                             {/* Preview */}
                             {withdrawAmount && (
