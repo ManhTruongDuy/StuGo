@@ -21,10 +21,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import type { Service } from '../types';
 import { useAuthStore } from '../store/authStore';
 
-const stats = [
-    { icon: Star, value: '4.8', label: 'Đánh giá trung bình' },
-    { icon: TrendingUp, value: '98%', label: 'Khách hàng hài lòng' },
-];
+// Remove stats array
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -239,17 +236,27 @@ const HomePage = () => {
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-12">
                         <div className="grid grid-cols-2 gap-8 max-w-sm mx-auto lg:max-w-none lg:grid-cols-2">
-                            {stats.map((stat, index) => (
-                                <div key={index} className="text-center">
-                                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500/10 to-secondary-500/10 mb-4">
-                                        <stat.icon className="w-7 h-7 text-primary-600" />
-                                    </div>
-                                    <p className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">
-                                        {stat.value}
-                                    </p>
-                                    <p className="text-gray-500 text-sm">{stat.label}</p>
+                            {/* Dynamic stats based on popular services */}
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500/10 to-secondary-500/10 mb-4">
+                                    <Star className="w-7 h-7 text-primary-600" />
                                 </div>
-                            ))}
+                                <p className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">
+                                    {popularServices.length > 0
+                                        ? (popularServices.reduce((acc, s) => acc + (s.rating || 0), 0) / popularServices.length).toFixed(1)
+                                        : '0.0'}
+                                </p>
+                                <p className="text-gray-500 text-sm">Đánh giá trung bình</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500/10 to-secondary-500/10 mb-4">
+                                    <TrendingUp className="w-7 h-7 text-primary-600" />
+                                </div>
+                                <p className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">
+                                    {popularServices.length > 0 ? '98%' : '0%'}
+                                </p>
+                                <p className="text-gray-500 text-sm">Khách hàng hài lòng</p>
+                            </div>
                         </div>
                     </div>
                 </div>
