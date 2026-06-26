@@ -29,7 +29,7 @@ const transformService = (service: any): Service => {
     status: service.status || 'active',
     popularity: service.popularity || 0,
     bookingCount: service.bookingCount || 0,
-    ownerId: service.ownerId || service.ownerId?._id || '',
+    ownerId: typeof service.ownerId === 'object' ? service.ownerId?._id : service.ownerId,
     createdAt: service.createdAt,
     updatedAt: service.updatedAt,
   };

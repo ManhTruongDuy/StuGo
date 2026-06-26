@@ -1389,15 +1389,20 @@ const AdminServicesPage = () => {
                                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
                                                         <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa
                                                     </button>
-                                                    {service.status === 'active' && (
+                                                    {service.status === 'active' || service.status === 'suspended' ? (
                                                         <button 
-                                                            onClick={() => handleStatusChange(service.id, true)}
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-amber-600 bg-amber-50 hover:bg-amber-100"
-                                                            title="Tạm khóa dịch vụ"
+                                                            onClick={() => handleStatusChange(service.id, service.isAvailable)}
+                                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                                                                service.isAvailable 
+                                                                    ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' 
+                                                                    : 'text-green-600 bg-green-50 hover:bg-green-100'
+                                                            }`}
+                                                            title={service.isAvailable ? "Tạm khóa dịch vụ" : "Mở khóa dịch vụ"}
                                                         >
-                                                            <EyeOff className="w-3.5 h-3.5" /> Tạm khóa
+                                                            {service.isAvailable ? <EyeOff className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />} 
+                                                            {service.isAvailable ? 'Tạm khóa' : 'Mở khóa'}
                                                         </button>
-                                                    )}
+                                                    ) : null}
                                                     <button onClick={() => handleDelete(service.id)}
                                                         className="inline-flex items-center justify-center w-8 h-8 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                                                         title="Xóa dịch vụ">
