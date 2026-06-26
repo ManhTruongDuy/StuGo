@@ -1,8 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
-    Bus,
-    Home,
-    UtensilsCrossed,
     ArrowRight,
     Star,
     MapPin,
@@ -84,11 +81,6 @@ const HomePage = () => {
             navigate('/services');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-    };
-
-    const handleCategoryClick = (type: string) => {
-        navigate(`/services?type=${type}`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     useEffect(() => {

@@ -8,7 +8,6 @@ import {
     Phone,
     Mail,
     Store,
-    DollarSign,
     ChevronLeft,
     ChevronRight,
     Users,
