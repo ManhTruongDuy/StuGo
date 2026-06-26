@@ -2,9 +2,9 @@ import { useEffect, useState, useMemo } from 'react';
 import {
     Search, Filter, MapPin, Star, ToggleLeft, ToggleRight,
     Bus, Building2, Utensils, Pencil, Plus, X,
-    Loader2, Upload, Link as LinkIcon, Save, EyeOff, Car
+    Loader2, Upload, Link as LinkIcon, Save, EyeOff, Car, CheckCircle, XCircle, Trash2
 } from 'lucide-react';
-import { getServices, updateServiceStatus } from '../../services/service.service';
+import { getServices, updateServiceStatus, deleteService } from '../../services/service.service';
 import { getPartners } from '../../services/admin.service';
 import api from '../../services/api';
 import type { Service, ServiceType } from '../../types';
@@ -12,7 +12,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 type TypeFilter = 'all' | ServiceType;
-type StatusFilter = 'all' | 'active' | 'inactive';
+type StatusFilter = 'all' | 'active' | 'inactive' | 'pending';
 
 // ── Drag & Drop Image Upload ──────────────────────────────────────────────────
 const ImageDropZone = ({
@@ -1102,8 +1102,14 @@ const AdminServicesPage = () => {
     const filteredServices = useMemo(() => {
         return services.filter((service) => {
             const matchesType = typeFilter === 'all' || service.type === typeFilter;
-            const matchesStatus = statusFilter === 'all' ||
-                (statusFilter === 'active' ? service.isAvailable : !service.isAvailable);
+            let matchesStatus = true;
+            if (statusFilter === 'active') {
+                matchesStatus = service.isAvailable === true;
+            } else if (statusFilter === 'inactive') {
+                matchesStatus = service.isAvailable === false;
+            } else if (statusFilter === 'pending') {
+                matchesStatus = service.status === 'pending';
+            }
             const matchesSearch = !searchQuery ||
                 service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 service.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1117,6 +1123,7 @@ const AdminServicesPage = () => {
         transport: services.filter(s => s.type === 'transport').length,
         accommodation: services.filter(s => s.type === 'accommodation').length,
         active: services.filter(s => s.isAvailable).length,
+        pending: services.filter(s => s.status === 'pending').length,
     }), [services]);
 
     const getTypeBadge = (type: ServiceType) => {
@@ -1159,11 +1166,38 @@ const AdminServicesPage = () => {
             const newStatus = isAvailable ? 'suspended' : 'active';
             const success = await updateServiceStatus(serviceId, newStatus);
             if (success) {
-                toast.success('Đã ẩn dịch vụ khỏi danh sách');
-                setServices(prev => prev.filter(s => s.id !== serviceId));
+                toast.success('Cập nhật trạng thái thành công');
+                setServices(prev => prev.map(s => s.id === serviceId ? { ...s, isAvailable: !isAvailable, status: newStatus } : s));
             }
         } catch (error: any) {
             toast.error(error.message || 'Không thể cập nhật trạng thái dịch vụ');
+        }
+    };
+
+    const handleUpdateStatus = async (serviceId: string, newStatus: 'active' | 'rejected') => {
+        try {
+            const success = await updateServiceStatus(serviceId, newStatus);
+            if (success) {
+                toast.success(newStatus === 'active' ? 'Đã duyệt dịch vụ' : 'Đã từ chối dịch vụ');
+                setServices(prev => prev.map(s => s.id === serviceId ? { ...s, status: newStatus, isAvailable: newStatus === 'active' } : s));
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Không thể cập nhật trạng thái dịch vụ');
+        }
+    };
+
+    const handleDelete = async (serviceId: string) => {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa dịch vụ này không? Hành động này không thể hoàn tác.')) {
+            return;
+        }
+        try {
+            const success = await deleteService(serviceId);
+            if (success) {
+                toast.success('Đã xóa dịch vụ');
+                setServices(prev => prev.filter(s => s.id !== serviceId));
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Không thể xóa dịch vụ');
         }
     };
 
@@ -1228,8 +1262,8 @@ const AdminServicesPage = () => {
                 {[
                     { label: 'Tổng dịch vụ', value: stats.total, color: 'text-gray-900' },
                     { label: 'Nhà xe', value: stats.transport, color: 'text-blue-600' },
-                    { label: 'Nhà trọ', value: stats.accommodation, color: 'text-purple-600' },
                     { label: 'Đang hoạt động', value: stats.active, color: 'text-green-600' },
+                    { label: 'Chờ duyệt', value: stats.pending, color: 'text-amber-600' },
                 ].map((s, i) => (
                     <div key={i} className="card p-4">
                         <p className="text-sm text-gray-500 mb-1">{s.label}</p>
@@ -1252,6 +1286,7 @@ const AdminServicesPage = () => {
                             <option value="all">Tất cả trạng thái</option>
                             <option value="active">Đang hoạt động</option>
                             <option value="inactive">Tạm dừng</option>
+                            <option value="pending">Chờ duyệt</option>
                         </select>
                     </div>
                 </div>
@@ -1314,23 +1349,58 @@ const AdminServicesPage = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {service.isAvailable
-                                            ? <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><ToggleRight className="w-3 h-3" />Hoạt động</span>
-                                            : <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"><ToggleLeft className="w-3 h-3" />Tạm dừng</span>}
+                                        {service.status === 'pending' ? (
+                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Chờ duyệt</span>
+                                        ) : service.status === 'rejected' ? (
+                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Đã từ chối</span>
+                                        ) : service.isAvailable ? (
+                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"><ToggleRight className="w-3 h-3" />Hoạt động</span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"><ToggleLeft className="w-3 h-3" />Tạm dừng</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => setEditingService(service)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
-                                                <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa
-                                            </button>
-                                            <button 
-                                                onClick={() => handleStatusChange(service.id, true)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-red-600 bg-red-50 hover:bg-red-100"
-                                                title="Ẩn dịch vụ khỏi danh sách"
-                                            >
-                                                <EyeOff className="w-3.5 h-3.5" /> Ẩn
-                                            </button>
+                                            {service.status === 'pending' ? (
+                                                <>
+                                                    <button onClick={() => handleUpdateStatus(service.id, 'active')}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                                                        title="Duyệt dịch vụ">
+                                                        <CheckCircle className="w-3.5 h-3.5" /> Duyệt
+                                                    </button>
+                                                    <button onClick={() => handleUpdateStatus(service.id, 'rejected')}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                                                        title="Từ chối dịch vụ">
+                                                        <XCircle className="w-3.5 h-3.5" /> Từ chối
+                                                    </button>
+                                                    <button onClick={() => handleDelete(service.id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                                        title="Xóa dịch vụ">
+                                                        <Trash2 className="w-3.5 h-3.5" /> Xóa
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button onClick={() => setEditingService(service)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
+                                                        <Pencil className="w-3.5 h-3.5" /> Chỉnh sửa
+                                                    </button>
+                                                    {service.status === 'active' && (
+                                                        <button 
+                                                            onClick={() => handleStatusChange(service.id, true)}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-amber-600 bg-amber-50 hover:bg-amber-100"
+                                                            title="Tạm khóa dịch vụ"
+                                                        >
+                                                            <EyeOff className="w-3.5 h-3.5" /> Tạm khóa
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => handleDelete(service.id)}
+                                                        className="inline-flex items-center justify-center w-8 h-8 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                                        title="Xóa dịch vụ">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

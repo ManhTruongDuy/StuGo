@@ -244,7 +244,7 @@ const RevenueDetailsSection = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className={`grid gap-6 ${user?.role === 'admin' ? 'sm:grid-cols-5' : 'sm:grid-cols-3'}`}>
+            <div className={`grid gap-6 ${user?.role === 'admin' ? 'sm:grid-cols-3 lg:grid-cols-6' : 'sm:grid-cols-3'}`}>
                 <div className="card p-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
@@ -309,6 +309,19 @@ const RevenueDetailsSection = () => {
                                     <p className="text-sm text-gray-500">Từ Premium</p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {formatPrice(adminStats?.subscriptionRevenue || 0)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="card p-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                                    <DollarSign className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Hoa hồng (5%)</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {formatPrice((adminStats?.bookingRevenue || 0) * 0.05)}
                                     </p>
                                 </div>
                             </div>

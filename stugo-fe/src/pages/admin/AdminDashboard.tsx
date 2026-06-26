@@ -97,29 +97,6 @@ const AdminDashboard = () => {
                 icon: CheckCircle,
                 color: 'from-emerald-500 to-green-600',
             },
-
-            {
-                label: 'Tổng doanh thu',
-                value: new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                }).format(overview.revenue.total),
-                change: '',
-                trend: 'up',
-                icon: DollarSign,
-                color: 'from-teal-500 to-emerald-600',
-            },
-            {
-                label: 'Doanh thu từ hoa hồng',
-                value: new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                }).format(overview.revenue.commissionTotal),
-                change: '',
-                trend: 'up',
-                icon: DollarSign,
-                color: 'from-blue-500 to-indigo-600',
-            },
         ];
     }, [overview]);
 

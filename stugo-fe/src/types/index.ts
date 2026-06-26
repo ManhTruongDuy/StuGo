@@ -43,6 +43,7 @@ export interface Service {
   rating: number;
   reviewCount: number;
   isAvailable: boolean;
+  status?: 'active' | 'inactive' | 'pending' | 'rejected' | 'suspended';
   popularity: number;
   bookingCount?: number;
   ownerId: string;

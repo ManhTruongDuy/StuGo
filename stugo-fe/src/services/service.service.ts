@@ -26,6 +26,7 @@ const transformService = (service: any): Service => {
     rating: service.rating || service.reviewStats?.averageRating || 0,
     reviewCount: service.reviewCount || service.reviewStats?.totalReviews || 0,
     isAvailable: service.isAvailable !== false && service.status === 'active',
+    status: service.status || 'active',
     popularity: service.popularity || 0,
     bookingCount: service.bookingCount || 0,
     ownerId: service.ownerId || service.ownerId?._id || '',
