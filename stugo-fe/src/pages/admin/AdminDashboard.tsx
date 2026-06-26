@@ -8,7 +8,6 @@ import {
     AlertCircle,
     CheckCircle,
     Clock,
-    DollarSign,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
