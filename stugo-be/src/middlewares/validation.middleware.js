@@ -64,7 +64,7 @@ export const createServiceRules = [
     .isLength({ min: 3, max: 200 }).withMessage('Tên phải từ 3-200 ký tự'),
   body('type')
     .notEmpty().withMessage('Loại dịch vụ là bắt buộc')
-    .isIn(['transport', 'accommodation', 'restaurant']).withMessage('Loại dịch vụ không hợp lệ'),
+    .isIn(['transport', 'accommodation', 'restaurant', 'carpool']).withMessage('Loại dịch vụ không hợp lệ'),
   body('description')
     .notEmpty().withMessage('Mô tả là bắt buộc')
     .isLength({ min: 10 }).withMessage('Mô tả phải ít nhất 10 ký tự'),

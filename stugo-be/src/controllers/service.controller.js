@@ -102,10 +102,10 @@ export const createTransportService = async (req, res, next) => {
     const { vehicleType, seats, routes, departureTime } = req.body;
 
     // Validate transport-specific fields
-    if (!vehicleType || !seats || !routes || !departureTime) {
+    if (!vehicleType || !seats || !routes) {
       return res.status(400).json({
         success: false,
-        message: 'Vui lòng cung cấp đầy đủ thông tin: loại xe, số ghế, tuyến đường, giờ khởi hành'
+        message: 'Vui lòng cung cấp đầy đủ thông tin: loại xe, số ghế, tuyến đường'
       });
     }
 
@@ -116,12 +116,9 @@ export const createTransportService = async (req, res, next) => {
       });
     }
 
-    if (!Array.isArray(departureTime) || departureTime.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng thêm ít nhất 1 giờ khởi hành'
-      });
-    }
+    const validDepartureTime = Array.isArray(departureTime) && departureTime.length > 0 
+      ? departureTime 
+      : ['06:00', '08:00', '10:00', '14:00', '16:00', '18:00']; // default times if none provided
 
     // Calculate priceRange from routes
     const cleanRoutes = routes.map(r => {
@@ -164,7 +161,7 @@ export const createTransportService = async (req, res, next) => {
       vehicleType,
       seats: parseInt(seats),
       routes: cleanRoutes,
-      departureTime
+      departureTime: validDepartureTime
     };
 
     const service = await serviceRepository.create(serviceData);
@@ -329,6 +326,62 @@ export const createRestaurantService = async (req, res, next) => {
 };
 
 /**
+ * Create new carpool service (Partner/Admin only)
+ * POST /api/services/carpool
+ */
+export const createCarpoolService = async (req, res, next) => {
+  try {
+    const { carpoolOptions } = req.body;
+
+    if (!carpoolOptions || !carpoolOptions.routes || carpoolOptions.routes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp ít nhất 1 tuyến đường cho xe ghép'
+      });
+    }
+
+    const ownerId = (req.userRole === 'admin' && req.body.ownerId) ? req.body.ownerId : req.userId;
+    const status = req.userRole === 'admin' ? (req.body.status || 'active') : 'pending';
+
+    const serviceData = {
+      type: 'carpool',
+      name: req.body.name,
+      description: req.body.description,
+      address: req.body.address,
+      city: req.body.city,
+      district: req.body.district,
+      ward: req.body.ward,
+      location: {
+        type: 'Point',
+        coordinates: [
+          parseFloat(req.body.longitude) || 0,
+          parseFloat(req.body.latitude) || 0
+        ]
+      },
+      images: req.body.images || [],
+      openTime: req.body.openTime || '05:00',
+      closeTime: req.body.closeTime || '22:00',
+      priceRange: req.body.priceRange || { min: 0, max: 0 },
+      ownerId,
+      status,
+      // Carpool specific
+      carpoolOptions,
+      departureTime: ['06:00', '08:00', '10:00', '14:00', '16:00', '18:00']
+    };
+
+    const service = await serviceRepository.create(serviceData);
+
+    res.status(201).json({
+      success: true,
+      data: service,
+      message: 'Tạo dịch vụ xe ghép thành công. Đang chờ phê duyệt.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Create new service (Generic - routes to specific handlers)
  * POST /api/services
  */
@@ -351,6 +404,8 @@ export const createService = async (req, res, next) => {
         return createAccommodationService(req, res, next);
       case 'restaurant':
         return createRestaurantService(req, res, next);
+      case 'carpool':
+        return createCarpoolService(req, res, next);
       default:
         return res.status(400).json({
           success: false,
@@ -642,6 +697,7 @@ export default {
   createTransportService,
   createAccommodationService,
   createRestaurantService,
+  createCarpoolService,
   updateService,
   deleteService,
   getMyServices,
