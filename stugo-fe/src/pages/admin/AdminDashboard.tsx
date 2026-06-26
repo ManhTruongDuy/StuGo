@@ -6,6 +6,7 @@ import {
     AlertCircle,
     CheckCircle,
     Clock,
+    ArrowUpRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
