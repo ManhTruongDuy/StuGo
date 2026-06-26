@@ -3,8 +3,6 @@ import {
     TrendingUp,
     DollarSign,
     CalendarDays,
-    ArrowUpRight,
-    ArrowDownRight,
     Package,
     PlusCircle,
     Zap,
