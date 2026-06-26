@@ -97,14 +97,7 @@ const AdminDashboard = () => {
                 icon: CheckCircle,
                 color: 'from-emerald-500 to-green-600',
             },
-            {
-                label: 'Dịch vụ vi phạm',
-                value: overview.services.suspended.toString(),
-                change: '',
-                trend: 'down',
-                icon: AlertCircle,
-                color: 'from-red-600 to-rose-700',
-            },
+
             {
                 label: 'Tổng doanh thu',
                 value: new Intl.NumberFormat('vi-VN', {

@@ -563,8 +563,7 @@ const AdminPartnersPage = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-1.5">
-                                                    <DollarSign className="w-4 h-4 text-green-600" />
-                                                    <span className="text-sm font-medium text-gray-900">
+                                                    <span className="text-sm font-medium text-green-600">
                                                         {formatPrice(partner.totalRevenue)}
                                                     </span>
                                                 </div>

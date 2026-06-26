@@ -4,8 +4,7 @@ import {
     Phone,
     Mail,
     Facebook,
-    Instagram,
-    Youtube,
+    AtSign,
 } from 'lucide-react';
 
 const Footer = () => {
@@ -37,22 +36,20 @@ const Footer = () => {
                         </p>
                         <div className="flex items-center gap-4">
                             <a
-                                href="#"
+                                href="https://www.facebook.com/profile.php?id=61576554526643"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="w-10 h-10 rounded-xl bg-white/5 hover:bg-primary-500 flex items-center justify-center transition-colors"
                             >
                                 <Facebook className="w-5 h-5" />
                             </a>
                             <a
-                                href="#"
-                                className="w-10 h-10 rounded-xl bg-white/5 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 flex items-center justify-center transition-colors"
+                                href="https://www.threads.com/@stugo2026"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-10 h-10 rounded-xl bg-white/5 hover:bg-gray-800 flex items-center justify-center transition-colors"
                             >
-                                <Instagram className="w-5 h-5" />
-                            </a>
-                            <a
-                                href="#"
-                                className="w-10 h-10 rounded-xl bg-white/5 hover:bg-red-500 flex items-center justify-center transition-colors"
-                            >
-                                <Youtube className="w-5 h-5" />
+                                <AtSign className="w-5 h-5" />
                             </a>
                         </div>
                     </div>

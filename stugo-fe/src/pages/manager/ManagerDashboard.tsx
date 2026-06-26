@@ -67,7 +67,7 @@ const ManagerDashboard = () => {
         {
             label: 'Tổng doanh thu',
             value: formatPrice(overview.revenue.total),
-            change: '+12.5%',
+            change: '',
             trend: 'up',
             icon: DollarSign,
             color: 'from-teal-500 to-emerald-600',
@@ -83,7 +83,7 @@ const ManagerDashboard = () => {
         {
             label: 'Doanh thu tháng này',
             value: formatPrice(overview.revenue.thisMonth),
-            change: '+8.2%',
+            change: '',
             trend: 'up',
             icon: TrendingUp,
             color: 'from-green-500 to-teal-600',

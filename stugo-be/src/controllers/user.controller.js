@@ -238,7 +238,8 @@ export const getPartners = async (req, res, next) => {
         
         const bookingStats = await bookingRepository.getBookingStats(partner._id);
         const completedStats = bookingStats.find(stat => stat._id === 'completed');
-        const totalRevenue = completedStats ? completedStats.totalAmount : 0;
+        const confirmedStats = bookingStats.find(stat => stat._id === 'confirmed');
+        const totalRevenue = (completedStats ? completedStats.totalAmount : 0) + (confirmedStats ? confirmedStats.totalAmount : 0);
 
         return {
           ...partnerObj,

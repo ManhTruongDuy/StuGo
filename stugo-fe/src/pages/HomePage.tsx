@@ -179,47 +179,7 @@ const HomePage = () => {
                             </div>
                         </form>
 
-        {/* Service Categories */}
-                        <div className="flex flex-wrap justify-center gap-3 px-4">
-                            <button
-                                onClick={() => handleCategoryClick('transport')}
-                                className="group flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Bus className="w-5 h-5 text-blue-300" />
-                                </div>
-                                <div className="text-left">
-                                    <p className="font-semibold text-white text-sm">Nhà xe</p>
-                                    <p className="text-xs text-white/60">120+ nhà xe</p>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => handleCategoryClick('accommodation')}
-                                className="group flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Home className="w-5 h-5 text-purple-300" />
-                                </div>
-                                <div className="text-left">
-                                    <p className="font-semibold text-white text-sm">Nhà trọ</p>
-                                    <p className="text-xs text-white/60">500+ phòng trọ</p>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => handleCategoryClick('restaurant')}
-                                className="group flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/20 transition-all duration-300"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <UtensilsCrossed className="w-5 h-5 text-orange-300" />
-                                </div>
-                                <div className="text-left">
-                                    <p className="font-semibold text-white text-sm">Quán ăn</p>
-                                    <p className="text-xs text-white/60">800+ quán ăn</p>
-                                </div>
-                            </button>
-                        </div>
+                        {/* Service Categories Removed */}
                     </div>
                 </div>
 
