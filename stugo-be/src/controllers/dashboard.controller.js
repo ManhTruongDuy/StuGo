@@ -171,11 +171,13 @@ export const getDashboardOverview = async (req, res, next) => {
                 const bookingCollected = bookingRevenue[0]?.collected || 0;
                 const subTotal = subRevenue[0]?.total || 0;
                 const withdrawnTotal = withdrawnAgg[0]?.total || 0;
-                
-                const commission = bookingGmv * 0.05;
-                const available = Math.max(0, bookingCollected - commission + subTotal - withdrawnTotal);
-                
-                return [{ 
+
+                const baseGmv = Math.round(bookingGmv / 1.05);
+                const bookingCommission = bookingGmv - baseGmv;
+                const commission = bookingCommission + (withdrawnTotal * 0.01);
+                const available = Math.max(0, bookingCollected - bookingCommission + subTotal - withdrawnTotal);
+
+                return [{
                     total: bookingGmv + subTotal,
                     available,
                     commission
@@ -185,7 +187,7 @@ export const getDashboardOverview = async (req, res, next) => {
             (async () => {
                 const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
                 const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
-                
+
                 const [bookingMonthRevenue, withdrawnMonthAgg] = await Promise.all([
                     Booking.aggregate([
                         {
@@ -217,8 +219,8 @@ export const getDashboardOverview = async (req, res, next) => {
                     ]),
                     (async () => {
                         const Transaction = (await import('../models/transaction.model.js')).default;
-                        const matchQuery = { 
-                            type: 'withdrawal', 
+                        const matchQuery = {
+                            type: 'withdrawal',
                             status: { $in: ['pending', 'completed'] },
                             createdAt: { $gte: startOfMonth, $lt: endOfMonth }
                         };
@@ -232,13 +234,15 @@ export const getDashboardOverview = async (req, res, next) => {
                         ]);
                     })()
                 ]);
-                
+
                 const bookingMonthGmv = bookingMonthRevenue[0]?.gmv || 0;
                 const bookingMonthCollected = bookingMonthRevenue[0]?.collected || 0;
                 const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
-                
-                const monthCommission = bookingMonthGmv * 0.05;
-                const monthAvailable = Math.max(0, bookingMonthCollected - monthCommission - withdrawnMonthTotal);
+
+                const monthBaseGmv = Math.round(bookingMonthGmv / 1.05);
+                const monthBookingCommission = bookingMonthGmv - monthBaseGmv;
+                const monthCommission = monthBookingCommission + (withdrawnMonthTotal * 0.01);
+                const monthAvailable = Math.max(0, bookingMonthCollected - monthBookingCommission - withdrawnMonthTotal);
                 
                 return [{ 
                     total: bookingMonthGmv, // For partners subTotal is always 0
@@ -431,7 +435,7 @@ export const getRevenueStats = async (req, res, next) => {
                         year: { $year: '$createdAt' },
                         month: { $month: '$createdAt' }
                     },
-                    totalRevenue: { 
+                    totalRevenue: {
                         $sum: {
                             $cond: [
                                 { $eq: ['$paymentStatus', 'fully_paid'] },
@@ -448,9 +452,9 @@ export const getRevenueStats = async (req, res, next) => {
 
         const Transaction = (await import('../models/transaction.model.js')).default;
         const mongoose = (await import('mongoose')).default;
-        const matchQueryTx = { 
-            type: 'withdrawal', 
-            status: { $in: ['pending', 'completed'] }, 
+        const matchQueryTx = {
+            type: 'withdrawal',
+            status: { $in: ['pending', 'completed'] },
             createdAt: { $gte: start, $lte: end },
             userId: new mongoose.Types.ObjectId(ownerId)
         };
@@ -740,12 +744,12 @@ export const getPremiumRouteAnalytics = async (req, res, next) => {
         const ownerId = req.userRole === 'admin' ? null : req.userId;
         const Service = (await import('../models/service.model.js')).default;
         const Booking = (await import('../models/booking.model.js')).default;
-        
+
         const servicesQuery = ownerId ? { ownerId } : {};
         const services = await Service.find(servicesQuery);
         const serviceIds = services.map(s => s._id);
         const matchQuery = ownerId ? { serviceId: { $in: serviceIds } } : {};
-        
+
         // Popular routes platform-wide
         const allBookings = await Booking.aggregate([
             { $match: { serviceType: { $in: ['transport', 'carpool'] }, status: { $in: ['confirmed', 'completed'] } } },
@@ -753,7 +757,7 @@ export const getPremiumRouteAnalytics = async (req, res, next) => {
             { $sort: { count: -1 } },
             { $limit: 3 }
         ]);
-        
+
         // Popular routes for this specific partner
         const partnerBookings = await Booking.aggregate([
             { $match: { ...matchQuery, serviceType: { $in: ['transport', 'carpool'] }, status: { $in: ['confirmed', 'completed'] } } },
