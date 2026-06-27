@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon, Route as RouteIcon, CheckCircle } from 'lucide-react';
+import { Star, MapPin, Clock, Heart, Eye, Users, Home as HomeIcon, Route as RouteIcon, Crown } from 'lucide-react';
 import type { Service, Transport, Accommodation } from '../../types';
 
 interface ServiceCardProps {
@@ -199,9 +199,9 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                         {getTypeLabel(service.type)}
                     </span>
                     {service.isPremiumPartner && (
-                        <span className="badge bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-none shadow-md flex items-center gap-1">
-                            <CheckCircle className="w-3.5 h-3.5" />
-                            Đối tác xác minh
+                        <span className="badge bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-none shadow-lg shadow-yellow-500/30 flex items-center gap-1.5 px-2.5 py-1 font-semibold z-10 animate-pulse-slow">
+                            <Crown className="w-3.5 h-3.5 text-yellow-100" />
+                            Đối tác nổi bật
                         </span>
                     )}
                 </div>

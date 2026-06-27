@@ -129,23 +129,41 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
 
     // Fetch available slots when date is selected
     useEffect(() => {
-        const fetchSlots = async () => {
+        let isMounted = true;
+        
+        const fetchSlots = async (silent = false) => {
             if (!selectedDate || !service) return;
 
-            setIsLoadingSlots(true);
+            if (!silent) setIsLoadingSlots(true);
             try {
                 const dateStr = format(selectedDate, 'yyyy-MM-dd');
                 const result = await getAvailableSlots(service.id, dateStr);
-                setAvailableSlots(result.slots || []);
+                if (isMounted) {
+                    setAvailableSlots(result.slots || []);
+                }
             } catch (error) {
                 console.error('Error fetching slots:', error);
-                toast.error('Không thể tải thông tin khả dụng');
+                if (!silent && isMounted) {
+                    toast.error('Không thể tải thông tin khả dụng');
+                }
             } finally {
-                setIsLoadingSlots(false);
+                if (!silent && isMounted) {
+                    setIsLoadingSlots(false);
+                }
             }
         };
 
         fetchSlots();
+
+        // Polling every 5 seconds for real-time seat updates
+        const interval = setInterval(() => {
+            fetchSlots(true);
+        }, 5000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, [selectedDate, service]);
 
     const handleDateSelect = (date: Date) => {

@@ -154,7 +154,7 @@ export const sendBookingSuccessEmail = async (email, name, bookingData) => {
         <th>Ngày</th>
         <td>${new Date(bookingData.date).toLocaleDateString('vi-VN')}</td>
       </tr>
-      ${bookingData.timeSlot ? \`<tr><th>Khung giờ</th><td>\${bookingData.timeSlot}</td></tr>\` : ''}
+      ${bookingData.timeSlot ? `<tr><th>Khung giờ</th><td>${bookingData.timeSlot}</td></tr>` : ''}
       <tr>
         <th>Số lượng</th>
         <td>${bookingData.quantity}</td>
