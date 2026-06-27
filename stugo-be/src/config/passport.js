@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { userRepository } from '../repositories/index.js';
-
+import emailService from '../services/email.service.js';
 /**
  * Configure Passport Google OAuth Strategy
  */
@@ -40,6 +40,11 @@ const configurePassport = () => {
               role: 'user',
               status: 'active',
             });
+            
+            // Send welcome email asynchronously
+            if (email) {
+              emailService.sendWelcomeEmail(email, fullName).catch(console.error);
+            }
           } else {
             // Update existing user with Google info if not set
             if (!user.googleId) {
