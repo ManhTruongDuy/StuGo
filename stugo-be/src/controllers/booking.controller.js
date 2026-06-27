@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { bookingRepository, serviceRepository } from '../repositories/index.js';
+import emailService from '../services/email.service.js';
 
 /**
  * Get user's bookings
@@ -248,6 +249,8 @@ export const createBooking = async (req, res, next) => {
         paymentStatus: 'pending'
       });
 
+      emailService.sendBookingSuccessEmail(req.user.email, req.user.fullName, booking).catch(console.error);
+
       res.status(201).json({
         success: true,
         data: booking,
@@ -323,6 +326,8 @@ export const createBooking = async (req, res, next) => {
         status: 'pending',
         paymentStatus: 'pending'
       });
+
+      emailService.sendBookingSuccessEmail(req.user.email, req.user.fullName, booking).catch(console.error);
 
       res.status(201).json({
         success: true,
@@ -413,6 +418,8 @@ export const createBooking = async (req, res, next) => {
           status: 'pending',
           paymentStatus: 'pending'
         });
+
+        emailService.sendBookingSuccessEmail(req.user.email, req.user.fullName, booking).catch(console.error);
 
         res.status(201).json({
           success: true,
@@ -519,6 +526,8 @@ export const createBooking = async (req, res, next) => {
           // Note: timeSlot is not required for order type
         });
 
+        emailService.sendBookingSuccessEmail(req.user.email, req.user.fullName, booking).catch(console.error);
+
         res.status(201).json({
           success: true,
           data: booking,
@@ -600,6 +609,8 @@ export const createBooking = async (req, res, next) => {
         status: 'pending',
         paymentStatus: 'pending'
       });
+
+      emailService.sendBookingSuccessEmail(req.user.email, req.user.fullName, booking).catch(console.error);
 
       res.status(201).json({
         success: true,

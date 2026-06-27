@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import Booking from './src/models/booking.model.js';
+import Booking from './stugo-be/src/models/booking.model.js';
 import dotenv from 'dotenv';
-dotenv.config({ path: './.env' });
+dotenv.config({ path: './stugo-be/.env' });
 
 async function run() {
   await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stugo');

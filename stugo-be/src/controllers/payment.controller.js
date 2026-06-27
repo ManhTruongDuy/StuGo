@@ -1,5 +1,6 @@
 import { getPayOS } from '../config/payos.js';
-import { paymentRepository, bookingRepository } from '../repositories/index.js';
+import { paymentRepository, bookingRepository, userRepository } from '../repositories/index.js';
+import emailService from '../services/email.service.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const DEFAULT_PAGE = 1;
@@ -495,6 +496,13 @@ export const checkPaymentStatus = async (req, res, next) => {
 
       await bookingRepository.updatePaymentStatus(updatedPayment.bookingId, bookingPaymentStatus);
       await bookingRepository.confirmBooking(updatedPayment.bookingId);
+
+      // Send payment success email
+      userRepository.findById(updatedPayment.userId).then(user => {
+        if (user && user.email) {
+          emailService.sendPaymentSuccessEmail(user.email, user.fullName, updatedPayment).catch(console.error);
+        }
+      }).catch(console.error);
     } else if (updatedPayment && updatedPayment.description && updatedPayment.description.startsWith('StuGo ')) {
       // Subscription payment
       try {
@@ -584,6 +592,13 @@ export const handleWebhook = async (req, res, next) => {
         const bookingPaymentStatus = payment.paymentType === 'full' ? 'fully_paid' : 'deposit_paid';
         await bookingRepository.updatePaymentStatus(payment.bookingId, bookingPaymentStatus);
         await bookingRepository.confirmBooking(payment.bookingId);
+
+        // Send payment success email
+        userRepository.findById(payment.userId).then(user => {
+          if (user && user.email) {
+            emailService.sendPaymentSuccessEmail(user.email, user.fullName, payment).catch(console.error);
+          }
+        }).catch(console.error);
       } else if (payment && payment.description && payment.description.startsWith('StuGo ')) {
         // Subscription payment webhook handling
         try {

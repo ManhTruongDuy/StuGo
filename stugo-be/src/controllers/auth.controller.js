@@ -1,5 +1,6 @@
 import { userRepository } from '../repositories/index.js';
 import jwt from 'jsonwebtoken';
+import emailService from '../services/email.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'stugo-dev-secret-key-2026';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -42,6 +43,9 @@ export const register = async (req, res, next) => {
     });
 
     const token = generateToken(user._id);
+
+    // Send welcome email asynchronously
+    emailService.sendWelcomeEmail(user.email, user.fullName).catch(console.error);
 
     res.status(201).json({
       success: true,
