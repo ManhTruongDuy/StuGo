@@ -129,6 +129,7 @@ export const getServices = async (filters?: {
   rating?: number;
   isAvailable?: boolean;
   search?: string;
+  status?: string;
   sortBy?: 'popularity' | 'rating' | 'price_asc' | 'price_desc' | 'newest';
   page?: number;
   limit?: number;

@@ -51,6 +51,7 @@ const ServiceListPage = () => {
                     rating: filters.rating,
                     isAvailable: filters.isAvailable,
                     search: filters.search,
+                    status: 'active',
                     sortBy: filters.sortBy,
                     page: 1,
                     limit: 20,
