@@ -20,7 +20,7 @@ const getAvailableBalance = async (userId) => {
     {
       $match: {
         serviceId: { $in: serviceIds },
-        status: 'confirmed',
+        status: { $in: ['confirmed', 'completed'] },
         paymentStatus: { $in: ['deposit_paid', 'fully_paid'] }
       }
     },
@@ -45,6 +45,7 @@ const getAvailableBalance = async (userId) => {
   const partnerRevenue = Math.round(totalRevenue * 0.95);
 
   // Total already withdrawn or pending
+  const mongoose = (await import('mongoose')).default;
   const withdrawnAgg = await Transaction.aggregate([
     { $match: { userId: new mongoose.Types.ObjectId(userId), type: 'withdrawal', status: { $in: ['pending', 'completed'] } } },
     { $group: { _id: null, total: { $sum: '$amount' } } }

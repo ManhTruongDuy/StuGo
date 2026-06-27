@@ -595,8 +595,8 @@ export const getTopServices = async (req, res, next) => {
             {
                 $match: {
                     ...matchQuery,
-                    status: 'confirmed',
-                    paymentStatus: 'fully_paid'
+                    status: { $in: ['confirmed', 'completed'] },
+                    paymentStatus: { $in: ['deposit_paid', 'fully_paid'] }
                 }
             },
             {
