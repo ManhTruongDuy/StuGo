@@ -102,10 +102,10 @@ class PaymentRepository extends BaseRepository {
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]);
       const totalWithdrawn = withdrawnAgg[0]?.total || 0;
-      data.total = Math.max(0, data.total - totalWithdrawn);
-      data.bookingRevenue = Math.max(0, data.bookingRevenue - totalWithdrawn);
+      // Withdrawals should not reduce the platform's GMV (Gross Merchandise Value)
+      // They only represent money moving out of the platform's holding account.
     } catch (error) {
-      console.error('Error deducting withdrawals from total revenue:', error);
+      console.error('Error fetching withdrawals for payment stats:', error);
     }
 
     return data;

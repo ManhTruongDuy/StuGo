@@ -44,9 +44,8 @@ const getAvailableBalance = async (userId) => {
   const totalGmv = revenueAgg[0]?.gmv || 0;
   const totalCollected = revenueAgg[0]?.collected || 0;
 
-  // Platform commission is the 5% surcharge on the base price
-  const baseGmv = Math.round(totalGmv / 1.05);
-  const commission = totalGmv - baseGmv;
+  // Platform commission is exactly 5% of GMV
+  const commission = Math.round(totalGmv * 0.05);
 
   // Total already withdrawn or pending
   const mongoose = (await import('mongoose')).default;

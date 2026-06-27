@@ -172,8 +172,7 @@ export const getDashboardOverview = async (req, res, next) => {
                 const subTotal = subRevenue[0]?.total || 0;
                 const withdrawnTotal = withdrawnAgg[0]?.total || 0;
 
-                const baseGmv = Math.round(bookingGmv / 1.05);
-                const bookingCommission = bookingGmv - baseGmv;
+                const bookingCommission = bookingGmv * 0.05;
                 const commission = bookingCommission + (withdrawnTotal * 0.01);
                 const available = Math.max(0, bookingCollected - bookingCommission + subTotal - withdrawnTotal);
 
@@ -239,8 +238,7 @@ export const getDashboardOverview = async (req, res, next) => {
                 const bookingMonthCollected = bookingMonthRevenue[0]?.collected || 0;
                 const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
 
-                const monthBaseGmv = Math.round(bookingMonthGmv / 1.05);
-                const monthBookingCommission = bookingMonthGmv - monthBaseGmv;
+                const monthBookingCommission = bookingMonthGmv * 0.05;
                 const monthCommission = monthBookingCommission + (withdrawnMonthTotal * 0.01);
                 const monthAvailable = Math.max(0, bookingMonthCollected - monthBookingCommission - withdrawnMonthTotal);
                 
