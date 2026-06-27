@@ -528,11 +528,15 @@ export const checkPaymentStatus = async (req, res, next) => {
             });
             await subscription.save();
 
-            await User.findByIdAndUpdate(updatedPayment.userId, {
+            const updatedUser = await User.findByIdAndUpdate(updatedPayment.userId, {
               activeSubscription: subscription._id,
               plan: plan.code
-            });
+            }, { new: true });
             console.log(`[CheckStatus] Activated subscription for user ${updatedPayment.userId} with plan ${plan.code}`);
+
+            if (updatedUser && updatedUser.email) {
+              emailService.sendPremiumWelcomeEmail(updatedUser.email, updatedUser.fullName).catch(console.error);
+            }
           }
         }
       } catch (subErr) {
@@ -625,11 +629,15 @@ export const handleWebhook = async (req, res, next) => {
               });
               await subscription.save();
 
-              await User.findByIdAndUpdate(payment.userId, {
+              const updatedUser = await User.findByIdAndUpdate(payment.userId, {
                 activeSubscription: subscription._id,
                 plan: plan.code
-              });
+              }, { new: true });
               console.log(`[Webhook] Activated subscription for user ${payment.userId} with plan ${plan.code}`);
+
+              if (updatedUser && updatedUser.email) {
+                emailService.sendPremiumWelcomeEmail(updatedUser.email, updatedUser.fullName).catch(console.error);
+              }
             }
           }
         } catch (subErr) {

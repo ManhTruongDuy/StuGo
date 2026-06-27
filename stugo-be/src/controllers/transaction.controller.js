@@ -27,7 +27,8 @@ const getAvailableBalance = async (userId) => {
     {
       $group: {
         _id: null,
-        total: {
+        gmv: { $sum: '$totalAmount' },
+        collected: {
           $sum: {
             $cond: [
               { $eq: ['$paymentStatus', 'fully_paid'] },
@@ -40,9 +41,11 @@ const getAvailableBalance = async (userId) => {
     }
   ]);
 
-  const totalRevenue = revenueAgg[0]?.total || 0;
-  // Platform takes 5% commission
-  const partnerRevenue = Math.round(totalRevenue * 0.95);
+  const totalGmv = revenueAgg[0]?.gmv || 0;
+  const totalCollected = revenueAgg[0]?.collected || 0;
+  
+  // Platform takes 5% commission on the full GMV
+  const commission = Math.round(totalGmv * 0.05);
 
   // Total already withdrawn or pending
   const mongoose = (await import('mongoose')).default;
@@ -53,9 +56,9 @@ const getAvailableBalance = async (userId) => {
   const withdrawn = withdrawnAgg[0]?.total || 0;
 
   return {
-    totalRevenue: totalRevenue,
+    totalRevenue: totalGmv, // Show full GMV as revenue
     withdrawn,
-    available: Math.max(0, partnerRevenue - withdrawn)
+    available: Math.max(0, totalCollected - commission - withdrawn)
   };
 };
 

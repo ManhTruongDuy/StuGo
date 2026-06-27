@@ -132,7 +132,8 @@ export const getDashboardOverview = async (req, res, next) => {
                         {
                             $group: {
                                 _id: null,
-                                total: {
+                                gmv: { $sum: '$totalAmount' },
+                                collected: {
                                     $sum: {
                                         $cond: [
                                             { $eq: ['$paymentStatus', 'fully_paid'] },
@@ -166,14 +167,18 @@ export const getDashboardOverview = async (req, res, next) => {
                         ]);
                     })()
                 ]);
-                const bookingTotal = bookingRevenue[0]?.total || 0;
+                const bookingGmv = bookingRevenue[0]?.gmv || 0;
+                const bookingCollected = bookingRevenue[0]?.collected || 0;
                 const subTotal = subRevenue[0]?.total || 0;
                 const withdrawnTotal = withdrawnAgg[0]?.total || 0;
-                const partnerBookingRevenue = bookingTotal * 0.95;
+                
+                const commission = bookingGmv * 0.05;
+                const available = Math.max(0, bookingCollected - commission + subTotal - withdrawnTotal);
+                
                 return [{ 
-                    total: bookingTotal + subTotal,
-                    available: Math.max(0, partnerBookingRevenue + subTotal - withdrawnTotal),
-                    commission: bookingTotal * 0.05
+                    total: bookingGmv + subTotal,
+                    available,
+                    commission
                 }];
             })(),
             // This month revenue
@@ -197,7 +202,8 @@ export const getDashboardOverview = async (req, res, next) => {
                         {
                             $group: {
                                 _id: null,
-                                total: {
+                                gmv: { $sum: '$totalAmount' },
+                                collected: {
                                     $sum: {
                                         $cond: [
                                             { $eq: ['$paymentStatus', 'fully_paid'] },
@@ -227,13 +233,17 @@ export const getDashboardOverview = async (req, res, next) => {
                     })()
                 ]);
                 
-                const bookingMonthTotal = bookingMonthRevenue[0]?.total || 0;
+                const bookingMonthGmv = bookingMonthRevenue[0]?.gmv || 0;
+                const bookingMonthCollected = bookingMonthRevenue[0]?.collected || 0;
                 const withdrawnMonthTotal = withdrawnMonthAgg[0]?.total || 0;
-                const partnerBookingMonthTotal = bookingMonthTotal * 0.95;
+                
+                const monthCommission = bookingMonthGmv * 0.05;
+                const monthAvailable = Math.max(0, bookingMonthCollected - monthCommission - withdrawnMonthTotal);
+                
                 return [{ 
-                    total: bookingMonthTotal,
-                    available: Math.max(0, partnerBookingMonthTotal - withdrawnMonthTotal),
-                    commission: bookingMonthTotal * 0.05
+                    total: bookingMonthGmv, // For partners subTotal is always 0
+                    available: monthAvailable,
+                    commission: monthCommission
                 }];
             })()
         ]);
