@@ -93,7 +93,8 @@ const AdminTransactionsPage = () => {
             (t) =>
                 t.orderCode?.toString().includes(query) ||
                 t.userName?.toLowerCase().includes(query) ||
-                t.transactionId?.toLowerCase().includes(query)
+                t.transactionId?.toLowerCase().includes(query) ||
+                (typeof t.bookingId === 'string' ? t.bookingId.toLowerCase().includes(query) : t.bookingId?._id?.toLowerCase().includes(query))
         );
     }, [transactions, searchQuery]);
 
@@ -321,6 +322,9 @@ const AdminTransactionsPage = () => {
                                         Mã giao dịch
                                     </th>
                                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                                        Mã đặt chỗ
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
                                         Người dùng
                                     </th>
                                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
@@ -349,9 +353,18 @@ const AdminTransactionsPage = () => {
                                                     #{trans.orderCode}
                                                 </p>
                                                 {trans.transactionId && (
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-gray-500 truncate w-32">
                                                         {trans.transactionId}
                                                     </p>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {trans.bookingId ? (
+                                                    <p className="text-xs font-mono text-gray-600 truncate w-24" title={typeof trans.bookingId === 'string' ? trans.bookingId : trans.bookingId._id}>
+                                                        {typeof trans.bookingId === 'string' ? trans.bookingId : trans.bookingId._id}
+                                                    </p>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400 italic">Premium</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-900">
@@ -398,7 +411,7 @@ const AdminTransactionsPage = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                                             Không có giao dịch nào
                                         </td>
                                     </tr>
