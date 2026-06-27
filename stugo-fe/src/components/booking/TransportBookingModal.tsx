@@ -67,34 +67,11 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
         let seatsRemaining = totalSeats;
         
         if (totalSeats <= 16) {
-            // Target layout based on real van layout:
-            // Driver is at top-left.
-            // Row 1: [null, '02', null, '01']
-            // Row 2: ['05', '04', null, '03']
-            // Row 3: ['08', '07', null, '06']
-            // Row 4: ['11', '10', null, '09']
-            // Row 5: ['15', '14', '13', '12']
-            if (seatsRemaining >= 2) {
-                grid.push([null, '02', null, '01']);
-                currentSeat += 2; seatsRemaining -= 2;
-            }
-            while (seatsRemaining > 4) {
-                grid.push([
-                    (currentSeat+2).toString().padStart(2, '0'),
-                    (currentSeat+1).toString().padStart(2, '0'),
-                    null,
-                    currentSeat.toString().padStart(2, '0')
-                ]);
-                currentSeat += 3; seatsRemaining -= 3;
-            }
-            if (seatsRemaining > 0) {
-                const lastRow: (string | null)[] = [];
-                for (let i = seatsRemaining - 1; i >= 0; i--) {
-                    lastRow.push((currentSeat + i).toString().padStart(2, '0'));
-                }
-                while (lastRow.length < 4) lastRow.unshift(null); // pad left if needed
-                grid.push(lastRow);
-            }
+            grid.push(['driver', null, '01', '02']);
+            grid.push(['03', '04', '05', null]);
+            grid.push(['06', '07', '08', null]);
+            grid.push(['09', '10', '11', null]);
+            grid.push(['12', '13', '14', '15']);
         } else {
             // Standard 2x2 Layout (Right to Left numbering)
             while (seatsRemaining > 0) {
@@ -273,6 +250,20 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
     const finalPaymentAmount = totalPrice;
 
     const renderSeat = (seatId: string) => {
+        if (seatId === 'driver') {
+            return (
+                <div className="w-12 h-16 flex items-center justify-center p-2 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 shadow-inner">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="3" />
+                        <line x1="12" y1="2" x2="12" y2="9" />
+                        <line x1="2" y1="12" x2="9" y2="12" />
+                        <line x1="15" y1="12" x2="22" y2="12" />
+                    </svg>
+                </div>
+            );
+        }
+
         const isOccupied = occupiedSeats.includes(seatId);
         const isSelected = selectedSeats.includes(seatId);
 
@@ -584,22 +575,8 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                             <div className="w-16 h-1 bg-gray-300 rounded-full"></div>
                                         </div>
                                         
-                                        {/* Driver Section */}
-                                        <div className="flex justify-between items-center mt-5 mb-2 px-2">
-                                            <div className="p-2 rounded-full bg-gray-200 text-gray-500 shadow-inner">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                                    <circle cx="12" cy="12" r="10" />
-                                                    <circle cx="12" cy="12" r="3" />
-                                                    <line x1="12" y1="2" x2="12" y2="9" />
-                                                    <line x1="2" y1="12" x2="9" y2="12" />
-                                                    <line x1="15" y1="12" x2="22" y2="12" />
-                                                </svg>
-                                            </div>
-                                            <div className="w-8 h-8"></div>
-                                        </div>
-                                        
                                         {/* Seats Grid */}
-                                        <div className="flex flex-col gap-3">
+                                        <div className="flex flex-col gap-3 mt-4">
                                             {seatGrid.map((row, rowIndex) => (
                                                 <div key={rowIndex} className="flex justify-between items-center w-full">
                                                     {row.map((seatId, colIndex) => {
