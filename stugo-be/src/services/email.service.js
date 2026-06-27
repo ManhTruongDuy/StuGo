@@ -76,13 +76,11 @@ export const sendWelcomeEmail = async (email, name) => {
     <p>Cảm ơn bạn đã đăng ký tài khoản trên nền tảng của chúng tôi.</p>
     <p>StuGo là nền tảng hỗ trợ sinh viên tìm kiếm, so sánh và đặt vé xe liên tỉnh một cách nhanh chóng, minh bạch và thuận tiện.</p>
     <p>Với tài khoản StuGo, bạn có thể:</p>
-    <ul>
-      <li>🚌 Tìm kiếm các tuyến xe phù hợp.</li>
-      <li>💺 So sánh nhà xe, giá vé và thời gian khởi hành.</li>
-      <li>🎫 Đặt vé trực tuyến dễ dàng.</li>
-      <li>📋 Quản lý lịch sử đặt vé.</li>
-      <li>🎁 Nhận các ưu đãi và chương trình dành riêng cho thành viên.</li>
-    </ul>
+    <p>🚌 Tìm kiếm các tuyến xe phù hợp.</p>
+    <p>💺 So sánh nhà xe, giá vé và thời gian khởi hành.</p>
+    <p>🎫 Đặt vé trực tuyến dễ dàng.</p>
+    <p>📋 Quản lý lịch sử đặt vé.</p>
+    <p>🎁 Nhận các ưu đãi và chương trình dành riêng cho thành viên.</p>
     <p>Chúng tôi rất vui khi được đồng hành cùng bạn trên những hành trình sắp tới.</p>
     <p>Nếu cần hỗ trợ, đừng ngần ngại liên hệ với đội ngũ StuGo. Mọi thông tin liên hệ:</p>
     <p>
@@ -121,12 +119,10 @@ export const sendPremiumWelcomeEmail = async (email, name) => {
     <p>🎉 <strong>Chúc mừng!</strong></p>
     <p>Tài khoản của bạn đã được nâng cấp thành công lên StuGo Premium.</p>
     <p>Là thành viên Premium, bạn sẽ được hưởng nhiều quyền lợi đặc biệt như:</p>
-    <ul>
-      <li>⭐ Ưu tiên hỗ trợ khách hàng.</li>
-      <li>🎁 Nhận các ưu đãi và khuyến mãi độc quyền.</li>
-      <li>🔔 Thông báo sớm về các tuyến xe mới và chương trình ưu đãi.</li>
-      <li>💙 Trải nghiệm dịch vụ tốt hơn với nhiều tiện ích dành riêng cho thành viên Premium.</li>
-    </ul>
+    <p>⭐ Ưu tiên hỗ trợ khách hàng.</p>
+    <p>🎁 Nhận các ưu đãi và khuyến mãi độc quyền.</p>
+    <p>🔔 Thông báo sớm về các tuyến xe mới và chương trình ưu đãi.</p>
+    <p>💙 Trải nghiệm dịch vụ tốt hơn với nhiều tiện ích dành riêng cho thành viên Premium.</p>
     <p>Cảm ơn bạn đã tin tưởng và đồng hành cùng StuGo.</p>
     <p>Chúng tôi hy vọng StuGo Premium sẽ mang đến cho bạn những trải nghiệm di chuyển thuận tiện và tiết kiệm hơn.</p>
     <p>Mọi thông tin liên hệ:</p>
