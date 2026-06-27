@@ -163,13 +163,9 @@ export const sendBookingSuccessEmail = async (email, name, bookingData) => {
         <th>Tổng tiền</th>
         <td class="highlight">${bookingData.totalAmount.toLocaleString('vi-VN')}đ</td>
       </tr>
-      <tr>
-        <th>Cần cọc</th>
-        <td class="highlight">${bookingData.depositAmount.toLocaleString('vi-VN')}đ</td>
-      </tr>
     </table>
     
-    <p style="margin-top: 20px;">Vui lòng hoàn tất thanh toán (nếu có) để chúng tôi giữ chỗ cho bạn.</p>
+    <p style="margin-top: 20px;">Cảm ơn bạn đã lựa chọn StuGo.</p>
     <div style="text-align: center;">
       <a href="${process.env.FRONTEND_URL || 'https://stu-go.vercel.app'}/account" class="btn">Xem lịch sử đặt chỗ</a>
     </div>
