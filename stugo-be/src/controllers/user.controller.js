@@ -236,10 +236,25 @@ export const getPartners = async (req, res, next) => {
         const partnerObj = partner.toObject ? partner.toObject() : partner;
         const servicesCount = await serviceRepository.model.countDocuments({ ownerId: partner._id });
         
-        const bookingStats = await bookingRepository.getBookingStats(partner._id);
-        const completedStats = bookingStats.find(stat => stat._id === 'completed');
-        const confirmedStats = bookingStats.find(stat => stat._id === 'confirmed');
-        const totalRevenue = (completedStats ? completedStats.totalAmount : 0) + (confirmedStats ? confirmedStats.totalAmount : 0);
+        const services = await serviceRepository.model.find({ ownerId: partner._id }).select('_id');
+        const serviceIds = services.map(s => s._id);
+        
+        const revenueAgg = await bookingRepository.model.aggregate([
+          {
+            $match: {
+              serviceId: { $in: serviceIds },
+              status: { $in: ['confirmed', 'completed'] },
+              paymentStatus: { $in: ['deposit_paid', 'fully_paid'] }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$totalAmount' }
+            }
+          }
+        ]);
+        const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
 
         return {
           ...partnerObj,

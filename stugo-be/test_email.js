@@ -23,7 +23,7 @@ const testEmail = async () => {
 
   try {
     const transporter = createTransporter();
-    
+
     // verify connection configuration
     console.log('Verifying connection...');
     await transporter.verify();
