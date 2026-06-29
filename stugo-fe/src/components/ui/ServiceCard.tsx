@@ -199,7 +199,7 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                         {getTypeLabel(service.type)}
                     </span>
                     {service.isPremiumPartner && (
-                        <span className="badge bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-none shadow-lg shadow-yellow-500/30 flex items-center gap-1.5 px-2.5 py-1 font-semibold z-10 animate-pulse-slow">
+                        <span className="badge bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-none shadow-lg shadow-yellow-500/30 flex items-center gap-1.5 px-2.5 py-1 font-semibold z-10">
                             <Crown className="w-3.5 h-3.5 text-yellow-100" />
                             Đối tác nổi bật
                         </span>

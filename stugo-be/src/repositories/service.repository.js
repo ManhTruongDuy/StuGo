@@ -53,11 +53,20 @@ class ServiceRepository extends BaseRepository {
 
     // Search filter
     if (filters.search) {
+      const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedSearch = escapeRegex(filters.search);
+      
+      // Make route search flexible for formats like "Hà Nội - Hải Phòng" or "Hà Nội đi Hải Phòng"
+      const routeSearchStr = filters.search
+        .split(/\s*-\s*|\s+\bđi\b\s+/i)
+        .map(part => escapeRegex(part.trim()))
+        .join('.*');
+
       query.$or = [
-        { name: { $regex: filters.search, $options: 'i' } },
-        { description: { $regex: filters.search, $options: 'i' } },
-        { address: { $regex: filters.search, $options: 'i' } },
-        { 'routes.name': { $regex: filters.search, $options: 'i' } }
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { description: { $regex: escapedSearch, $options: 'i' } },
+        { address: { $regex: escapedSearch, $options: 'i' } },
+        { 'routes.name': { $regex: routeSearchStr, $options: 'i' } }
       ];
     }
 
