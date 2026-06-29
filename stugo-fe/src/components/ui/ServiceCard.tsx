@@ -193,17 +193,11 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                {/* Type Badge & Premium Badge */}
-                <div className="absolute top-3 left-3 flex flex-col gap-2">
+                {/* Type Badge */}
+                <div className="absolute top-3 left-3">
                     <span className={`badge ${getTypeColor(service.type)}`}>
                         {getTypeLabel(service.type)}
                     </span>
-                    {service.isPremiumPartner && (
-                        <span className="badge bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-none shadow-lg shadow-yellow-500/30 flex items-center gap-1.5 px-2.5 py-1 font-semibold z-10">
-                            <Crown className="w-3.5 h-3.5 text-yellow-100" />
-                            Đối tác nổi bật
-                        </span>
-                    )}
                 </div>
 
                 {/* Favorite Button */}
@@ -241,14 +235,22 @@ const ServiceCard = ({ service, onFavorite, isFavorite = false }: ServiceCardPro
             {/* Content */}
             <div className="p-5 flex flex-col flex-1">
                 {/* Title & Rating */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="font-semibold text-gray-900 text-lg line-clamp-1 group-hover:text-primary-600 transition-colors">
-                        {service.name}
-                    </h3>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="font-medium text-gray-700">{service.rating.toFixed(1)}</span>
-                        <span className="text-gray-400 text-sm">({service.reviewCount})</span>
+                <div className="flex flex-col gap-1.5 mb-3">
+                    {service.isPremiumPartner && (
+                        <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 w-fit px-2 py-0.5 rounded text-xs font-semibold border border-amber-200/50">
+                            <Crown className="w-3 h-3" />
+                            Đối tác nổi bật
+                        </div>
+                    )}
+                    <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-gray-900 text-lg line-clamp-1 group-hover:text-primary-600 transition-colors">
+                            {service.name}
+                        </h3>
+                        <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span className="font-medium text-gray-700">{service.rating.toFixed(1)}</span>
+                            <span className="text-gray-400 text-sm">({service.reviewCount})</span>
+                        </div>
                     </div>
                 </div>
 
