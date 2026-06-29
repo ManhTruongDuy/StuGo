@@ -58,7 +58,7 @@ class ServiceRepository extends BaseRepository {
       
       // Make route search flexible for formats like "Hà Nội - Hải Phòng" or "Hà Nội đi Hải Phòng"
       const routeSearchStr = filters.search
-        .split(/\s*-\s*|\s+\bđi\b\s+/i)
+        .split(/\s*-\s*|\s+đi\s+/i)
         .map(part => escapeRegex(part.trim()))
         .join('.*');
 
@@ -66,7 +66,8 @@ class ServiceRepository extends BaseRepository {
         { name: { $regex: escapedSearch, $options: 'i' } },
         { description: { $regex: escapedSearch, $options: 'i' } },
         { address: { $regex: escapedSearch, $options: 'i' } },
-        { 'routes.name': { $regex: routeSearchStr, $options: 'i' } }
+        { 'routes.name': { $regex: routeSearchStr, $options: 'i' } },
+        { 'carpoolOptions.routes.name': { $regex: routeSearchStr, $options: 'i' } }
       ];
     }
 
