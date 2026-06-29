@@ -39,15 +39,49 @@ export const chatWithAI = async (req, res) => {
     const genAI = new GoogleGenerativeAI(apiKey);
 
     // 2. Fetch all transportation services from the database
-    const transports = await Service.find({ type: 'transport', status: 'active' }).select('-ownerId -__v');
+    const transports = await Service.find({ type: 'transport', status: 'active' }).select('-__v');
 
     // 3. Construct the context prompt
-    const contextStr = transports.map(t => {
-      const routesStr = t.routes && t.routes.length > 0 
-        ? t.routes.map(r => `- ${r.name}: ${r.price} VND`).join('\n      ')
-        : 'N/A';
-        
-      return `
+    let systemInstruction = '';
+    
+    if (req.user.role === 'partner') {
+      const partnerServices = transports.filter(t => t.ownerId && t.ownerId.toString() === req.user._id.toString());
+      
+      const partnerContextStr = partnerServices.length > 0 
+        ? partnerServices.map(t => {
+            const routesStr = t.routes && t.routes.length > 0 
+              ? t.routes.map(r => `- ${r.name}: ${r.price} VND`).join('\n        ')
+              : 'Chưa có tuyến xe nào.';
+              
+            return `
+        Tên dịch vụ: ${t.name}
+        Mô tả: ${t.description}
+        Địa chỉ: ${t.address}, ${t.district}, ${t.city}
+        Loại xe: ${t.vehicleType || 'N/A'} (Số ghế: ${t.seats || 'N/A'})
+        Đánh giá: ${t.rating} / 5 (${t.reviewCount} lượt đánh giá)
+        Các tuyến xe hiện có: 
+        ${routesStr}
+        `;
+          }).join('\n')
+        : 'Hiện tại đối tác chưa đăng ký dịch vụ/tuyến xe nào trên hệ thống.';
+
+      systemInstruction = `Bạn là trợ lý ảo thông minh dành riêng cho Đối tác kinh doanh trên nền tảng StuGo.
+Bạn đang trò chuyện với một Đối tác cấp cao (Premium Partner).
+Dưới đây là thông tin về các dịch vụ và tuyến xe mà đối tác này đang quản lý trên hệ thống:
+${partnerContextStr}
+
+Nhiệm vụ của bạn là:
+- Dựa vào thông tin các tuyến xe và dịch vụ của đối tác, hãy tư vấn chiến lược kinh doanh, cách tối ưu hóa các tuyến xe này.
+- Đưa ra lời khuyên hữu ích để tăng doanh thu cho đúng các dịch vụ mà đối tác đang sở hữu.
+- Trả lời bằng tiếng Việt một cách chuyên nghiệp, lịch sự, rõ ràng và ngắn gọn.
+- Nếu đối tác hỏi về dịch vụ của họ, hãy dựa vào danh sách trên để trả lời.`;
+    } else {
+      const contextStr = transports.map(t => {
+        const routesStr = t.routes && t.routes.length > 0 
+          ? t.routes.map(r => `- ${r.name}: ${r.price} VND`).join('\n      ')
+          : 'N/A';
+          
+        return `
       Name: ${t.name}
       Description: ${t.description}
       Address: ${t.address}, ${t.district}, ${t.city}
@@ -57,14 +91,9 @@ export const chatWithAI = async (req, res) => {
       Routes: 
       ${routesStr}
       `;
-    }).join('\n');
+      }).join('\n');
 
-    const systemInstruction = req.user.role === 'partner' 
-      ? `Bạn là trợ lý ảo thông minh dành cho các Đối tác kinh doanh trên nền tảng StuGo.
-Bạn đang trò chuyện với một Đối tác cấp cao (Premium Partner).
-Nhiệm vụ của bạn là hỗ trợ đối tác giải đáp thắc mắc, tư vấn chiến lược kinh doanh, cung cấp thông tin quản lý và đưa ra các lời khuyên hữu ích để tăng doanh thu trên nền tảng StuGo.
-Hãy trả lời bằng tiếng Việt một cách chuyên nghiệp, lịch sự, rõ ràng và ngắn gọn.`
-      : `Bạn là trợ lý ảo tìm kiếm phương tiện di chuyển thông minh cho nền tảng sinh viên StuGo.
+      systemInstruction = `Bạn là trợ lý ảo tìm kiếm phương tiện di chuyển thông minh cho nền tảng sinh viên StuGo.
 Bạn đang trò chuyện với một thành viên cao cấp (Premium).
 Bạn chỉ được phép gợi ý và giới thiệu các phương tiện/nhà xe di chuyển nằm trong danh sách dịch vụ sau đây:
 ${contextStr}
@@ -74,6 +103,7 @@ LƯU Ý CỰC KỲ QUAN TRỌNG VỀ PHONG CÁCH NÓI CHUYỆN:
 - Nếu khách hàng hỏi về các chuyến xe/tuyến đường hoặc địa điểm không nằm trong danh sách dịch vụ phía trên, hãy trả lời một cách lịch sự và tự nhiên như một nhân viên hỗ trợ khách hàng thực thụ. Ví dụ:
   "Dạ, rất tiếc là hiện tại tuyến đường đến [địa điểm] vẫn chưa được các đối tác nhà xe của StuGo khai thác ạ. Bạn có muốn tham khảo thử các tuyến xe/nhà xe khác hiện đang có trên StuGo không?" hoặc "Dạ, StuGo hiện tại chưa hỗ trợ chuyến xe đến địa chỉ này. Bạn tham khảo thử danh sách các nhà xe đối tác khác đang hoạt động nhé!".
 - Trả lời bằng tiếng Việt một cách rõ ràng, ngắn gọn, thân thiện và lịch sự.`;
+    }
 
     // 4. Generate response
     let responseText;
