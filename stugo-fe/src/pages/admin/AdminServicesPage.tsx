@@ -1123,8 +1123,8 @@ const AdminServicesPage = () => {
     }, [services, typeFilter, statusFilter, searchQuery]);
 
     const stats = useMemo(() => ({
-        total: services.length,
-        transport: services.filter(s => s.type === 'transport').length,
+        total: services.filter(s => s.status === 'active').length,
+        transport: services.filter(s => s.type === 'transport' && s.status === 'active').length,
         accommodation: services.filter(s => s.type === 'accommodation').length,
         active: services.filter(s => s.isAvailable).length,
         pending: services.filter(s => s.status === 'pending').length,
