@@ -628,12 +628,14 @@ const ServiceDetailPage = () => {
                 />
             )}
 
-            {showContactModal && (
+            {showContactModal && service && (
                 <ContactModal
                     isOpen={showContactModal}
                     onClose={() => setShowContactModal(false)}
                     serviceName={service.name}
                     serviceType={service.type}
+                    phone={service.owner?.phone}
+                    email={service.owner?.email}
                 />
             )}
 

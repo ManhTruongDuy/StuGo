@@ -47,6 +47,14 @@ export interface Service {
   popularity: number;
   bookingCount?: number;
   ownerId: string;
+  owner?: {
+    _id?: string;
+    id?: string;
+    fullName: string;
+    phone?: string;
+    email: string;
+    avatar?: string;
+  };
   isPremiumPartner?: boolean;
   createdAt: string;
   updatedAt: string;

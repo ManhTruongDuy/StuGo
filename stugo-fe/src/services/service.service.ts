@@ -30,6 +30,7 @@ const transformService = (service: any): Service => {
     popularity: service.popularity || 0,
     bookingCount: service.bookingCount || 0,
     ownerId: typeof service.ownerId === 'object' ? service.ownerId?._id : service.ownerId,
+    owner: typeof service.ownerId === 'object' ? service.ownerId : service.owner,
     isPremiumPartner: service.isPremiumPartner || false,
     createdAt: service.createdAt,
     updatedAt: service.updatedAt,

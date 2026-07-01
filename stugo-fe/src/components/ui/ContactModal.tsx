@@ -6,11 +6,13 @@ interface ContactModalProps {
     onClose: () => void;
     serviceName: string;
     serviceType: string;
+    phone?: string;
+    email?: string;
 }
 
-const ContactModal = ({ isOpen, onClose, serviceName }: ContactModalProps) => {
-    const phoneNumber = '0123456789'; // Demo phone number
-    const email = 'contact@stugo.vn';
+const ContactModal = ({ isOpen, onClose, serviceName, phone, email: propsEmail }: ContactModalProps) => {
+    const phoneNumber = phone || '0123456789'; // Default demo phone number if not provided
+    const email = propsEmail || 'contact@stugo.vn';
     const zaloLink = `https://zalo.me/${phoneNumber}`;
 
     const handleCall = () => {
