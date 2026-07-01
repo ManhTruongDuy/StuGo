@@ -615,7 +615,7 @@ const TransportBookingModal = ({ service, onClose }: TransportBookingModalProps)
                                         </div>
                                         
                                         {/* Door Indicator */}
-                                        <div className="absolute bottom-6 -right-1 text-[10px] font-medium text-gray-400 rotate-90">
+                                        <div className="absolute top-[60%] -right-1 -translate-y-1/2 text-[10px] font-medium text-gray-400 rotate-90">
                                             CỬA LÊN
                                         </div>
                                     </div>

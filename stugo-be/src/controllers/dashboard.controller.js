@@ -300,7 +300,7 @@ export const getDashboardOverview = async (req, res, next) => {
             success: true,
             data: {
                 services: {
-                    total: services.length,
+                    total: services.filter(s => s.status === 'active').length,
                     active: services.filter(s => s.status === 'active').length,
                     pending: services.filter(s => s.status === 'pending').length,
                     suspended: services.filter(s => ['suspended', 'rejected'].includes(s.status)).length
