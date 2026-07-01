@@ -11,8 +11,8 @@ interface ContactModalProps {
 }
 
 const ContactModal = ({ isOpen, onClose, serviceName, phone, email: propsEmail }: ContactModalProps) => {
-    const phoneNumber = phone || '0123456789'; // Default demo phone number if not provided
-    const email = propsEmail || 'contact@stugo.vn';
+    const phoneNumber = phone || '0962758608'; // Default demo phone number if not provided
+    const email = propsEmail || 'stugo.service@gmail.com';
     const zaloLink = `https://zalo.me/${phoneNumber}`;
 
     const handleCall = () => {
@@ -25,11 +25,6 @@ const ContactModal = ({ isOpen, onClose, serviceName, phone, email: propsEmail }
 
     const handleZalo = () => {
         window.open(zaloLink, '_blank');
-    };
-
-    const handleMessenger = () => {
-        // Facebook Messenger link - replace with actual page ID
-        window.open('https://m.me/stugo.vn', '_blank');
     };
 
     return (
@@ -72,20 +67,6 @@ const ContactModal = ({ isOpen, onClose, serviceName, phone, email: propsEmail }
                         <div className="flex-1 text-left">
                             <p className="font-semibold text-gray-900">Chat qua Zalo</p>
                             <p className="text-sm text-gray-500">Nhắn tin trực tiếp</p>
-                        </div>
-                    </button>
-
-                    {/* Messenger */}
-                    <button
-                        onClick={handleMessenger}
-                        className="w-full flex items-center gap-4 p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition-all group"
-                    >
-                        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-500 transition-colors">
-                            <MessageCircle className="w-6 h-6 text-purple-600 group-hover:text-white transition-colors" />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <p className="font-semibold text-gray-900">Chat qua Messenger</p>
-                            <p className="text-sm text-gray-500">Trả lời nhanh chóng</p>
                         </div>
                     </button>
 
