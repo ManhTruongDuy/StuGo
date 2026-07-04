@@ -44,7 +44,7 @@ const ComboCard = ({ combo }: ComboCardProps) => {
           </h3>
 
           <div className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
-            {combo.description}
+            Điểm đến: {combo.destination} • Thời gian: {combo.duration}
           </div>
 
           <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
