@@ -42,6 +42,8 @@ import AdminWithdrawalsPage from './pages/admin/AdminWithdrawalsPage';
 import AdminPartnersPage from './pages/admin/AdminPartnersPage';
 import AdminComplaintsPage from './pages/admin/AdminComplaintsPage';
 import AdminRefundsPage from './pages/admin/AdminRefundsPage';
+import AdminCombosPage from './pages/admin/AdminCombosPage';
+import AdminCreateComboPage from './pages/admin/AdminCreateComboPage';
 
 function App() {
   return (
@@ -123,6 +125,8 @@ function App() {
             <Route path="partners" element={<AdminPartnersPage />} />
             <Route path="complaints" element={<AdminComplaintsPage />} />
             <Route path="refunds" element={<AdminRefundsPage />} />
+            <Route path="combos" element={<AdminCombosPage />} />
+            <Route path="combos/create" element={<AdminCreateComboPage />} />
           </Route>
         </Routes>
       </Router>

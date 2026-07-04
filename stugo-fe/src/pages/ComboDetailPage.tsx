@@ -277,13 +277,6 @@ const ComboDetailPage = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900 mb-3">Giới thiệu Combo</h2>
-                                <div className="text-gray-600 leading-relaxed whitespace-pre-line">
-                                    {combo.description}
-                                </div>
-                            </div>
-
                             {combo.linkedServices && combo.linkedServices.length > 0 && (
                                 <div className="mt-8 pt-8 border-t border-gray-100">
                                     <h2 className="text-lg font-semibold text-gray-900 mb-4">Các dịch vụ bao gồm</h2>

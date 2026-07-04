@@ -15,13 +15,20 @@ export interface ComboPricing {
 export interface Combo {
   id?: string;
   _id?: string;
-  resellerId: string | any;
+  ownerId: string | any;
   name: string;
-  description: string;
+  thumbnail: string;
   images: string[];
+  destination: string;
+  duration: string;
+  accommodationName: string;
+  transportType: string;
+  includes: string[];
+  excludes: string[];
+  termsAndConditions: string[];
   linkedServices: LinkedService[];
   pricing: ComboPricing;
-  status: 'active' | 'inactive';
+  status: 'pending' | 'active' | 'rejected' | 'inactive';
   rating?: number;
   reviewCount?: number;
   createdAt?: string;

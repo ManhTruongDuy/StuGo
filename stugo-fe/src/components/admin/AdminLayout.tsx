@@ -15,6 +15,7 @@ import {
     CreditCard,
     MessageSquare,
     Bell,
+    Package,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
@@ -61,6 +62,11 @@ const AdminLayout = () => {
             icon: CreditCard,
             label: 'Yêu cầu hoàn tiền',
             path: '/admin/refunds',
+        },
+        {
+            icon: Package,
+            label: 'Quản lý Combo',
+            path: '/admin/combos',
         },
         {
             icon: Users,
