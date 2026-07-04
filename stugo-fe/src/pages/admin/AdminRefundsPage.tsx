@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { CheckCircle, XCircle, Search, Filter, Loader2, Eye } from 'lucide-react';
+import { XCircle, Loader2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
 
 interface RefundRequest {
   _id: string;
@@ -31,6 +29,7 @@ interface RefundRequest {
     bankAccountName: string;
   };
   createdAt: string;
+  resolvedAt?: string;
 }
 
 const AdminRefundsPage = () => {
@@ -40,54 +39,56 @@ const AdminRefundsPage = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [adminReason, setAdminReason] = useState('');
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject'>('approve');
-  const queryClient = useQueryClient();
+  
+  const [data, setData] = useState<{ data: RefundRequest[] } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['adminRefunds', statusFilter, page],
-    queryFn: async () => {
-      const { data } = await axios.get(
+  const fetchRefunds = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/refunds?page=${page}&limit=20${
           statusFilter !== 'all' ? `&status=${statusFilter}` : ''
         }`,
         { withCredentials: true }
       );
-      return data;
-    },
-  });
+      setData(response.data);
+    } catch (error) {
+      toast.error('Không thể tải danh sách yêu cầu hoàn tiền');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const reviewMutation = useMutation({
-    mutationFn: async ({ id, action, reason }: { id: string; action: 'approve' | 'reject'; reason: string }) => {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/refunds/${id}/review`,
-        { action, reason },
-        { withCredentials: true }
-      );
-      return data;
-    },
-    onSuccess: (data) => {
-      toast.success(data.message);
-      setIsReviewModalOpen(false);
-      setSelectedRefund(null);
-      setAdminReason('');
-      queryClient.invalidateQueries({ queryKey: ['adminRefunds'] });
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
-    },
-  });
+  useEffect(() => {
+    fetchRefunds();
+  }, [statusFilter, page]);
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (reviewAction === 'reject' && !adminReason.trim()) {
       toast.error('Vui lòng nhập lí do từ chối');
       return;
     }
     if (selectedRefund) {
-      reviewMutation.mutate({
-        id: selectedRefund._id,
-        action: reviewAction,
-        reason: adminReason,
-      });
+      setIsReviewing(true);
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/refunds/${selectedRefund._id}/review`,
+          { action: reviewAction, reason: adminReason },
+          { withCredentials: true }
+        );
+        toast.success(response.data.message);
+        setIsReviewModalOpen(false);
+        setSelectedRefund(null);
+        setAdminReason('');
+        fetchRefunds();
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+      } finally {
+        setIsReviewing(false);
+      }
     }
   };
 
@@ -285,10 +286,10 @@ const AdminRefundsPage = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={reviewMutation.isPending}
+                      disabled={isReviewing}
                       className="px-6 py-2 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-medium rounded-xl transition-all shadow-lg disabled:opacity-50 flex items-center gap-2"
                     >
-                      {reviewMutation.isPending ? (
+                      {isReviewing ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Đang xử lý...

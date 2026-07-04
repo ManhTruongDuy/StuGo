@@ -17,7 +17,7 @@ const configurePassport = () => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          const email = profile.emails?.[0]?.value;
+          const email = profile.emails?.[0]?.value || profile._json?.email;
           const googleId = profile.id;
           const fullName = profile.displayName;
           const avatar = profile.photos?.[0]?.value;
@@ -41,9 +41,13 @@ const configurePassport = () => {
               status: 'active',
             });
             
-            // Send welcome email asynchronously
+            // Send welcome email
             if (email) {
-              emailService.sendWelcomeEmail(email, fullName).catch(console.error);
+              try {
+                await emailService.sendWelcomeEmail(email, fullName);
+              } catch (err) {
+                console.error('Failed to send welcome email (Google Auth):', err);
+              }
             }
           } else {
             // Update existing user with Google info if not set
