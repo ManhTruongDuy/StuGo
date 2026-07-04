@@ -173,9 +173,40 @@ export const sendBookingSuccessEmail = async (email, name, bookingData) => {
   return sendEmail(email, subject, baseTemplate(content));
 };
 
+export const sendRefundEmail = async (email, name, amount, bankInfo, isApproved, reason) => {
+  const subject = isApproved ? 'Xác nhận hoàn tiền thành công - StuGo' : 'Thông báo từ chối hoàn tiền - StuGo';
+  const content = `
+    <h2 style="color: #111827; margin-top: 0;">Xin chào ${name},</h2>
+    <p>Yêu cầu hoàn tiền của bạn đã được xử lý.</p>
+    <table class="data-table">
+      <tr>
+        <th>Trạng thái</th>
+        <td class="highlight">${isApproved ? 'Đã phê duyệt' : 'Từ chối'}</td>
+      </tr>
+      ${isApproved ? `
+      <tr>
+        <th>Số tiền hoàn</th>
+        <td>${amount.toLocaleString('vi-VN')}đ</td>
+      </tr>
+      <tr>
+        <th>Tài khoản nhận</th>
+        <td>${bankInfo.bankName} - ${bankInfo.bankAccount} (${bankInfo.bankAccountName})</td>
+      </tr>
+      ` : ''}
+      <tr>
+        <th>Lí do / Ghi chú</th>
+        <td>${reason || 'Hoàn tiền theo chính sách hệ thống'}</td>
+      </tr>
+    </table>
+    <p style="margin-top: 20px;">Trân trọng,<br><strong>Đội ngũ StuGo</strong></p>
+  `;
+  return sendEmail(email, subject, baseTemplate(content));
+};
+
 export default {
   sendWelcomeEmail,
   sendPaymentSuccessEmail,
   sendPremiumWelcomeEmail,
-  sendBookingSuccessEmail
+  sendBookingSuccessEmail,
+  sendRefundEmail
 };

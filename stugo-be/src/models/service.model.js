@@ -96,6 +96,10 @@ const serviceSchema = new mongoose.Schema({
     enum: ['active', 'pending', 'rejected', 'suspended'],
     default: 'pending'
   },
+  allowResell: {
+    type: Boolean,
+    default: false
+  },
   // Transport specific
   vehicleType: String,
   seats: Number,
@@ -106,7 +110,8 @@ const serviceSchema = new mongoose.Schema({
       default: () => new mongoose.Types.ObjectId()
     },
     name: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 }
+    price: { type: Number, required: true, min: 0 },
+    netPrice: { type: Number, min: 0 }
   }],
   departureTime: [String],
   // Accommodation specific
@@ -118,6 +123,7 @@ const serviceSchema = new mongoose.Schema({
     },
     name: String,
     price: Number,
+    netPrice: Number,
     capacity: Number,
     available: Number,
     images: [String]

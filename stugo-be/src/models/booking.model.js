@@ -8,8 +8,11 @@ const bookingSchema = new mongoose.Schema({
   },
   serviceId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Service',
-    required: true
+    ref: 'Service'
+  },
+  comboId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Combo'
   },
   serviceName: {
     type: String,
@@ -17,7 +20,7 @@ const bookingSchema = new mongoose.Schema({
   },
   serviceType: {
     type: String,
-    enum: ['transport', 'accommodation', 'restaurant', 'carpool'],
+    enum: ['transport', 'accommodation', 'restaurant', 'carpool', 'combo'],
     required: true
   },
   date: {
@@ -102,6 +105,17 @@ const bookingSchema = new mongoose.Schema({
     pickupPoints: Number,
     isAirport: Boolean
   },
+  // Combo/Tour specific details
+  tourOptions: {
+    serviceType: { type: String, enum: ['served', 'unserved', 'private'] }
+  },
+  // Split Payments tracking
+  splitPayments: [{
+    supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    amount: Number,
+    status: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+    serviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' }
+  }],
   cancelledBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

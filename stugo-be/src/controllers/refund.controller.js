@@ -69,21 +69,14 @@ export const reviewRefundRequest = async (req, res, next) => {
 
     // Try to send email to user
     try {
-      if (action === 'approve') {
-        const text = `Xin chào ${refundRequest.userId.fullName},\n\nYêu cầu hoàn tiền của bạn đã được phê duyệt. Số tiền ${refundRequest.refundAmount.toLocaleString('vi-VN')}đ đã được chuyển khoản đến tài khoản ${refundRequest.bankInfo.bankName} - ${refundRequest.bankInfo.bankAccount} (${refundRequest.bankInfo.bankAccountName}).\nLí do: ${reason || 'Hoàn tiền theo chính sách hệ thống'}\n\nTrân trọng.`;
-        await emailService.sendEmail({
-          to: refundRequest.userId.email,
-          subject: 'Xác nhận hoàn tiền thành công',
-          text
-        });
-      } else {
-        const text = `Xin chào ${refundRequest.userId.fullName},\n\nYêu cầu hoàn tiền của bạn đã bị từ chối.\nLí do: ${reason}\n\nTrân trọng.`;
-        await emailService.sendEmail({
-          to: refundRequest.userId.email,
-          subject: 'Thông báo từ chối hoàn tiền',
-          text
-        });
-      }
+      await emailService.sendRefundEmail(
+        refundRequest.userId.email,
+        refundRequest.userId.fullName,
+        refundRequest.refundAmount,
+        refundRequest.bankInfo,
+        action === 'approve',
+        reason
+      );
     } catch (emailError) {
       console.error('Error sending refund email:', emailError);
     }

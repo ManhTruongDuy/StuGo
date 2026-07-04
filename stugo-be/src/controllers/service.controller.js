@@ -125,9 +125,9 @@ export const createTransportService = async (req, res, next) => {
     // Calculate priceRange from routes
     const cleanRoutes = routes.map(r => {
       if (typeof r === 'string') {
-        return { name: r, price: req.body.priceRange?.min || 0 };
+        return { name: r, price: req.body.priceRange?.min || 0, netPrice: null };
       }
-      return { name: r.name, price: Number(r.price) || 0 };
+      return { name: r.name, price: Number(r.price) || 0, netPrice: Number(r.netPrice) || null };
     });
     const prices = cleanRoutes.map(r => r.price || 0);
     const priceRange = {
@@ -159,6 +159,8 @@ export const createTransportService = async (req, res, next) => {
       priceRange,
       ownerId,
       status,
+      allowResell: req.body.allowResell === true,
+      netPrice: req.body.netPrice ? Number(req.body.netPrice) : null,
       // Transport specific
       vehicleType,
       seats: parseInt(seats),
@@ -228,10 +230,13 @@ export const createAccommodationService = async (req, res, next) => {
       priceRange: req.body.priceRange,
       ownerId,
       status,
+      allowResell: req.body.allowResell === true,
+      netPrice: req.body.netPrice ? Number(req.body.netPrice) : null,
       // Accommodation specific
       roomTypes: roomTypes.map(rt => ({
         name: rt.name,
         price: parseInt(rt.price),
+        netPrice: rt.netPrice ? parseInt(rt.netPrice) : null,
         capacity: parseInt(rt.capacity),
         available: parseInt(rt.available),
         images: rt.images || []
@@ -464,9 +469,9 @@ export const updateService = async (req, res, next) => {
     if (service.type === 'transport' && updateData.routes && Array.isArray(updateData.routes)) {
       const cleanRoutes = updateData.routes.map(r => {
         if (typeof r === 'string') {
-          return { name: r, price: updateData.priceRange?.min || service.priceRange?.min || 0 };
+          return { name: r, price: updateData.priceRange?.min || service.priceRange?.min || 0, netPrice: null };
         }
-        return { name: r.name, price: Number(r.price) || 0 };
+        return { name: r.name, price: Number(r.price) || 0, netPrice: Number(r.netPrice) || null };
       });
       updateData.routes = cleanRoutes;
       if (cleanRoutes.length > 0) {

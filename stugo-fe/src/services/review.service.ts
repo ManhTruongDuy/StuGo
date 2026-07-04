@@ -20,7 +20,8 @@ export interface Review {
 }
 
 export interface CreateReviewData {
-  serviceId: string;
+  targetId: string;
+  targetType: 'Service' | 'Combo';
   bookingId?: string;
   rating: number;
   comment: string;
@@ -33,14 +34,13 @@ export interface UpdateReviewData {
   images?: string[];
 }
 
-export const getServiceReviews = async (
-  serviceId: string,
-  page = 1,
-  limit = 10
-) => {
-  const response = await api.get(`/reviews/service/${serviceId}`, {
-    params: { page, limit },
-  });
+export const getServiceReviews = async (serviceId: string, page = 1, limit = 10, sort = '-createdAt') => {
+  const response = await api.get(`/reviews/target/${serviceId}?targetType=Service&page=${page}&limit=${limit}&sort=${sort}`);
+  return response.data;
+};
+
+export const getTargetReviews = async (targetId: string, targetType: 'Service' | 'Combo', page = 1, limit = 10, sort = '-createdAt') => {
+  const response = await api.get(`/reviews/target/${targetId}?targetType=${targetType}&page=${page}&limit=${limit}&sort=${sort}`);
   return response.data;
 };
 

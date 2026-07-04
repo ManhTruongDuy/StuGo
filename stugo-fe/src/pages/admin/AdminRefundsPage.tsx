@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
+import api from '../../services/api';
 import { toast } from 'react-hot-toast';
 import { XCircle, Loader2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
@@ -44,26 +44,26 @@ const AdminRefundsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
 
-  const fetchRefunds = async () => {
+  const fetchRefunds = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/refunds?page=${page}&limit=20${
+      const response = await api.get(
+        `/refunds?page=${page}&limit=20${
           statusFilter !== 'all' ? `&status=${statusFilter}` : ''
-        }`,
-        { withCredentials: true }
+        }`
       );
       setData(response.data);
     } catch (error) {
+      console.error(error);
       toast.error('Không thể tải danh sách yêu cầu hoàn tiền');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, statusFilter]);
 
   useEffect(() => {
     fetchRefunds();
-  }, [statusFilter, page]);
+  }, [fetchRefunds]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,10 +74,9 @@ const AdminRefundsPage = () => {
     if (selectedRefund) {
       setIsReviewing(true);
       try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/refunds/${selectedRefund._id}/review`,
-          { action: reviewAction, reason: adminReason },
-          { withCredentials: true }
+        const response = await api.post(
+          `/refunds/${selectedRefund._id}/review`,
+          { action: reviewAction, reason: adminReason }
         );
         toast.success(response.data.message);
         setIsReviewModalOpen(false);

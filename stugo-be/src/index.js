@@ -50,7 +50,8 @@ import {
   subscriptionRoutes,
   transactionRoutes,
   chatbotRoutes,
-  refundRoutes
+  refundRoutes,
+  comboRoutes
 } from './routes/index.js';
 
 const app = express();
@@ -125,6 +126,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/refunds', refundRoutes);
+app.use('/api/combos', comboRoutes);
 
 // 404 handler
 app.use((req, res) => {

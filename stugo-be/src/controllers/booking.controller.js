@@ -129,7 +129,87 @@ export const getBookingById = async (req, res, next) => {
  */
 export const createBooking = async (req, res, next) => {
   try {
-    const { serviceId, date, timeSlot, quantity, route, roomTypeId, customerInfo, orderItems, seats } = req.body;
+    const { serviceId, comboId, date, timeSlot, quantity, route, roomTypeId, customerInfo, orderItems, seats, tourOptions } = req.body;
+
+    if (comboId) {
+      const Combo = (await import('../models/combo.model.js')).default;
+      const comboDoc = await Combo.findById(comboId).populate('linkedServices.serviceId');
+      
+      if (!comboDoc) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy Combo' });
+      }
+
+      if (comboDoc.status !== 'active') {
+        return res.status(400).json({ success: false, message: 'Combo hiện không khả dụng' });
+      }
+
+      if (!tourOptions || !tourOptions.serviceType) {
+        return res.status(400).json({ success: false, message: 'Vui lòng chọn loại hình phục vụ (served/unserved/private)' });
+      }
+
+      const optionPrices = comboDoc.pricing || {};
+      let basePrice = 0;
+      if (tourOptions.serviceType === 'served') basePrice = optionPrices.servedPrice;
+      else if (tourOptions.serviceType === 'unserved') basePrice = optionPrices.unservedPrice;
+      else if (tourOptions.serviceType === 'private') basePrice = optionPrices.privateRentalPrice;
+
+      if (!basePrice) {
+        return res.status(400).json({ success: false, message: 'Loại hình phục vụ này chưa được cấu hình giá' });
+      }
+
+      let totalNetPrice = 0;
+      const splitPayments = [];
+      comboDoc.linkedServices.forEach(ls => {
+        const netPrice = ls.netPriceAtBooking || 0;
+        totalNetPrice += netPrice;
+        if (netPrice > 0) {
+          splitPayments.push({
+            supplierId: ls.supplierId,
+            serviceId: ls.serviceId._id,
+            amount: netPrice,
+            status: 'pending'
+          });
+        }
+      });
+
+      const bookingQuantity = quantity || 1;
+      const totalAmount = basePrice * bookingQuantity;
+      
+      // Prevent selling combo for loss
+      if (totalAmount < totalNetPrice * bookingQuantity) {
+        return res.status(400).json({ success: false, message: 'Giá bán Combo không hợp lệ (thấp hơn giá vốn gốc)' });
+      }
+
+      const depositAmount = totalAmount;
+
+      const comboBookingDate = new Date(date);
+      comboBookingDate.setHours(0, 0, 0, 0);
+
+      const booking = await bookingRepository.create({
+        userId: req.userId,
+        comboId,
+        serviceName: comboDoc.name,
+        serviceType: 'combo',
+        date: comboBookingDate,
+        quantity: bookingQuantity,
+        unitPrice: basePrice,
+        totalAmount,
+        depositAmount,
+        customerInfo,
+        tourOptions,
+        splitPayments,
+        status: 'pending',
+        paymentStatus: 'pending'
+      });
+
+      emailService.sendBookingSuccessEmail(req.user.email, req.user.fullName, booking).catch(console.error);
+
+      return res.status(201).json({
+        success: true,
+        data: booking,
+        message: 'Tạo đặt Combo thành công. Vui lòng thanh toán để xác nhận.'
+      });
+    }
 
     // Get service details - convert to plain object to ensure subdocument _id is accessible
     const serviceDoc = await serviceRepository.findById(serviceId);
@@ -767,7 +847,7 @@ export const cancelBooking = async (req, res, next) => {
     let refundAmount = 0;
     let createRefundRequest = false;
 
-    if (booking.serviceType === 'transport' && booking.paymentStatus !== 'pending') {
+    if (booking.paymentStatus !== 'pending') {
       const amountPaid = booking.depositAmount + (booking.paymentStatus === 'fully_paid' ? booking.remainingAmount : 0);
       
       // Calculate time difference
@@ -775,6 +855,9 @@ export const cancelBooking = async (req, res, next) => {
       if (booking.timeSlot) {
         const [hours, minutes] = booking.timeSlot.split(':');
         departureDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      } else {
+        // Default to 14:00 (Check-in time) for services without timeSlot (like accommodation)
+        departureDateTime.setHours(14, 0, 0, 0);
       }
 
       const hoursUntilDeparture = (departureDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
@@ -785,11 +868,15 @@ export const cancelBooking = async (req, res, next) => {
       const isPremium = user && (user.plan === 'premium_user' || user.plan === 'premium');
 
       if (isPremium) {
+        // Premium user gets better refund policy
+        // < 12h: 50%; 12-24h: 80%; > 24h: 100%
         if (hoursUntilDeparture >= 24) refundPercentage = 100;
         else if (hoursUntilDeparture >= 12) refundPercentage = 80;
-        else if (hoursUntilDeparture >= 6) refundPercentage = 50;
+        else if (hoursUntilDeparture > 0) refundPercentage = 50;
         else refundPercentage = 0;
       } else {
+        // Regular user policy:
+        // < 12h: 0%; 12-24h: 50%; 24-48h: 80%; > 48h: 100%
         if (hoursUntilDeparture >= 48) refundPercentage = 100;
         else if (hoursUntilDeparture >= 24) refundPercentage = 80;
         else if (hoursUntilDeparture >= 12) refundPercentage = 50;

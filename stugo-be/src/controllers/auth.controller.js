@@ -44,12 +44,10 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    // Send welcome email
-    try {
-      await emailService.sendWelcomeEmail(user.email, user.fullName);
-    } catch (err) {
+    // Send welcome email asynchronously without blocking
+    emailService.sendWelcomeEmail(user.email, user.fullName).catch(err => {
       console.error('Failed to send welcome email (Register):', err);
-    }
+    });
 
     res.status(201).json({
       success: true,

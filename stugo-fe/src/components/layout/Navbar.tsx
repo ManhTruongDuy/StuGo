@@ -36,6 +36,7 @@ const Navbar = () => {
 
     const navLinks = [
         { name: 'Trang chủ', path: '/' },
+        { name: 'Combos / Tours', path: '/combos' },
         { name: 'Nhà xe', path: '/services/transport' },
         { name: 'Nhà trọ', path: '/services/accommodation' },
         { name: 'Quán ăn', path: '/services/restaurant' },

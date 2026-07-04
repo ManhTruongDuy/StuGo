@@ -5,3 +5,4 @@ export { default as Review } from './review.model.js';
 export { default as Payment } from './payment.model.js';
 export { default as Complaint } from './complaint.model.js';
 export { default as RefundRequest } from './refund-request.model.js';
+export { default as Combo } from './combo.model.js';

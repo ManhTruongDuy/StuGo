@@ -19,6 +19,8 @@ import AccountPage from './pages/AccountPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import SubscriptionPaymentPage from './pages/SubscriptionPaymentPage';
 import SnapMapPage from './pages/SnapMapPage';
+import ComboListPage from './pages/ComboListPage';
+import ComboDetailPage from './pages/ComboDetailPage';
 
 // Manager Pages
 import ManagerDashboard from './pages/manager/ManagerDashboard';
@@ -75,6 +77,8 @@ function App() {
           {/* Public Routes with Layout */}
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
+            <Route path="combos" element={<ComboListPage />} />
+            <Route path="combos/:id" element={<ComboDetailPage />} />
             <Route path="services" element={<ServiceListPage />} />
             <Route path="services/:type" element={<ServiceListPage />} />
             <Route path="service/:id" element={<ServiceDetailPage />} />

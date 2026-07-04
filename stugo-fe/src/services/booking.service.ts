@@ -6,10 +6,13 @@ import type { Booking, ApiResponse } from '../types';
  * @param bookingData - Booking data
  */
 export const createBooking = async (bookingData: {
-  serviceId: string;
+  serviceId?: string;
   date: string;
   timeSlot?: string;
   quantity: number;
+  tourOptions?: {
+    serviceType: 'served' | 'unserved' | 'private';
+  };
   roomTypeId?: string; // For accommodation - the _id of roomType
   route?: string; // For transport
   bookingType?: 'reservation' | 'order'; // For restaurant
@@ -34,6 +37,7 @@ export const createBooking = async (bookingData: {
     pickupPoints: number;
     isAirport: boolean;
   };
+  comboId?: string;
 }): Promise<Booking | null> => {
   try {
     const response = await api.post<ApiResponse<Booking>>('/bookings', bookingData);

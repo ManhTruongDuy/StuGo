@@ -41,13 +41,11 @@ const configurePassport = () => {
               status: 'active',
             });
             
-            // Send welcome email
+            // Send welcome email asynchronously without blocking auth flow
             if (email) {
-              try {
-                await emailService.sendWelcomeEmail(email, fullName);
-              } catch (err) {
+              emailService.sendWelcomeEmail(email, fullName).catch(err => {
                 console.error('Failed to send welcome email (Google Auth):', err);
-              }
+              });
             }
           } else {
             // Update existing user with Google info if not set

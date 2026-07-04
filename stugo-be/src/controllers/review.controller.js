@@ -3,14 +3,19 @@ import Service from '../models/service.model.js';
 import Booking from '../models/booking.model.js';
 import User from '../models/user.model.js';
 
-// Get reviews for a service
-export const getServiceReviews = async (req, res) => {
+// Get reviews for a target
+export const getTargetReviews = async (req, res) => {
     try {
-        const { serviceId } = req.params;
-        const { page = 1, limit = 10, sort = '-createdAt' } = req.query;
+        const { targetId } = req.params;
+        const { targetType, page = 1, limit = 10, sort = '-createdAt' } = req.query;
+
+        if (!targetType || !['Service', 'Combo'].includes(targetType)) {
+            return res.status(400).json({ success: false, message: 'Loại mục tiêu (targetType) không hợp lệ' });
+        }
 
         const reviews = await Review.find({
-            serviceId,
+            targetId,
+            targetType,
             status: 'active'
         })
             .populate('userId', 'name avatar')
@@ -19,7 +24,7 @@ export const getServiceReviews = async (req, res) => {
             .skip((page - 1) * limit)
             .lean();
 
-        const count = await Review.countDocuments({ serviceId, status: 'active' });
+        const count = await Review.countDocuments({ targetId, targetType, status: 'active' });
 
         // Format response
         const formattedReviews = reviews.map(review => ({
@@ -27,7 +32,8 @@ export const getServiceReviews = async (req, res) => {
             userId: review.userId._id,
             userName: review.userId.name,
             userAvatar: review.userId.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.userId.name)}&background=0ea5e9&color=fff`,
-            serviceId: review.serviceId,
+            targetId: review.targetId,
+            targetType: review.targetType,
             rating: review.rating,
             comment: review.comment,
             images: review.images || [],
@@ -56,19 +62,18 @@ export const getServiceReviews = async (req, res) => {
     }
 };
 
-// Create a review
 export const createReview = async (req, res) => {
     try {
-        const { serviceId, bookingId, rating, comment, images } = req.body;
+        const { targetId, targetType, bookingId, rating, comment, images } = req.body;
         const userId = req.user._id || req.user.id;
 
-        console.log('Create review request:', { serviceId, rating, comment, userId });
+        console.log('Create review request:', { targetId, targetType, rating, comment, userId });
 
         // Validate required fields
-        if (!serviceId) {
+        if (!targetId || !targetType) {
             return res.status(400).json({
                 success: false,
-                message: 'serviceId là bắt buộc'
+                message: 'targetId và targetType là bắt buộc'
             });
         }
 
@@ -94,19 +99,27 @@ export const createReview = async (req, res) => {
             });
         }
 
-        // Check if service exists
-        const service = await Service.findById(serviceId);
-        if (!service) {
+        // Check if target exists
+        let targetDoc;
+        if (targetType === 'Service') {
+            targetDoc = await Service.findById(targetId);
+        } else if (targetType === 'Combo') {
+            const Combo = (await import('../models/combo.model.js')).default;
+            targetDoc = await Combo.findById(targetId);
+        }
+
+        if (!targetDoc) {
             return res.status(404).json({
                 success: false,
-                message: 'Không tìm thấy dịch vụ'
+                message: 'Không tìm thấy mục tiêu đánh giá'
             });
         }
 
-        // Check if user already reviewed this service
+        // Check if user already reviewed this target
         const existingReview = await Review.findOne({
             userId,
-            serviceId,
+            targetId,
+            targetType,
             status: { $ne: 'deleted' }
         });
 
@@ -123,24 +136,30 @@ export const createReview = async (req, res) => {
             const booking = await Booking.findOne({
                 _id: bookingId,
                 userId,
-                serviceId,
                 status: 'completed'
             });
+            // Additional check based on targetType
+            if (booking && targetType === 'Service' && booking.serviceId?.toString() !== targetId.toString()) {
+                isVerified = false;
+            } else if (booking && targetType === 'Combo' && booking.comboId?.toString() !== targetId.toString()) {
+                isVerified = false;
+            } else if (booking) {
+                isVerified = true;
+            }
 
-            if (!booking) {
+            if (!booking || !isVerified) {
                 return res.status(400).json({
                     success: false,
                     message: 'Bạn chỉ có thể đánh giá sau khi hoàn thành đặt chỗ'
                 });
             }
-
-            isVerified = true;
         }
 
         // Create review
         const review = await Review.create({
             userId,
-            serviceId,
+            targetId,
+            targetType,
             bookingId: bookingId || undefined,
             rating,
             comment,
@@ -149,8 +168,8 @@ export const createReview = async (req, res) => {
             status: 'active'
         });
 
-        // Update service rating
-        await updateServiceRating(serviceId);
+        // Update target rating
+        await updateTargetRating(targetId, targetType);
 
         // Populate user info
         await review.populate('userId', 'name avatar');
@@ -163,7 +182,8 @@ export const createReview = async (req, res) => {
                 userId: review.userId._id,
                 userName: review.userId.name,
                 userAvatar: review.userId.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.userId.name)}&background=0ea5e9&color=fff`,
-                serviceId: review.serviceId,
+                targetId: review.targetId,
+                targetType: review.targetType,
                 rating: review.rating,
                 comment: review.comment,
                 images: review.images,
@@ -183,13 +203,23 @@ export const createReview = async (req, res) => {
     }
 };
 
-// Update service rating
-const updateServiceRating = async (serviceId) => {
+// Update target rating
+const updateTargetRating = async (targetId, targetType) => {
     try {
-        const reviews = await Review.find({ serviceId, status: 'active' });
+        const reviews = await Review.find({ targetId, targetType, status: 'active' });
+        
+        let targetModel;
+        if (targetType === 'Service') {
+            targetModel = Service;
+        } else if (targetType === 'Combo') {
+            const Combo = (await import('../models/combo.model.js')).default;
+            targetModel = Combo;
+        }
+
+        if (!targetModel) return;
 
         if (reviews.length === 0) {
-            await Service.findByIdAndUpdate(serviceId, {
+            await targetModel.findByIdAndUpdate(targetId, {
                 rating: 0,
                 reviewCount: 0
             });
@@ -199,12 +229,12 @@ const updateServiceRating = async (serviceId) => {
         const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
         const avgRating = totalRating / reviews.length;
 
-        await Service.findByIdAndUpdate(serviceId, {
+        await targetModel.findByIdAndUpdate(targetId, {
             rating: Math.round(avgRating * 10) / 10,
             reviewCount: reviews.length
         });
     } catch (error) {
-        console.error('Update service rating error:', error);
+        console.error('Update target rating error:', error);
     }
 };
 
@@ -231,8 +261,8 @@ export const updateReview = async (req, res) => {
 
         await review.save();
 
-        // Update service rating
-        await updateServiceRating(review.serviceId);
+        // Update target rating
+        await updateTargetRating(review.targetId, review.targetType);
 
         await review.populate('userId', 'name avatar');
 
@@ -268,8 +298,8 @@ export const deleteReview = async (req, res) => {
         review.status = 'deleted';
         await review.save();
 
-        // Update service rating
-        await updateServiceRating(review.serviceId);
+        // Update target rating
+        await updateTargetRating(review.targetId, review.targetType);
 
         res.json({
             success: true,
@@ -291,7 +321,7 @@ export const getUserReviews = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const reviews = await Review.find({ userId, status: 'active' })
-            .populate('serviceId', 'name type images')
+            .populate('targetId', 'name type images')
             .sort('-createdAt')
             .limit(limit * 1)
             .skip((page - 1) * limit)

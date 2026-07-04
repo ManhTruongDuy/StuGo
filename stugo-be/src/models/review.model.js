@@ -6,10 +6,15 @@ const reviewSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  serviceId: {
+  targetId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Service',
-    required: true
+    required: true,
+    refPath: 'targetType'
+  },
+  targetType: {
+    type: String,
+    required: true,
+    enum: ['Service', 'Combo']
   },
   bookingId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -54,11 +59,11 @@ const reviewSchema = new mongoose.Schema({
 });
 
 // Indexes
-reviewSchema.index({ serviceId: 1, status: 1, createdAt: -1 });
+reviewSchema.index({ targetId: 1, targetType: 1, status: 1, createdAt: -1 });
 reviewSchema.index({ userId: 1 });
 
-// Prevent duplicate reviews - one review per user per service
-reviewSchema.index({ userId: 1, serviceId: 1 }, { unique: true, sparse: true });
+// Prevent duplicate reviews - one review per user per target
+reviewSchema.index({ userId: 1, targetId: 1, targetType: 1 }, { unique: true, sparse: true });
 
 // Separate index for booking reviews
 reviewSchema.index({ userId: 1, bookingId: 1 }, { sparse: true });

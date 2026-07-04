@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import {
-    getServiceReviews,
+    getTargetReviews,
     createReview,
     updateReview,
     deleteReview,
@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 // Public routes
-router.get('/service/:serviceId', getServiceReviews);
+router.get('/target/:targetId', getTargetReviews);
 
 // Protected routes
 router.use(authenticate);

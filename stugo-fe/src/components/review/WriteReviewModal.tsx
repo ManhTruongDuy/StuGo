@@ -8,6 +8,7 @@ interface WriteReviewModalProps {
     serviceId: string;
     serviceName: string;
     bookingId?: string;
+    isCombo?: boolean;
     onClose: () => void;
     onSuccess: () => void;
 }
@@ -16,6 +17,7 @@ const WriteReviewModal = ({
     serviceId,
     serviceName,
     bookingId,
+    isCombo,
     onClose,
     onSuccess,
 }: WriteReviewModalProps) => {
@@ -48,7 +50,8 @@ const WriteReviewModal = ({
             setLoading(true);
 
             const data: CreateReviewData = {
-                serviceId,
+                targetId: serviceId,
+                targetType: isCombo ? 'Combo' : 'Service',
                 rating,
                 comment: comment.trim(),
                 images: images.length > 0 ? images : undefined,

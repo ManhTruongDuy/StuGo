@@ -5,3 +5,4 @@ export { default as userController } from './user.controller.js';
 export { default as paymentController } from './payment.controller.js';
 export { default as complaintController } from './complaint.controller.js';
 export { default as dashboardController } from './dashboard.controller.js';
+export { default as comboController } from './combo.controller.js';
