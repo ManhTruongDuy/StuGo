@@ -49,7 +49,8 @@ import {
   reviewRoutes,
   subscriptionRoutes,
   transactionRoutes,
-  chatbotRoutes
+  chatbotRoutes,
+  refundRoutes
 } from './routes/index.js';
 
 const app = express();
@@ -123,6 +124,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/refunds', refundRoutes);
 
 // 404 handler
 app.use((req, res) => {

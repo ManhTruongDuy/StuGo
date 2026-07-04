@@ -39,6 +39,7 @@ import AdminTransactionsPage from './pages/admin/AdminTransactionsPage';
 import AdminWithdrawalsPage from './pages/admin/AdminWithdrawalsPage';
 import AdminPartnersPage from './pages/admin/AdminPartnersPage';
 import AdminComplaintsPage from './pages/admin/AdminComplaintsPage';
+import AdminRefundsPage from './pages/admin/AdminRefundsPage';
 
 function App() {
   return (
@@ -117,6 +118,7 @@ function App() {
             <Route path="users" element={<UsersListPage />} />
             <Route path="partners" element={<AdminPartnersPage />} />
             <Route path="complaints" element={<AdminComplaintsPage />} />
+            <Route path="refunds" element={<AdminRefundsPage />} />
           </Route>
         </Routes>
       </Router>

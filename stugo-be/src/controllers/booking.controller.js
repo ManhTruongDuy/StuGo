@@ -763,29 +763,97 @@ export const cancelBooking = async (req, res, next) => {
       });
     }
 
+    let refundPercentage = 0;
     let refundAmount = 0;
+    let createRefundRequest = false;
+
     if (booking.serviceType === 'transport' && booking.paymentStatus !== 'pending') {
-      const isWithin30Mins = (Date.now() - new Date(booking.createdAt).getTime()) <= 30 * 60 * 1000;
       const amountPaid = booking.depositAmount + (booking.paymentStatus === 'fully_paid' ? booking.remainingAmount : 0);
-      if (isWithin30Mins) {
-        refundAmount = amountPaid; // 100% refund
+      
+      // Calculate time difference
+      const departureDateTime = new Date(booking.date);
+      if (booking.timeSlot) {
+        const [hours, minutes] = booking.timeSlot.split(':');
+        departureDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      }
+
+      const hoursUntilDeparture = (departureDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
+
+      // Fetch user to check premium
+      const User = (await import('../models/user.model.js')).default;
+      const user = await User.findById(req.userId);
+      const isPremium = user && (user.plan === 'premium_user' || user.plan === 'premium');
+
+      if (isPremium) {
+        if (hoursUntilDeparture >= 24) refundPercentage = 100;
+        else if (hoursUntilDeparture >= 12) refundPercentage = 80;
+        else if (hoursUntilDeparture >= 6) refundPercentage = 50;
+        else refundPercentage = 0;
       } else {
-        refundAmount = amountPaid * 0.15; // 15% refund
+        if (hoursUntilDeparture >= 48) refundPercentage = 100;
+        else if (hoursUntilDeparture >= 24) refundPercentage = 80;
+        else if (hoursUntilDeparture >= 12) refundPercentage = 50;
+        else refundPercentage = 0;
+      }
+
+      if (refundPercentage > 0) {
+        refundAmount = Math.round(amountPaid * (refundPercentage / 100));
+        createRefundRequest = true;
       }
     }
 
     const updated = await bookingRepository.cancelBooking(booking._id, req.userId, reason, Math.round(refundAmount));
 
-    if (refundAmount > 0) {
-      await bookingRepository.updateById(booking._id, { paymentStatus: 'refunded' });
-      updated.paymentStatus = 'refunded';
+    if (createRefundRequest) {
+      let { bankInfo } = req.body;
+      if (!bankInfo || !bankInfo.bankName || !bankInfo.bankAccount || !bankInfo.bankAccountName) {
+         // Fallback to user profile if not provided in body (optional, but good to have)
+         const User = (await import('../models/user.model.js')).default;
+         const user = await User.findById(req.userId);
+         if (!user.bankName || !user.bankAccount || !user.bankAccountName) {
+            return res.status(400).json({
+               success: false,
+               message: 'Vui lòng cung cấp thông tin ngân hàng để nhận hoàn tiền'
+            });
+         }
+         bankInfo = {
+            bankName: user.bankName,
+            bankAccount: user.bankAccount,
+            bankAccountName: user.bankAccountName
+         };
+      }
+
+      const RefundRequest = (await import('../models/refund-request.model.js')).default;
+      
+      const departureDateTime = new Date(booking.date);
+      if (booking.timeSlot) {
+        const [hours, minutes] = booking.timeSlot.split(':');
+        departureDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      }
+
+      const amountPaid = booking.depositAmount + (booking.paymentStatus === 'fully_paid' ? booking.remainingAmount : 0);
+
+      await RefundRequest.create({
+        bookingId: booking._id,
+        userId: req.userId,
+        amountPaid,
+        refundPercentage,
+        refundAmount,
+        departureDate: departureDateTime,
+        status: 'pending',
+        userReason: reason,
+        bankInfo
+      });
+
+      await bookingRepository.updateById(booking._id, { paymentStatus: 'refund_pending' });
+      updated.paymentStatus = 'refund_pending';
     }
 
     res.json({
       success: true,
       data: updated,
-      message: refundAmount > 0 
-        ? `Hủy đặt chỗ thành công. Số tiền hoàn lại là ${Math.round(refundAmount).toLocaleString('vi-VN')}đ.`
+      message: createRefundRequest
+        ? `Hủy đặt chỗ thành công. Yêu cầu hoàn tiền ${refundPercentage}% (${Math.round(refundAmount).toLocaleString('vi-VN')}đ) đã được gửi đến Admin.`
         : 'Hủy đặt chỗ thành công'
     });
   } catch (error) {

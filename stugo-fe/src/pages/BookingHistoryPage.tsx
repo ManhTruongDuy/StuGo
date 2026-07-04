@@ -43,6 +43,12 @@ const BookingHistoryPage = () => {
     const [cancelling, setCancelling] = useState(false);
     const [allBookings, setAllBookings] = useState<Booking[]>([]);
     const [processingPayment, setProcessingPayment] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [bankInfo, setBankInfo] = useState({
+        bankName: '',
+        bankAccount: '',
+        bankAccountName: ''
+    });
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -163,13 +169,23 @@ const BookingHistoryPage = () => {
     const handleCancelBooking = async () => {
         if (!selectedBooking) return;
 
+        // If it's a transport booking and payment is not pending, require bank info
+        if (selectedBooking.serviceType === 'transport' && selectedBooking.paymentStatus !== 'pending') {
+            if (!bankInfo.bankName || !bankInfo.bankAccount || !bankInfo.bankAccountName) {
+                toast.error('Vui lòng nhập đầy đủ thông tin ngân hàng để nhận hoàn tiền');
+                return;
+            }
+        }
+
         try {
             setCancelling(true);
-            const success = await cancelBooking(selectedBooking.id);
+            const success = await cancelBooking(selectedBooking.id, cancelReason, bankInfo);
             if (success) {
-                toast.success('Đã hủy đặt chỗ thành công');
+                toast.success('Đã gửi yêu cầu hủy đặt chỗ thành công');
                 setShowCancelModal(false);
                 setSelectedBooking(null);
+                setCancelReason('');
+                setBankInfo({ bankName: '', bankAccount: '', bankAccountName: '' });
                 fetchBookings();
             } else {
                 toast.error('Không thể hủy đặt chỗ');
@@ -765,8 +781,58 @@ const BookingHistoryPage = () => {
 
                         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
                             <p className="text-sm text-yellow-800">
-                                ⚠️ Lưu ý: Việc hủy đặt chỗ có thể áp dụng chính sách hoàn tiền theo quy định của dịch vụ.
+                                ⚠️ Lưu ý: Việc hủy đặt chỗ có thể áp dụng chính sách hoàn tiền theo quy định của dịch vụ. Yêu cầu hoàn tiền sẽ được hệ thống xem xét dựa trên thời gian trước giờ khởi hành.
                             </p>
+                        </div>
+
+                        <div className="mb-6 space-y-4 text-left">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Lí do hủy (Tùy chọn)
+                                </label>
+                                <textarea
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:border-red-500 resize-none h-20"
+                                    placeholder="Vui lòng cho chúng tôi biết lí do bạn hủy chuyến..."
+                                />
+                            </div>
+
+                            {selectedBooking.serviceType === 'transport' && selectedBooking.paymentStatus !== 'pending' && (
+                                <div className="space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                                    <h4 className="font-medium text-gray-900 text-sm">Thông tin nhận hoàn tiền</h4>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tên ngân hàng <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={bankInfo.bankName}
+                                            onChange={(e) => setBankInfo({ ...bankInfo, bankName: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-500"
+                                            placeholder="VD: Vietcombank, Techcombank..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Số tài khoản <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={bankInfo.bankAccount}
+                                            onChange={(e) => setBankInfo({ ...bankInfo, bankAccount: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-500"
+                                            placeholder="Nhập số tài khoản"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tên chủ tài khoản <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={bankInfo.bankAccountName}
+                                            onChange={(e) => setBankInfo({ ...bankInfo, bankAccountName: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-red-500 uppercase"
+                                            placeholder="NGUYEN VAN A"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex gap-3">

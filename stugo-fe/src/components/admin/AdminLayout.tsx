@@ -58,6 +58,11 @@ const AdminLayout = () => {
             path: '/admin/services',
         },
         {
+            icon: CreditCard,
+            label: 'Yêu cầu hoàn tiền',
+            path: '/admin/refunds',
+        },
+        {
             icon: Users,
             label: 'Người dùng',
             path: '/admin/users',

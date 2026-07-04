@@ -219,10 +219,24 @@ export const getBookingById = async (bookingId: string): Promise<Booking | null>
 /**
  * Cancel a booking
  * @param bookingId - Booking ID
+ * @param reason - Reason for cancellation
+ * @param bankInfo - Bank info for refund
  */
-export const cancelBooking = async (bookingId: string): Promise<boolean> => {
+export const cancelBooking = async (
+  bookingId: string,
+  reason?: string,
+  bankInfo?: {
+    bankName: string;
+    bankAccount: string;
+    bankAccountName: string;
+  }
+): Promise<boolean> => {
   try {
-    const response = await api.post<ApiResponse<any>>(`/bookings/${bookingId}/cancel`);
+    const payload: any = {};
+    if (reason) payload.reason = reason;
+    if (bankInfo) payload.bankInfo = bankInfo;
+
+    const response = await api.post<ApiResponse<any>>(`/bookings/${bookingId}/cancel`, payload);
 
     return response.data.success || false;
   } catch (error: any) {
