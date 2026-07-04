@@ -196,15 +196,27 @@ const AccountPage = () => {
                             Ảnh đại diện
                         </h2>
                         <div className="flex items-center gap-6">
-                            <div className="relative">
+                            <div 
+                                className="relative"
+                                onDragOver={(e) => { e.preventDefault(); }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    const file = e.dataTransfer.files?.[0];
+                                    if (file && file.type.startsWith('image/')) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => setAvatarPreview(reader.result as string);
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}
+                            >
                                 {avatarPreview ? (
                                     <img
                                         src={avatarPreview}
                                         alt="Avatar"
-                                        className="w-24 h-24 rounded-2xl object-cover"
+                                        className="w-24 h-24 rounded-2xl object-cover border-2 border-dashed hover:border-primary-400 transition-colors cursor-pointer"
                                     />
                                 ) : (
-                                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
+                                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center border-2 border-dashed hover:border-primary-400 transition-colors cursor-pointer">
                                         <User className="w-10 h-10 text-white" />
                                     </div>
                                 )}

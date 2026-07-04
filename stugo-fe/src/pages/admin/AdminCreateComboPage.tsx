@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { createCombo } from '../../services/combo.service';
 import toast from 'react-hot-toast';
+import ImageDropzone from '../../components/ui/ImageDropzone';
 
 const AdminCreateComboPage = () => {
     const navigate = useNavigate();
@@ -127,19 +128,15 @@ const AdminCreateComboPage = () => {
                             placeholder="Vd: Combo 2N1Đ Sapa Mù Sương..."
                         />
                     </div>
-                    
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Ảnh đại diện (URL) <span className="text-red-500">*</span></label>
-                        <input
-                            type="url"
-                            required
+
+                    <div className="sm:col-span-2 mb-4">
+                        <ImageDropzone
+                            label="Ảnh đại diện (Thumbnail) *"
                             value={formData.thumbnail}
-                            onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:border-primary-500"
-                            placeholder="https://..."
+                            onChange={(val) => setFormData({ ...formData, thumbnail: val })}
                         />
                     </div>
-
+                    
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Điểm đến <span className="text-red-500">*</span></label>
                         <input
@@ -233,7 +230,27 @@ const AdminCreateComboPage = () => {
                 <hr className="border-gray-100" />
 
                 <div className="space-y-8">
-                    {renderArrayInput('Thư viện ảnh phụ (URLs)', 'images', 'https://...')}
+                    <div className="space-y-3">
+                        <label className="block text-sm font-medium text-gray-700">Thư viện ảnh phụ</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {formData.images.map((img, index) => (
+                                <ImageDropzone
+                                    key={index}
+                                    label={`Ảnh ${index + 1}`}
+                                    value={img}
+                                    onChange={(val) => handleArrayChange('images', index, val)}
+                                />
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => addArrayItem('images')}
+                            className="text-sm text-primary-600 font-medium flex items-center gap-1 hover:text-primary-700"
+                        >
+                            <Plus className="w-4 h-4" /> Thêm ảnh khác
+                        </button>
+                    </div>
+
                     {renderArrayInput('Giá đã bao gồm (Includes)', 'includes', 'Vd: Ăn sáng buffet...')}
                     {renderArrayInput('Giá chưa bao gồm (Excludes)', 'excludes', 'Vd: Chi phí cá nhân...')}
                     {renderArrayInput('Điều khoản & Chính sách', 'termsAndConditions', 'Vd: Hủy trước 24h hoàn 50%...')}

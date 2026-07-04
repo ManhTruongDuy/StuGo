@@ -100,6 +100,24 @@ const CreateAccommodationForm = () => {
         }
     };
 
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const files = e.dataTransfer.files;
+        if (files) {
+            Array.from(files).forEach((file) => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImages((prev) => [...prev, reader.result as string]);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
     const handleGetLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -481,8 +499,16 @@ const CreateAccommodationForm = () => {
                                 </button>
                             </div>
                         ))}
-                        <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-400 cursor-pointer flex flex-col items-center justify-center">
-                            <Upload className="w-8 h-8 text-gray-400" />
+                        <label 
+                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={() => setIsDragging(false)}
+                            onDrop={handleDrop}
+                            className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors cursor-pointer ${
+                                isDragging ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
+                            }`}
+                        >
+                            <Upload className={`w-8 h-8 mb-2 ${isDragging ? 'text-primary-500' : 'text-gray-400'}`} />
+                            <span className="text-xs text-gray-500 text-center px-2">Kéo thả hoặc Click</span>
                             <input
                                 type="file"
                                 accept="image/*"
