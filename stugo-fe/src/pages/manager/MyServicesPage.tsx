@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Search,
@@ -45,9 +45,7 @@ const MyServicesPage = () => {
         fetchServices();
     }, []);
 
-    useEffect(() => {
-        filterServices();
-    }, [searchTerm, typeFilter, statusFilter, services]);
+
 
     const fetchServices = async () => {
         try {
@@ -62,7 +60,7 @@ const MyServicesPage = () => {
         }
     };
 
-    const filterServices = () => {
+    const filterServices = useCallback(() => {
         let filtered = [...services];
 
         // Filter by type
@@ -87,7 +85,11 @@ const MyServicesPage = () => {
         }
 
         setFilteredServices(filtered);
-    };
+    }, [services, typeFilter, statusFilter, searchTerm]);
+
+    useEffect(() => {
+        filterServices();
+    }, [filterServices]);
 
     const handleDelete = async (id: string) => {
         try {
@@ -96,6 +98,7 @@ const MyServicesPage = () => {
             fetchServices();
             setDeleteConfirm(null);
         } catch (error: any) {
+            console.error('Error deleting service:', error);
             toast.error('Không thể xóa dịch vụ');
         }
     };

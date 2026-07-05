@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Wallet,
     CheckCircle,
@@ -29,11 +29,9 @@ const AdminWithdrawalsPage = () => {
         }).format(price);
     };
 
-    useEffect(() => {
-        fetchWithdrawals();
-    }, [statusFilter]);
 
-    const fetchWithdrawals = async () => {
+
+    const fetchWithdrawals = useCallback(async () => {
         try {
             setLoading(true);
             const response = await getAllAdminTransactions(statusFilter, 'withdrawal', 1, 100);
@@ -46,7 +44,11 @@ const AdminWithdrawalsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [statusFilter]);
+
+    useEffect(() => {
+        fetchWithdrawals();
+    }, [fetchWithdrawals]);
 
     const handleUpdateStatus = async (id: string, status: 'completed' | 'failed') => {
         if (!window.confirm(`Bạn có chắc chắn muốn ${status === 'completed' ? 'duyệt' : 'từ chối'} yêu cầu rút tiền này?`)) {

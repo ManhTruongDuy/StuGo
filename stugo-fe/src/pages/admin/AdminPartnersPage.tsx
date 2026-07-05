@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
     Search,
     Eye,
@@ -278,7 +278,7 @@ const AdminPartnersPage = () => {
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
-    const fetchPartners = async () => {
+    const fetchPartners = useCallback(async () => {
         try {
             setLoading(true);
             const params: any = { page: currentPage, limit: 20 };
@@ -295,11 +295,11 @@ const AdminPartnersPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, statusFilter, planFilter, debouncedSearchQuery]);
 
     useEffect(() => {
         fetchPartners();
-    }, [statusFilter, planFilter, currentPage, debouncedSearchQuery]);
+    }, [fetchPartners]);
 
     // Reset page to 1 when filters change
     useEffect(() => {
@@ -313,6 +313,7 @@ const AdminPartnersPage = () => {
             setActionMenuId(null);
             fetchPartners();
         } catch (error) {
+            console.error('Error updating status:', error);
             toast.error('Không thể cập nhật trạng thái');
         }
     };
