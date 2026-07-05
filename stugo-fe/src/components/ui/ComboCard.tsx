@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Package, Star, ArrowRight } from 'lucide-react';
+import { Star, MapPin, Car, BedDouble, BadgePercent } from 'lucide-react';
 import type { Combo } from '../../services/combo.service';
 
 interface ComboCardProps {
@@ -8,7 +8,7 @@ interface ComboCardProps {
 
 const ComboCard = ({ combo }: ComboCardProps) => {
   const fallbackImage = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=600';
-  const coverImage = combo.images && combo.images.length > 0 ? combo.images[0] : fallbackImage;
+  const coverImage = combo.thumbnail || (combo.images && combo.images.length > 0 ? combo.images[0] : fallbackImage);
   const lowestPrice = Math.min(
     combo.pricing?.servedPrice || Infinity,
     combo.pricing?.unservedPrice || Infinity,
@@ -17,7 +17,7 @@ const ComboCard = ({ combo }: ComboCardProps) => {
 
   return (
     <Link to={`/combos/${combo._id || combo.id}`} className="group block">
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full transform hover:-translate-y-1">
+      <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 flex flex-col h-full transform hover:-translate-y-1">
         {/* Image Section */}
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
@@ -25,37 +25,62 @@ const ComboCard = ({ combo }: ComboCardProps) => {
             alt={combo.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-            <Package className="w-4 h-4 text-primary-600" />
-            <span className="text-sm font-medium text-gray-900">Combo Trọn Gói</span>
+          {/* Hot Deal Badge */}
+          <div className="absolute top-3 left-3 bg-white px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+            <BadgePercent className="w-4 h-4 text-rose-500" />
+            <span className="text-[13px] font-bold text-rose-500">Hot Deal</span>
           </div>
-          {combo.rating && combo.rating > 0 && (
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="text-sm font-bold text-gray-900">{combo.rating}</span>
-            </div>
-          )}
         </div>
 
         {/* Content Section */}
-        <div className="p-5 flex flex-col flex-grow">
-          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+        <div className="p-4 flex flex-col flex-grow">
+          {/* Title */}
+          <h3 className="text-[15px] leading-snug font-bold text-gray-900 mb-1.5 line-clamp-2 group-hover:text-primary-600 transition-colors">
             {combo.name}
           </h3>
 
-          <div className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
-            Điểm đến: {combo.destination} • Thời gian: {combo.duration}
+          {/* Stars */}
+          <div className="flex items-center gap-0.5 mb-3">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`w-4 h-4 ${
+                  i < (combo.rating || 5)
+                    ? 'text-[#ffc107] fill-[#ffc107]'
+                    : 'text-gray-200 fill-gray-200'
+                }`}
+              />
+            ))}
           </div>
 
-          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+          {/* Features */}
+          <div className="space-y-2 mb-4 flex-grow">
+            <div className="grid grid-cols-2 gap-2 text-[13px] text-gray-600">
+              <div className="flex items-center gap-1.5 truncate">
+                <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                <span className="truncate">{combo.destination}</span>
+              </div>
+              <div className="flex items-center gap-1.5 truncate">
+                <Car className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                <span className="truncate">{combo.transportType || 'Xe'}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-[13px] text-gray-600 truncate">
+              <BedDouble className="w-4 h-4 flex-shrink-0 text-gray-500" />
+              <span className="truncate">{combo.accommodationName || 'Khách sạn'}</span>
+            </div>
+          </div>
+
+          {/* Price & Action */}
+          <div className="flex items-end justify-between mt-auto">
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">Giá chỉ từ</p>
-              <p className="text-lg font-bold text-primary-600">
+              <p className="text-xs text-gray-500 mb-0.5">Giá từ:</p>
+              <p className="text-lg font-bold text-[#0056b3]">
                 {lowestPrice !== Infinity ? lowestPrice.toLocaleString('vi-VN') : 0}đ
               </p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-500 transition-colors">
-              <ArrowRight className="w-5 h-5 text-primary-600 group-hover:text-white transition-colors" />
+            <div className="bg-[#ffc107] hover:bg-yellow-500 text-gray-900 text-[13px] font-medium px-4 py-1.5 rounded-full transition-colors">
+              Xem chi tiết
             </div>
           </div>
         </div>
