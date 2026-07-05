@@ -8,7 +8,13 @@ import {
     MessageCircle,
     Calendar,
     Check,
-    Package
+    Package,
+    MapPin,
+    Clock,
+    Car,
+    BedDouble,
+    XCircle,
+    FileText
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -199,7 +205,8 @@ const ComboDetailPage = () => {
     }
 
     const fallbackImage = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=1200';
-    const images = combo.images && combo.images.length > 0 ? combo.images : [fallbackImage];
+    const allImages = [combo.thumbnail, ...(combo.images || [])].filter(Boolean);
+    const images = allImages.length > 0 ? allImages : [fallbackImage];
 
     return (
         <div className="min-h-screen pt-20 pb-16 bg-gray-50">
@@ -277,9 +284,68 @@ const ComboDetailPage = () => {
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-2 gap-4 mt-6 p-4 bg-gray-50 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <MapPin className="w-5 h-5 text-gray-500" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Điểm đến</p>
+                                        <p className="font-medium text-gray-900">{combo.destination}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Clock className="w-5 h-5 text-gray-500" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Thời gian</p>
+                                        <p className="font-medium text-gray-900">{combo.duration}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Car className="w-5 h-5 text-gray-500" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Phương tiện</p>
+                                        <p className="font-medium text-gray-900">{combo.transportType || 'Xe'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <BedDouble className="w-5 h-5 text-gray-500" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Khách sạn</p>
+                                        <p className="font-medium text-gray-900">{combo.accommodationName || 'Không có'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {combo.includes && combo.includes.length > 0 && (
+                                <div className="mt-8 pt-8 border-t border-gray-100">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Combo bao gồm</h2>
+                                    <ul className="space-y-3">
+                                        {combo.includes.map((item, index) => (
+                                            <li key={index} className="flex items-start gap-3 text-gray-700">
+                                                <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                                                <span>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {combo.excludes && combo.excludes.length > 0 && (
+                                <div className="mt-8 pt-8 border-t border-gray-100">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Combo không bao gồm</h2>
+                                    <ul className="space-y-3">
+                                        {combo.excludes.map((item, index) => (
+                                            <li key={index} className="flex items-start gap-3 text-gray-700">
+                                                <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                                <span>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
                             {combo.linkedServices && combo.linkedServices.length > 0 && (
                                 <div className="mt-8 pt-8 border-t border-gray-100">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Các dịch vụ bao gồm</h2>
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Các dịch vụ liên kết</h2>
                                     <div className="grid sm:grid-cols-2 gap-4">
                                         {combo.linkedServices.map((ls, index) => {
                                             const sData = typeof ls.serviceId === 'object' ? ls.serviceId : null;
@@ -292,6 +358,22 @@ const ComboDetailPage = () => {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {combo.termsAndConditions && combo.termsAndConditions.length > 0 && (
+                                <div className="mt-8 pt-8 border-t border-gray-100">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <FileText className="w-5 h-5 text-gray-500" />
+                                        Điều khoản và Quy định
+                                    </h2>
+                                    <div className="bg-orange-50 rounded-xl p-5 text-orange-900 space-y-2">
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            {combo.termsAndConditions.map((term, index) => (
+                                                <li key={index} className="text-sm leading-relaxed">{term}</li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </div>
                             )}
