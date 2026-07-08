@@ -365,7 +365,9 @@ const AdminTransactionsPage = () => {
                                                         {typeof trans.bookingId === 'string' ? trans.bookingId : trans.bookingId._id}
                                                     </p>
                                                 ) : (
-                                                    <span className="text-xs text-gray-400 italic">Premium</span>
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-white text-xs font-bold shadow-md shadow-yellow-500/20 border border-yellow-300 uppercase tracking-wider">
+                                                        ✨ Premium
+                                                    </span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-900">

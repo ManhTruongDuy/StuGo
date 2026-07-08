@@ -933,12 +933,18 @@ export const deletePayment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Không thể xóa giao dịch đã thanh toán thành công' });
     }
 
-    // Attempt to delete
+    // Attempt to delete payment
     await paymentRepository.model.deleteOne({ orderCode: parseInt(orderCode) });
+
+    // Delete associated booking to prevent orphaned bookings in recent bookings
+    if (payment.bookingId) {
+      const { bookingRepository } = await import('../repositories/index.js');
+      await bookingRepository.model.deleteOne({ _id: payment.bookingId });
+    }
 
     res.json({
       success: true,
-      message: 'Đã xóa giao dịch thành công'
+      message: 'Đã xóa giao dịch và đặt chỗ liên quan thành công'
     });
   } catch (error) {
     next(error);
