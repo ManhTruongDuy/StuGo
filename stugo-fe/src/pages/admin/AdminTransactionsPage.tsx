@@ -66,7 +66,7 @@ const AdminTransactionsPage = () => {
 
     const handleDelete = async (orderCode: number) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa giao dịch này không?')) return;
-        
+
         try {
             const toastId = toast.loading('Đang xóa...');
             const success = await deleteTransaction(orderCode);
@@ -282,29 +282,29 @@ const AdminTransactionsPage = () => {
             <div className="card p-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex flex-wrap items-center gap-4 w-full">
-                    <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Tìm theo mã giao dịch, người dùng..."
-                            className="input pl-10 w-full"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
+                        <div className="relative flex-1 min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Tìm theo mã giao dịch, người dùng..."
+                                className="input pl-10 w-full"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
 
-                    <select
-                        className="input w-40"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                    >
-                        <option value="all">Tất cả</option>
-                        <option value="pending">Đang xử lý</option>
-                        <option value="paid">Thành công</option>
-                        <option value="cancelled">Đã hủy</option>
-                        <option value="expired">Hết hạn</option>
-                    </select>
-                </div>
+                        <select
+                            className="input w-40"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                        >
+                            <option value="all">Tất cả</option>
+                            <option value="pending">Đang xử lý</option>
+                            <option value="paid">Thành công</option>
+                            <option value="cancelled">Đã hủy</option>
+                            <option value="expired">Hết hạn</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -366,7 +366,7 @@ const AdminTransactionsPage = () => {
                                                     </p>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-900 text-amber-400 text-xs font-semibold tracking-wide shadow-sm border border-gray-800">
-                                                        ✨ Premium
+                                                        Premium
                                                     </span>
                                                 )}
                                             </td>
