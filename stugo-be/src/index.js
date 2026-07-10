@@ -90,6 +90,23 @@ app.use(express.urlencoded({ extended: true }));
 configurePassport();
 app.use(passport.initialize());
 
+// Ensure Database Connection for Serverless (Vercel)
+app.use(async (req, res, next) => {
+  if (process.env.VERCEL) {
+    try {
+      await connectDB();
+    } catch (error) {
+      console.error('Vercel DB Connection Error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Database connection failed. Please check MONGODB_URI in Vercel settings and ensure IP is whitelisted (0.0.0.0/0) in MongoDB Atlas.',
+        error: error.message 
+      });
+    }
+  }
+  next();
+});
+
 
 // Health check endpoints
 app.get('/', (req, res) => {
@@ -276,9 +293,7 @@ process.on('SIGTERM', async () => {
 
 if (!process.env.VERCEL) {
   startServer();
-} else {
-  // For Vercel Serverless Functions
-  connectDB().catch(console.error);
 }
+
 
 export default app;
