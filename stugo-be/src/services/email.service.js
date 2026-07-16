@@ -1,9 +1,27 @@
 import nodemailer from 'nodemailer';
 
+let smtpWarningPrinted = false;
+
+const getMissingSmtpVars = () => {
+  const requiredVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS'];
+  return requiredVars.filter((key) => !process.env[key]);
+};
+
+const isEmailConfigured = () => getMissingSmtpVars().length === 0;
+
+const logSmtpWarning = () => {
+  if (smtpWarningPrinted) return;
+  const missing = getMissingSmtpVars();
+  if (missing.length > 0) {
+    console.warn(`[Email Service] SMTP is not configured. Missing: ${missing.join(', ')}. Email will be skipped.`);
+  }
+  smtpWarningPrinted = true;
+};
+
 const createTransporter = () => {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
     auth: {
       user: process.env.SMTP_USER,
@@ -14,9 +32,14 @@ const createTransporter = () => {
 
 const sendEmail = async (to, subject, htmlContent) => {
   try {
+    if (!isEmailConfigured()) {
+      logSmtpWarning();
+      return false;
+    }
+
     const transporter = createTransporter();
     const mailOptions = {
-      from: process.env.SMTP_FROM,
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
       subject,
       html: htmlContent,
@@ -28,6 +51,47 @@ const sendEmail = async (to, subject, htmlContent) => {
   } catch (error) {
     console.error(`[Email Service] Error sending email to ${to}:`, error);
     return false;
+  }
+};
+
+export const verifyEmailConnection = async () => {
+  const missingVars = getMissingSmtpVars();
+
+  if (missingVars.length > 0) {
+    return {
+      ok: false,
+      configured: false,
+      missingVars,
+      host: process.env.SMTP_HOST || null,
+      port: process.env.SMTP_PORT || null,
+      secure: process.env.SMTP_PORT === '465',
+      message: 'SMTP is not fully configured'
+    };
+  }
+
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+
+    return {
+      ok: true,
+      configured: true,
+      missingVars: [],
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_PORT === '465',
+      message: 'SMTP connection is healthy'
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      configured: true,
+      missingVars: [],
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_PORT === '465',
+      message: error.message || 'SMTP verification failed'
+    };
   }
 };
 
@@ -208,5 +272,6 @@ export default {
   sendPaymentSuccessEmail,
   sendPremiumWelcomeEmail,
   sendBookingSuccessEmail,
-  sendRefundEmail
+  sendRefundEmail,
+  verifyEmailConnection
 };

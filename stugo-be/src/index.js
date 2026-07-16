@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import passport from 'passport';
 import configurePassport from './config/passport.js';
 import { checkAndExpireSubscriptions } from './controllers/subscription.controller.js';
+import emailService from './services/email.service.js';
 
 // Environment constants
 const PORT = parseInt(process.env.PORT) || 3000;
@@ -25,6 +26,10 @@ const validateConfig = () => {
 
   if (!process.env.PAYOS_CLIENT_ID || !process.env.PAYOS_API_KEY || !process.env.PAYOS_CHECKSUM_KEY) {
     warnings.push('PayOS not fully configured');
+  }
+
+  if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    warnings.push('SMTP email not configured (welcome/payment/booking/refund emails will be skipped)');
   }
 
   if (warnings.length > 0 && NODE_ENV === 'production') {
@@ -129,6 +134,19 @@ const healthHandler = (req, res) => {
 };
 app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
+
+// Dedicated mail health check endpoint
+app.get('/api/health/email', async (req, res) => {
+  const result = await emailService.verifyEmailConnection();
+  const statusCode = result.ok ? 200 : 503;
+
+  res.status(statusCode).json({
+    success: result.ok,
+    status: result.ok ? 'healthy' : 'unhealthy',
+    service: 'email',
+    data: result
+  });
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
