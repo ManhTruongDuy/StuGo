@@ -28,7 +28,9 @@ const validateConfig = () => {
     warnings.push('PayOS not fully configured');
   }
 
-  if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  const hasSmtp = !!(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS);
+  const hasBrevo = !!(process.env.BREVO_API_KEY || process.env.BREVO_SMTP_KEY);
+  if (!hasSmtp && !hasBrevo) {
     warnings.push('SMTP email not configured (welcome/payment/booking/refund emails will be skipped)');
   }
 
@@ -41,6 +43,7 @@ const validateConfig = () => {
 
 import connectDB from './config/database.js';
 import { validatePayOSConfig } from './config/payos.js';
+import { authenticate, adminOnly } from './middlewares/index.js';
 
 // Import routes
 import {
@@ -145,6 +148,36 @@ app.get('/api/health/email', async (req, res) => {
     status: result.ok ? 'healthy' : 'unhealthy',
     service: 'email',
     data: result
+  });
+});
+
+// Admin-only: send a real test email to validate delivery path and sender.
+app.post('/api/health/email/send-test', authenticate, adminOnly, async (req, res) => {
+  const to = req.body?.to || req.user?.email;
+
+  if (!to) {
+    return res.status(400).json({
+      success: false,
+      message: 'Thiếu email nhận test. Truyền body.to hoặc dùng tài khoản admin có email.'
+    });
+  }
+
+  const delivered = await emailService.sendHealthCheckEmail(to, req.user?.fullName || 'Admin');
+
+  if (!delivered) {
+    return res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      service: 'email',
+      message: 'Gửi email test thất bại. Kiểm tra lại cấu hình SMTP/Brevo hoặc sender verify.'
+    });
+  }
+
+  return res.json({
+    success: true,
+    status: 'healthy',
+    service: 'email',
+    message: `Đã gửi email test tới ${to}`
   });
 });
 

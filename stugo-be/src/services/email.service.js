@@ -3,9 +3,34 @@ import { promises as dns } from 'node:dns';
 
 let smtpWarningPrinted = false;
 
+const getSmtpConfig = () => {
+  const brevoKey = process.env.BREVO_API_KEY || process.env.BREVO_SMTP_KEY || null;
+  const host = process.env.SMTP_HOST || process.env.BREVO_SMTP_HOST || (brevoKey ? 'smtp-relay.brevo.com' : null);
+  const portRaw = process.env.SMTP_PORT || process.env.BREVO_SMTP_PORT || (host ? '587' : null);
+  const user = process.env.SMTP_USER || process.env.BREVO_SMTP_USER || (brevoKey ? 'apikey' : null);
+  const pass = process.env.SMTP_PASS || process.env.BREVO_SMTP_PASS || brevoKey;
+  const from = process.env.SMTP_FROM || process.env.BREVO_SMTP_FROM || null;
+  const port = portRaw ? parseInt(portRaw, 10) : null;
+
+  return {
+    host,
+    port,
+    user,
+    pass,
+    from,
+    secure: String(portRaw) === '465',
+  };
+};
+
 const getMissingSmtpVars = () => {
-  const requiredVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS'];
-  return requiredVars.filter((key) => !process.env[key]);
+  const config = getSmtpConfig();
+  const missing = [];
+  if (!config.host) missing.push('SMTP_HOST/BREVO_SMTP_HOST');
+  if (!config.port || Number.isNaN(config.port)) missing.push('SMTP_PORT/BREVO_SMTP_PORT');
+  if (!config.user) missing.push('SMTP_USER/BREVO_SMTP_USER');
+  if (!config.pass) missing.push('SMTP_PASS/BREVO_SMTP_PASS/BREVO_API_KEY');
+  if (!config.from) missing.push('SMTP_FROM/BREVO_SMTP_FROM');
+  return missing;
 };
 
 const isEmailConfigured = () => getMissingSmtpVars().length === 0;
@@ -20,8 +45,9 @@ const logSmtpWarning = () => {
 };
 
 const getSmtpCandidates = () => {
-  const host = process.env.SMTP_HOST;
-  const rawPort = parseInt(process.env.SMTP_PORT || '587', 10);
+  const config = getSmtpConfig();
+  const host = config.host;
+  const rawPort = config.port || 587;
   const candidates = [{ port: rawPort, secure: rawPort === 465 }];
 
   // Gmail often works better on 465 in some cloud networks.
@@ -52,6 +78,8 @@ const resolveSmtpHost = async (host) => {
 };
 
 const createTransporter = (host, port, secure, servername) => {
+  const config = getSmtpConfig();
+
   return nodemailer.createTransport({
     host,
     port,
@@ -63,8 +91,8 @@ const createTransporter = (host, port, secure, servername) => {
       servername,
     },
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: config.user,
+      pass: config.pass,
     },
   });
 };
@@ -76,15 +104,17 @@ const sendEmail = async (to, subject, htmlContent) => {
       return false;
     }
 
+    const config = getSmtpConfig();
+
     const mailOptions = {
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      from: config.from,
       to,
       subject,
       html: htmlContent,
     };
 
     let lastError = null;
-    const resolved = await resolveSmtpHost(process.env.SMTP_HOST);
+    const resolved = await resolveSmtpHost(config.host);
     for (const candidate of getSmtpCandidates()) {
       try {
         const transporter = createTransporter(
@@ -94,7 +124,7 @@ const sendEmail = async (to, subject, htmlContent) => {
           resolved.servername
         );
         const info = await transporter.sendMail(mailOptions);
-        console.log(`[Email Service] Email sent to ${to}: ${info.messageId} via ${process.env.SMTP_HOST}:${candidate.port}`);
+        console.log(`[Email Service] Email sent to ${to}: ${info.messageId} via ${config.host}:${candidate.port}`);
         return true;
       } catch (error) {
         lastError = error;
@@ -109,6 +139,7 @@ const sendEmail = async (to, subject, htmlContent) => {
 };
 
 export const verifyEmailConnection = async () => {
+  const config = getSmtpConfig();
   const missingVars = getMissingSmtpVars();
 
   if (missingVars.length > 0) {
@@ -116,9 +147,9 @@ export const verifyEmailConnection = async () => {
       ok: false,
       configured: false,
       missingVars,
-      host: process.env.SMTP_HOST || null,
-      port: process.env.SMTP_PORT || null,
-      secure: process.env.SMTP_PORT === '465',
+      host: config.host || null,
+      port: config.port ? String(config.port) : null,
+      secure: config.secure,
       message: 'SMTP is not fully configured'
     };
   }
@@ -126,7 +157,7 @@ export const verifyEmailConnection = async () => {
   try {
     const timeoutMs = 12000;
     let lastError = null;
-    const resolved = await resolveSmtpHost(process.env.SMTP_HOST);
+    const resolved = await resolveSmtpHost(config.host);
 
     for (const candidate of getSmtpCandidates()) {
       try {
@@ -147,7 +178,7 @@ export const verifyEmailConnection = async () => {
           ok: true,
           configured: true,
           missingVars: [],
-          host: process.env.SMTP_HOST,
+          host: config.host,
           port: String(candidate.port),
           secure: candidate.secure,
           message: 'SMTP connection is healthy'
@@ -163,9 +194,9 @@ export const verifyEmailConnection = async () => {
       ok: false,
       configured: true,
       missingVars: [],
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: process.env.SMTP_PORT === '465',
+      host: config.host,
+      port: config.port ? String(config.port) : null,
+      secure: config.secure,
       message: error.message || 'SMTP verification failed',
       code: error.code || null
     };
@@ -344,11 +375,28 @@ export const sendRefundEmail = async (email, name, amount, bankInfo, isApproved,
   return sendEmail(email, subject, baseTemplate(content));
 };
 
+export const sendHealthCheckEmail = async (email, name = 'Admin') => {
+  const subject = '[StuGo] Email Health Check';
+  const content = `
+    <h2 style="color: #111827; margin-top: 0;">Xin chào ${name},</h2>
+    <p>Đây là email kiểm tra kết nối SMTP/Brevo từ hệ thống StuGo.</p>
+    <table class="data-table">
+      <tr><th>Thời gian</th><td>${new Date().toISOString()}</td></tr>
+      <tr><th>Môi trường</th><td>${process.env.NODE_ENV || 'development'}</td></tr>
+      <tr><th>Provider</th><td>${process.env.BREVO_API_KEY || process.env.BREVO_SMTP_KEY ? 'Brevo SMTP' : 'Generic SMTP'}</td></tr>
+    </table>
+    <p style="margin-top: 16px;">Nếu bạn nhận được email này, cấu hình gửi mail đang hoạt động.</p>
+  `;
+
+  return sendEmail(email, subject, baseTemplate(content));
+};
+
 export default {
   sendWelcomeEmail,
   sendPaymentSuccessEmail,
   sendPremiumWelcomeEmail,
   sendBookingSuccessEmail,
   sendRefundEmail,
+  sendHealthCheckEmail,
   verifyEmailConnection
 };

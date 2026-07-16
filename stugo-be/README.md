@@ -45,7 +45,21 @@ FRONTEND_URL=http://localhost:5173
 PAYOS_CLIENT_ID=your-payos-client-id
 PAYOS_API_KEY=your-payos-api-key
 PAYOS_CHECKSUM_KEY=your-payos-checksum-key
+
+# Email (recommended: Brevo)
+BREVO_API_KEY=your-brevo-smtp-key
+BREVO_SMTP_FROM="StuGo <no-reply@yourdomain.com>"
 ```
+
+### Email Provider (Brevo Recommended)
+
+Cloud providers often timeout with Gmail SMTP. Brevo is recommended for production.
+
+1. Create Brevo account and SMTP key.
+2. Set `BREVO_API_KEY` and a verified sender in `BREVO_SMTP_FROM`.
+3. Check connection health: `GET /api/health/email`
+
+You can still use generic SMTP vars (`SMTP_*`) if needed.
 
 ## PayOS Integration
 
