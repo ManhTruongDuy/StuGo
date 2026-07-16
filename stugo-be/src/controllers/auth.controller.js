@@ -12,6 +12,26 @@ const generateToken = (userId) => {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
+const queueWelcomeEmail = (user, source) => {
+  if (!user?.email) {
+    console.warn(`[Auth] Welcome email skipped (${source}): missing recipient email`);
+    return;
+  }
+
+  console.log(`[Auth] Queue welcome email (${source}) to ${user.email}`);
+  emailService.sendWelcomeEmail(user.email, user.fullName || 'bạn')
+    .then(sent => {
+      if (sent) {
+        console.log(`[Auth] Welcome email sent (${source}) to ${user.email}`);
+      } else {
+        console.warn(`[Auth] Welcome email not sent (${source}) to ${user.email}. Check Email Service logs and Brevo transactional activity/suppression.`);
+      }
+    })
+    .catch(err => {
+      console.error(`[Auth] Welcome email failed (${source}) to ${user.email}:`, err);
+    });
+};
+
 /**
  * Email/Password Register
  * POST /api/auth/register
@@ -44,10 +64,8 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    // Send welcome email asynchronously without blocking
-    emailService.sendWelcomeEmail(user.email, user.fullName).catch(err => {
-      console.error('Failed to send welcome email (Register):', err);
-    });
+    // Send welcome email asynchronously without blocking account creation.
+    queueWelcomeEmail(user, 'Register');
 
     res.status(201).json({
       success: true,

@@ -2,6 +2,27 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { userRepository } from '../repositories/index.js';
 import emailService from '../services/email.service.js';
+
+const queueWelcomeEmail = (email, fullName) => {
+  if (!email) {
+    console.warn('[Auth] Welcome email skipped (Google Auth): missing recipient email');
+    return;
+  }
+
+  console.log(`[Auth] Queue welcome email (Google Auth) to ${email}`);
+  emailService.sendWelcomeEmail(email, fullName || 'bạn')
+    .then(sent => {
+      if (sent) {
+        console.log(`[Auth] Welcome email sent (Google Auth) to ${email}`);
+      } else {
+        console.warn(`[Auth] Welcome email not sent (Google Auth) to ${email}. Check Email Service logs and Brevo transactional activity/suppression.`);
+      }
+    })
+    .catch(err => {
+      console.error(`[Auth] Welcome email failed (Google Auth) to ${email}:`, err);
+    });
+};
+
 /**
  * Configure Passport Google OAuth Strategy
  */
@@ -41,12 +62,8 @@ const configurePassport = () => {
               status: 'active',
             });
             
-            // Send welcome email asynchronously without blocking auth flow
-            if (email) {
-              emailService.sendWelcomeEmail(email, fullName).catch(err => {
-                console.error('Failed to send welcome email (Google Auth):', err);
-              });
-            }
+            // Send welcome email asynchronously without blocking auth flow.
+            queueWelcomeEmail(email, fullName);
           } else {
             // Update existing user with Google info if not set
             if (!user.googleId) {

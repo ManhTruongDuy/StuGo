@@ -181,6 +181,37 @@ app.post('/api/health/email/send-test', authenticate, adminOnly, async (req, res
   });
 });
 
+// Admin-only: send the exact welcome template used by registration.
+app.post('/api/health/email/send-welcome-test', authenticate, adminOnly, async (req, res) => {
+  const to = req.body?.to || req.user?.email;
+  const name = req.body?.name || req.user?.fullName || 'Admin';
+
+  if (!to) {
+    return res.status(400).json({
+      success: false,
+      message: 'Thiếu email nhận test. Truyền body.to hoặc dùng tài khoản admin có email.'
+    });
+  }
+
+  const delivered = await emailService.sendWelcomeEmail(to, name);
+
+  if (!delivered) {
+    return res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      service: 'email',
+      message: 'Gửi welcome email test thất bại. Kiểm tra Email Service logs, Brevo sender, hoặc suppression list.'
+    });
+  }
+
+  return res.json({
+    success: true,
+    status: 'healthy',
+    service: 'email',
+    message: `Đã gửi welcome email test tới ${to}`
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/services', serviceRoutes);
