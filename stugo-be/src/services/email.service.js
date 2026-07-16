@@ -3,13 +3,17 @@ import { promises as dns } from 'node:dns';
 
 let smtpWarningPrinted = false;
 
+const cleanEnv = (value) => {
+  return typeof value === 'string' ? value.trim() : value;
+};
+
 const getSmtpConfig = () => {
-  const brevoKey = process.env.BREVO_API_KEY || process.env.BREVO_SMTP_KEY || null;
-  const host = process.env.SMTP_HOST || process.env.BREVO_SMTP_HOST || (brevoKey ? 'smtp-relay.brevo.com' : null);
-  const portRaw = process.env.SMTP_PORT || process.env.BREVO_SMTP_PORT || (host ? '587' : null);
-  const user = process.env.SMTP_USER || process.env.BREVO_SMTP_USER || (brevoKey ? 'apikey' : null);
-  const pass = process.env.SMTP_PASS || process.env.BREVO_SMTP_PASS || brevoKey;
-  const from = process.env.SMTP_FROM || process.env.BREVO_SMTP_FROM || null;
+  const brevoKey = cleanEnv(process.env.BREVO_API_KEY) || cleanEnv(process.env.BREVO_SMTP_KEY) || null;
+  const host = cleanEnv(process.env.SMTP_HOST) || cleanEnv(process.env.BREVO_SMTP_HOST) || (brevoKey ? 'smtp-relay.brevo.com' : null);
+  const portRaw = cleanEnv(process.env.SMTP_PORT) || cleanEnv(process.env.BREVO_SMTP_PORT) || (host ? '587' : null);
+  const user = cleanEnv(process.env.SMTP_USER) || cleanEnv(process.env.BREVO_SMTP_USER) || (brevoKey ? 'apikey' : null);
+  const pass = cleanEnv(process.env.SMTP_PASS) || cleanEnv(process.env.BREVO_SMTP_PASS) || brevoKey;
+  const from = cleanEnv(process.env.SMTP_FROM) || cleanEnv(process.env.BREVO_SMTP_FROM) || null;
   const port = portRaw ? parseInt(portRaw, 10) : null;
 
   return {
@@ -21,6 +25,22 @@ const getSmtpConfig = () => {
     secure: String(portRaw) === '465',
   };
 };
+
+const maskValue = (value) => {
+  if (!value) return null;
+  if (value.length <= 4) return '*'.repeat(value.length);
+  return `${value.slice(0, 2)}***${value.slice(-2)}`;
+};
+
+const getConfigDiagnostics = (config) => ({
+  userSource: process.env.SMTP_USER ? 'SMTP_USER' : process.env.BREVO_SMTP_USER ? 'BREVO_SMTP_USER' : process.env.BREVO_API_KEY ? 'BREVO_API_KEY_DEFAULT_USER' : null,
+  passSource: process.env.SMTP_PASS ? 'SMTP_PASS' : process.env.BREVO_SMTP_PASS ? 'BREVO_SMTP_PASS' : process.env.BREVO_API_KEY ? 'BREVO_API_KEY' : null,
+  fromSource: process.env.SMTP_FROM ? 'SMTP_FROM' : process.env.BREVO_SMTP_FROM ? 'BREVO_SMTP_FROM' : null,
+  userMasked: maskValue(config.user),
+  userLength: config.user?.length || 0,
+  passLength: config.pass?.length || 0,
+  from: config.from || null,
+});
 
 const getMissingSmtpVars = () => {
   const config = getSmtpConfig();
@@ -150,7 +170,8 @@ export const verifyEmailConnection = async () => {
       host: config.host || null,
       port: config.port ? String(config.port) : null,
       secure: config.secure,
-      message: 'SMTP is not fully configured'
+      message: 'SMTP is not fully configured',
+      diagnostics: getConfigDiagnostics(config)
     };
   }
 
@@ -181,7 +202,8 @@ export const verifyEmailConnection = async () => {
           host: config.host,
           port: String(candidate.port),
           secure: candidate.secure,
-          message: 'SMTP connection is healthy'
+          message: 'SMTP connection is healthy',
+          diagnostics: getConfigDiagnostics(config)
         };
       } catch (error) {
         lastError = error;
@@ -198,7 +220,8 @@ export const verifyEmailConnection = async () => {
       port: config.port ? String(config.port) : null,
       secure: config.secure,
       message: error.message || 'SMTP verification failed',
-      code: error.code || null
+      code: error.code || null,
+      diagnostics: getConfigDiagnostics(config)
     };
   }
 };
