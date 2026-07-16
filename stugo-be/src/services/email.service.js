@@ -18,11 +18,24 @@ const logSmtpWarning = () => {
   smtpWarningPrinted = true;
 };
 
-const createTransporter = () => {
+const getSmtpCandidates = () => {
+  const host = process.env.SMTP_HOST;
+  const rawPort = parseInt(process.env.SMTP_PORT || '587', 10);
+  const candidates = [{ port: rawPort, secure: rawPort === 465 }];
+
+  // Gmail often works better on 465 in some cloud networks.
+  if (host === 'smtp.gmail.com' && rawPort === 587) {
+    candidates.push({ port: 465, secure: true });
+  }
+
+  return candidates;
+};
+
+const createTransporter = (port, secure) => {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+    port,
+    secure,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 10000,
@@ -40,7 +53,6 @@ const sendEmail = async (to, subject, htmlContent) => {
       return false;
     }
 
-    const transporter = createTransporter();
     const mailOptions = {
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
@@ -48,9 +60,19 @@ const sendEmail = async (to, subject, htmlContent) => {
       html: htmlContent,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Email Service] Email sent to ${to}: ${info.messageId}`);
-    return true;
+    let lastError = null;
+    for (const candidate of getSmtpCandidates()) {
+      try {
+        const transporter = createTransporter(candidate.port, candidate.secure);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[Email Service] Email sent to ${to}: ${info.messageId} via ${process.env.SMTP_HOST}:${candidate.port}`);
+        return true;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error('Unknown SMTP error');
   } catch (error) {
     console.error(`[Email Service] Error sending email to ${to}:`, error);
     return false;
@@ -73,24 +95,34 @@ export const verifyEmailConnection = async () => {
   }
 
   try {
-    const transporter = createTransporter();
     const timeoutMs = 12000;
-    await Promise.race([
-      transporter.verify(),
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`SMTP verification timeout after ${timeoutMs}ms`)), timeoutMs);
-      })
-    ]);
+    let lastError = null;
 
-    return {
-      ok: true,
-      configured: true,
-      missingVars: [],
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: process.env.SMTP_PORT === '465',
-      message: 'SMTP connection is healthy'
-    };
+    for (const candidate of getSmtpCandidates()) {
+      try {
+        const transporter = createTransporter(candidate.port, candidate.secure);
+        await Promise.race([
+          transporter.verify(),
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new Error(`SMTP verification timeout after ${timeoutMs}ms`)), timeoutMs);
+          })
+        ]);
+
+        return {
+          ok: true,
+          configured: true,
+          missingVars: [],
+          host: process.env.SMTP_HOST,
+          port: String(candidate.port),
+          secure: candidate.secure,
+          message: 'SMTP connection is healthy'
+        };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error('SMTP verification failed');
   } catch (error) {
     return {
       ok: false,
@@ -99,7 +131,8 @@ export const verifyEmailConnection = async () => {
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
       secure: process.env.SMTP_PORT === '465',
-      message: error.message || 'SMTP verification failed'
+      message: error.message || 'SMTP verification failed',
+      code: error.code || null
     };
   }
 };
