@@ -5,6 +5,7 @@ import { getCombos, deleteCombo, getComboById, updateCombo, type Combo } from '.
 import { getServices } from '../../services/service.service';
 import type { Service } from '../../types';
 import toast from 'react-hot-toast';
+import ImageDropzone from '../../components/ui/ImageDropzone';
 
 interface LinkedServiceRow {
     serviceId: string;
@@ -97,8 +98,11 @@ const ComboEditModal = ({
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [services, setServices] = useState<Service[]>([]);
+    const [draggingImageIndex, setDraggingImageIndex] = useState<number | null>(null);
     const [formData, setFormData] = useState({
         name: '',
+        thumbnail: '',
+        images: [''],
         destination: '',
         duration: '',
         accommodationName: '',
@@ -139,6 +143,8 @@ const ComboEditModal = ({
 
                 setFormData({
                     name: combo?.name || '',
+                    thumbnail: combo?.thumbnail || '',
+                    images: combo?.images?.length ? combo.images : [''],
                     destination: combo?.destination || '',
                     duration: combo?.duration || '',
                     accommodationName: combo?.accommodationName || '',
@@ -214,6 +220,8 @@ const ComboEditModal = ({
 
             await updateCombo(comboId, {
                 name: formData.name,
+                thumbnail: formData.thumbnail,
+                images: formData.images.filter((img) => img.trim() !== ''),
                 destination: formData.destination,
                 duration: formData.duration,
                 accommodationName: formData.accommodationName,
@@ -234,6 +242,56 @@ const ComboEditModal = ({
         }
     };
 
+    const updateGalleryImage = (index: number, value: string) => {
+        setFormData((prev) => {
+            const next = [...prev.images];
+            next[index] = value;
+            return { ...prev, images: next };
+        });
+    };
+
+    const addGalleryImage = () => {
+        setFormData((prev) => ({ ...prev, images: [...prev.images, ''] }));
+    };
+
+    const removeGalleryImage = (index: number) => {
+        setFormData((prev) => {
+            const next = prev.images.filter((_, i) => i !== index);
+            return { ...prev, images: next.length ? next : [''] };
+        });
+    };
+
+    const handleGalleryFileChange = (index: number, file: File | null) => {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Vui lòng chọn file hình ảnh');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            updateGalleryImage(index, (reader.result as string) || '');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleImageDragStart = (index: number) => {
+        setDraggingImageIndex(index);
+    };
+
+    const handleImageDrop = (targetIndex: number) => {
+        if (draggingImageIndex === null || draggingImageIndex === targetIndex) return;
+
+        setFormData((prev) => {
+            const next = [...prev.images];
+            const [moved] = next.splice(draggingImageIndex, 1);
+            next.splice(targetIndex, 0, moved);
+            return { ...prev, images: next };
+        });
+
+        setDraggingImageIndex(null);
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
             <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl">
@@ -251,6 +309,87 @@ const ComboEditModal = ({
                     </div>
                 ) : (
                     <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <ImageDropzone
+                                label="Ảnh đại diện (Thumbnail)"
+                                value={formData.thumbnail}
+                                onChange={(val) => setFormData((prev) => ({ ...prev, thumbnail: val }))}
+                            />
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Thư viện ảnh phụ</label>
+                                <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {formData.images.map((img, index) => (
+                                            <div
+                                                key={`${index}-${img?.slice(0, 12) || 'empty'}`}
+                                                draggable
+                                                onDragStart={() => handleImageDragStart(index)}
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onDrop={() => handleImageDrop(index)}
+                                                onDragEnd={() => setDraggingImageIndex(null)}
+                                                className={`relative rounded-xl border bg-white overflow-hidden transition-shadow ${
+                                                    draggingImageIndex === index ? 'opacity-60 ring-2 ring-primary-300' : 'hover:shadow-sm'
+                                                }`}
+                                                title="Kéo thả để đổi thứ tự"
+                                            >
+                                                <div className="absolute left-2 top-2 z-10 rounded-md bg-black/60 px-2 py-0.5 text-[11px] text-white">
+                                                    #{index + 1}
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeGalleryImage(index)}
+                                                    className="absolute right-2 top-2 z-10 rounded-md bg-white/90 p-1 text-red-500 hover:bg-red-50"
+                                                    title="Xóa ảnh phụ"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+
+                                                <div className="aspect-square bg-gray-100">
+                                                    {img ? (
+                                                        <img src={img} alt={`Ảnh phụ ${index + 1}`} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 px-2 text-center">
+                                                            Ảnh trống
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="p-2 space-y-2 border-t border-gray-100">
+                                                    <input
+                                                        type="text"
+                                                        value={img}
+                                                        onChange={(e) => updateGalleryImage(index, e.target.value)}
+                                                        placeholder="Dán URL ảnh"
+                                                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-md outline-none focus:border-primary-500"
+                                                    />
+                                                    <label className="block text-center text-xs text-primary-600 hover:text-primary-700 cursor-pointer">
+                                                        Tải ảnh
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={(e) => handleGalleryFileChange(index, e.target.files?.[0] || null)}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={addGalleryImage}
+                                        className="mt-3 text-sm text-primary-600 hover:text-primary-700"
+                                    >
+                                        + Thêm ảnh phụ
+                                    </button>
+                                    <p className="mt-1 text-xs text-gray-500">Kéo thả từng ảnh để đổi thứ tự hiển thị.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Tên Combo</label>
