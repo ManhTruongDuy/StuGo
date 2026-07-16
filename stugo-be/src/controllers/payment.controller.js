@@ -13,6 +13,15 @@ const generateOrderCode = () => {
   return Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000);
 };
 
+const generateUniqueOrderCode = async () => {
+  for (let i = 0; i < 5; i += 1) {
+    const candidate = generateOrderCode();
+    const existing = await paymentRepository.findByOrderCode(candidate);
+    if (!existing) return candidate;
+  }
+  throw new Error('Không thể tạo mã đơn hàng duy nhất, vui lòng thử lại');
+};
+
 /**
  * Common payment creation logic
  */
@@ -36,7 +45,7 @@ const createPaymentLink = async (req, booking, items) => {
   }
 
   // Generate order code
-  const orderCode = generateOrderCode();
+  const orderCode = await generateUniqueOrderCode();
   // Calculate amount based on payment type
   const amount = paymentType === 'full' ? booking.totalAmount : booking.depositAmount;
   const description = paymentType === 'full'
@@ -817,7 +826,7 @@ export const createRemainingPayment = async (req, res, next) => {
     }
 
     const payos = getPayOS();
-    const orderCode = generateOrderCode();
+    const orderCode = await generateUniqueOrderCode();
     const remainingAmount = booking.totalAmount - booking.depositAmount;
 
     // Create items based on service type
@@ -897,7 +906,8 @@ export const createRemainingPayment = async (req, res, next) => {
       status: 'pending',
       checkoutUrl,
       qrCode,
-      payosPaymentLinkId: paymentLinkId
+      payosPaymentLinkId: paymentLinkId,
+      paymentType: 'full'
     });
 
     res.status(201).json({

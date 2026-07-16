@@ -6,6 +6,15 @@ import payos from '../config/payos.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+const generateUniqueOrderCode = async () => {
+  for (let i = 0; i < 5; i += 1) {
+    const candidate = Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000);
+    const exists = await Payment.exists({ orderCode: candidate });
+    if (!exists) return candidate;
+  }
+  throw new Error('Không thể tạo mã đơn hàng duy nhất, vui lòng thử lại');
+};
+
 export const getPlans = async (req, res) => {
   try {
     const plans = await SubscriptionPlan.find({ status: 'active' });
@@ -135,7 +144,7 @@ export const createSubscriptionPayment = async (req, res) => {
     }
 
     // Paid plan — create PayOS payment link
-    const orderCode = Number(String(Date.now()).slice(-6)); // Ensure it fits safely in common int types
+    const orderCode = await generateUniqueOrderCode();
     const amount = plan.price;
     const description = `StuGo ${plan.name}`.substring(0, 25);
 

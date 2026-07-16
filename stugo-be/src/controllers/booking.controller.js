@@ -848,7 +848,9 @@ export const cancelBooking = async (req, res, next) => {
     let createRefundRequest = false;
 
     if (booking.paymentStatus !== 'pending') {
-      const amountPaid = booking.depositAmount + (booking.paymentStatus === 'fully_paid' ? booking.remainingAmount : 0);
+      const amountPaid = booking.paymentStatus === 'fully_paid'
+        ? booking.totalAmount
+        : booking.depositAmount;
       
       // Calculate time difference
       const departureDateTime = new Date(booking.date);
@@ -918,7 +920,9 @@ export const cancelBooking = async (req, res, next) => {
         departureDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
       }
 
-      const amountPaid = booking.depositAmount + (booking.paymentStatus === 'fully_paid' ? booking.remainingAmount : 0);
+      const amountPaid = booking.paymentStatus === 'fully_paid'
+        ? booking.totalAmount
+        : booking.depositAmount;
 
       await RefundRequest.create({
         bookingId: booking._id,

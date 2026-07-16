@@ -141,6 +141,9 @@ export const createPaymentRules = [
   body('bookingId')
     .notEmpty().withMessage('bookingId là bắt buộc')
     .isMongoId().withMessage('bookingId không hợp lệ'),
+  body('paymentType')
+    .optional()
+    .isIn(['deposit', 'full']).withMessage('paymentType không hợp lệ'),
   // Don't validate any other fields - payment only needs bookingId
   validate
 ];
