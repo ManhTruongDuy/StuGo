@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { promises as dns } from 'node:dns';
 
 let smtpWarningPrinted = false;
 
@@ -31,15 +32,36 @@ const getSmtpCandidates = () => {
   return candidates;
 };
 
-const createTransporter = (port, secure) => {
+const resolveSmtpHost = async (host) => {
+  try {
+    const ipv4List = await dns.resolve4(host);
+    if (Array.isArray(ipv4List) && ipv4List.length > 0) {
+      return {
+        connectHost: ipv4List[0],
+        servername: host,
+      };
+    }
+  } catch (error) {
+    // Fall back to original host if IPv4 resolution fails.
+  }
+
+  return {
+    connectHost: host,
+    servername: host,
+  };
+};
+
+const createTransporter = (host, port, secure, servername) => {
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host,
     port,
     secure,
-    family: 4,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 10000,
+    tls: {
+      servername,
+    },
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -62,9 +84,15 @@ const sendEmail = async (to, subject, htmlContent) => {
     };
 
     let lastError = null;
+    const resolved = await resolveSmtpHost(process.env.SMTP_HOST);
     for (const candidate of getSmtpCandidates()) {
       try {
-        const transporter = createTransporter(candidate.port, candidate.secure);
+        const transporter = createTransporter(
+          resolved.connectHost,
+          candidate.port,
+          candidate.secure,
+          resolved.servername
+        );
         const info = await transporter.sendMail(mailOptions);
         console.log(`[Email Service] Email sent to ${to}: ${info.messageId} via ${process.env.SMTP_HOST}:${candidate.port}`);
         return true;
@@ -98,10 +126,16 @@ export const verifyEmailConnection = async () => {
   try {
     const timeoutMs = 12000;
     let lastError = null;
+    const resolved = await resolveSmtpHost(process.env.SMTP_HOST);
 
     for (const candidate of getSmtpCandidates()) {
       try {
-        const transporter = createTransporter(candidate.port, candidate.secure);
+        const transporter = createTransporter(
+          resolved.connectHost,
+          candidate.port,
+          candidate.secure,
+          resolved.servername
+        );
         await Promise.race([
           transporter.verify(),
           new Promise((_, reject) => {
