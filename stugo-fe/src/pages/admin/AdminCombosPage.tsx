@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Package, Trash2, Eye, Loader2 } from 'lucide-react';
+import { Plus, Package, Trash2, Eye, Loader2, FileText, Pencil } from 'lucide-react';
 import { getCombos, deleteCombo, type Combo } from '../../services/combo.service';
 import toast from 'react-hot-toast';
 
@@ -129,6 +129,20 @@ const AdminCombosPage = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right space-x-2">
+                                            <Link
+                                                to={`/admin/combos/${combo.id || combo._id}`}
+                                                className="inline-flex p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                title="Xem chi tiết"
+                                            >
+                                                <FileText className="w-5 h-5" />
+                                            </Link>
+                                            <Link
+                                                to={`/admin/combos/${combo.id || combo._id}/edit`}
+                                                className="inline-flex p-2 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                                                title="Chỉnh sửa"
+                                            >
+                                                <Pencil className="w-5 h-5" />
+                                            </Link>
                                             <Link
                                                 to={`/combos/${combo.id || combo._id}`}
                                                 target="_blank"

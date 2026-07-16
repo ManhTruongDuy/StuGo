@@ -1,8 +1,44 @@
 import { Combo, Service } from '../models/index.js';
 
+const normalizeLinkedServices = async (linkedServices = []) => {
+  if (!Array.isArray(linkedServices) || linkedServices.length === 0) return [];
+
+  const serviceIds = linkedServices
+    .map(ls => (typeof ls.serviceId === 'object' ? ls.serviceId?._id || ls.serviceId?.id : ls.serviceId))
+    .filter(Boolean);
+
+  if (serviceIds.length === 0) return [];
+
+  const services = await Service.find({ _id: { $in: serviceIds } }).select('_id ownerId').lean();
+  const serviceMap = services.reduce((acc, service) => {
+    acc[service._id.toString()] = service;
+    return acc;
+  }, {});
+
+  return linkedServices
+    .map(ls => {
+      const rawServiceId = typeof ls.serviceId === 'object' ? ls.serviceId?._id || ls.serviceId?.id : ls.serviceId;
+      if (!rawServiceId) return null;
+      const serviceId = rawServiceId.toString();
+      const matchedService = serviceMap[serviceId];
+      if (!matchedService) return null;
+
+      const rawSupplierId = typeof ls.supplierId === 'object' ? ls.supplierId?._id || ls.supplierId?.id : ls.supplierId;
+      const supplierId = rawSupplierId || matchedService.ownerId;
+
+      return {
+        serviceId,
+        supplierId: supplierId?.toString(),
+        netPriceAtBooking: Number(ls.netPriceAtBooking || 0)
+      };
+    })
+    .filter(Boolean);
+};
+
 export const createCombo = async (req, res, next) => {
   try {
     const { name, thumbnail, images, destination, duration, linkedServices, accommodationName, transportType, includes, excludes, termsAndConditions, pricing } = req.body;
+    const normalizedLinkedServices = await normalizeLinkedServices(linkedServices);
     
     const combo = new Combo({
       name,
@@ -10,7 +46,7 @@ export const createCombo = async (req, res, next) => {
       images,
       destination,
       duration,
-      linkedServices,
+      linkedServices: normalizedLinkedServices,
       accommodationName,
       transportType,
       includes,
@@ -119,9 +155,14 @@ export const updateCombo = async (req, res, next) => {
       });
     }
 
+    const payload = { ...req.body };
+    if (Object.prototype.hasOwnProperty.call(req.body, 'linkedServices')) {
+      payload.linkedServices = await normalizeLinkedServices(req.body.linkedServices);
+    }
+
     const updatedCombo = await Combo.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: payload },
       { new: true, runValidators: true }
     );
 
