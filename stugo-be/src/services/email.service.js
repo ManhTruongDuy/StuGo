@@ -23,6 +23,9 @@ const createTransporter = () => {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -71,7 +74,13 @@ export const verifyEmailConnection = async () => {
 
   try {
     const transporter = createTransporter();
-    await transporter.verify();
+    const timeoutMs = 12000;
+    await Promise.race([
+      transporter.verify(),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`SMTP verification timeout after ${timeoutMs}ms`)), timeoutMs);
+      })
+    ]);
 
     return {
       ok: true,
